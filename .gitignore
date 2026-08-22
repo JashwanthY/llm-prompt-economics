@@ -6,4 +6,3 @@ venv/
 .env
 .cache/
 .superpowers/
-data/results/
