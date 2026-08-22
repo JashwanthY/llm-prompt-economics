@@ -6,3 +6,4 @@ venv/
 .env
 .cache/
 .superpowers/
+.DS_Store
