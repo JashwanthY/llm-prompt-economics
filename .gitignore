@@ -8,3 +8,9 @@ venv/
 .superpowers/
 .DS_Store
 data/cache*/
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.xdv
