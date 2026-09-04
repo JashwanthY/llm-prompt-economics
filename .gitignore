@@ -7,3 +7,4 @@ venv/
 .cache/
 .superpowers/
 .DS_Store
+data/cache*/
