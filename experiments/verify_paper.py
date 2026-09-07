@@ -69,9 +69,27 @@ claim(sum(sum(x[k] for x in ms) == 0
           for k in ("inline_handlers", "missing_testid", "innerHTML")) == 3,
       "three rules never broken at any dose")
 
-total = sum(len(json.load(open(ROOT / d / "runlog.json")))
-            for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance"))
-claim(total == 108, f"108 runs total ({total})")
+runs = {d: json.load(open(ROOT / d / "runlog.json"))
+        for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard")}
+total = sum(len(v) for v in runs.values())
+claim(total == 120, f"120 runs total ({total})")
+spend = sum(r.get("in_tokens", 0) for v in runs.values() for r in v) / 1e6 * 1.25 \
+      + sum(r.get("out_tokens", 0) for v in runs.values() for r in v) / 1e6 * 10
+claim(abs(spend - 9.04) < 0.02, f"total spend $9.04 (${spend:.2f})")
+
+# hard-task calibration: no task inside the pre-registered band
+import subprocess
+hard = [json.loads(l) for l in open(ROOT / "hard/grades.jsonl")]
+by = collections.defaultdict(list)
+for d in hard:
+    by[d["task"]].append(d["passed"] / d["total"])
+for task, want, checks in (("sheet", 0.955, 22), ("cart", 1.000, 80), ("form", 0.984, 31)):
+    got = st.mean(by[task])
+    claim(abs(got - want) < 0.005 and
+          [d["total"] for d in hard if d["task"] == task][0] == checks,
+          f"hard/{task} scores {want:.1%} over {checks} checks ({got:.1%})")
+claim(not any(0.55 <= st.mean(v) <= 0.80 for v in by.values()),
+      "no hard task falls inside the 55-80% admission band")
 
 print(f"\n{len(fails)} mismatch(es)")
 sys.exit(1 if fails else 0)
