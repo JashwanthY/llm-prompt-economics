@@ -33,7 +33,11 @@ function checkPassword(v) {
 }
 function checkDob(v) {
   if (!v) return "You must be at least 18";
-  const d = new Date(v), now = new Date();
+  // "2008-09-08" parses as UTC midnight, and getDate() reads it back in local
+  // time, so west of UTC the date silently shifts a day earlier. Build the date
+  // from its parts instead.
+  const [yy, mm, dd] = v.split("-").map(Number);
+  const d = new Date(yy, mm - 1, dd), now = new Date();
   let age = now.getFullYear() - d.getFullYear();
   const m = now.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;

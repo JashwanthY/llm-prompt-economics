@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registration</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; font-family: Arial, sans-serif; background: #f4f6f8; color: #17202a; }
+    form { width: min(100%, 440px); padding: 28px; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.12); }
+    h1 { margin: 0 0 22px; font-size: 1.5rem; }
+    .field { margin: 0 0 16px; }
+    label { display: block; margin-bottom: 6px; font-weight: 700; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #9aa5b1; border-radius: 5px; font: inherit; }
+    input:focus { outline: 3px solid rgba(30, 110, 200, .2); border-color: #1e6ec8; }
+    .error { display: block; min-height: 1.2em; margin-top: 5px; color: #b42318; font-size: .875rem; }
+    button { width: 100%; padding: 11px 14px; border: 0; border-radius: 5px; background: #1769aa; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    button:disabled { background: #9aa5b1; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <form id="registration-form" novalidate>
+    <h1>Registration</h1>
+
+    <div class="field">
+      <label for="app-username">Username</label>
+      <input id="app-username" name="username" type="text" autocomplete="username" aria-describedby="err-username">
+      <span id="err-username" class="error" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="app-email">Email</label>
+      <input id="app-email" name="email" type="email" autocomplete="email" aria-describedby="err-email">
+      <span id="err-email" class="error" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="app-password">Password</label>
+      <input id="app-password" name="password" type="password" autocomplete="new-password" aria-describedby="err-password">
+      <span id="err-password" class="error" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="app-confirm">Confirm password</label>
+      <input id="app-confirm" name="confirm" type="password" autocomplete="new-password" aria-describedby="err-confirm">
+      <span id="err-confirm" class="error" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="app-dob">Date of birth</label>
+      <input id="app-dob" name="dob" type="date" aria-describedby="err-dob">
+      <span id="err-dob" class="error" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="app-phone">Phone</label>
+      <input id="app-phone" name="phone" type="tel" autocomplete="tel" aria-describedby="err-phone">
+      <span id="err-phone" class="error" aria-live="polite"></span>
+    </div>
+
+    <button id="app-submit" type="submit" disabled>Register</button>
+  </form>
+
+  <script>
+    (function () {
+      const form = document.getElementById('registration-form');
+      const fields = {
+        username: document.getElementById('app-username'),
+        email: document.getElementById('app-email'),
+        password: document.getElementById('app-password'),
+        confirm: document.getElementById('app-confirm'),
+        dob: document.getElementById('app-dob'),
+        phone: document.getElementById('app-phone')
+      };
+      const submit = document.getElementById('app-submit');
+      const takenUsernames = new Set(['admin', 'root', 'test']);
+
+      function usernameError(value) {
+        if (value.length === 0) return 'Username is required';
+        if (value.length < 3 || value.length > 16) return 'Username must be 3-16 characters';
+        if (!/^[A-Za-z0-9_]+$/.test(value)) return 'Username may only contain letters, digits and underscore';
+        if (takenUsernames.has(value.toLowerCase())) return 'Username is already taken';
+        return '';
+      }
+
+      function emailError(value) {
+        const at = value.indexOf('@');
+        const isValid = at > 0 && at === value.lastIndexOf('@') && value.slice(at + 1).includes('.');
+        return isValid ? '' : 'Enter a valid email address';
+      }
+
+      function passwordError(value) {
+        if (value.length < 10) return 'Password must be at least 10 characters';
+        const missing = [];
+        if (!/[A-Z]/.test(value)) missing.push('uppercase');
+        if (!/[a-z]/.test(value)) missing.push('lowercase');
+        if (!/\d/.test(value)) missing.push('digit');
+        if (!/[^A-Za-z0-9]/.test(value)) missing.push('symbol');
+        return missing.length ? 'Password needs: ' + missing.join(', ') : '';
+      }
+
+      function dobError(value) {
+        if (!value) return 'You must be at least 18';
+        const birth = new Date(value + 'T00:00:00');
+        if (Number.isNaN(birth.getTime())) return 'You must be at least 18';
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const birthdayThisYear = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+        if (today < birthdayThisYear) age--;
+        return age >= 18 ? '' : 'You must be at least 18';
+      }
+
+      function validate() {
+        const errors = {
+          username: usernameError(fields.username.value),
+          email: emailError(fields.email.value),
+          password: passwordError(fields.password.value),
+          confirm: fields.confirm.value === fields.password.value ? '' : 'Passwords do not match',
+          dob: dobError(fields.dob.value),
+          phone: /^\d{10}$/.test(fields.phone.value.replace(/[\s()\-]/g, '')) ? '' : 'Enter a 10-digit phone number'
+        };
+
+        Object.keys(errors).forEach(function (name) {
+          const error = errors[name];
+          const span = document.getElementById('err-' + name);
+          span.textContent = error;
+          fields[name].setAttribute('aria-invalid', error ? 'true' : 'false');
+        });
+        submit.disabled = Object.values(errors).some(Boolean);
+        return errors;
+      }
+
+      Object.values(fields).forEach(function (field) {
+        field.addEventListener('input', validate);
+        field.addEventListener('change', validate);
+      });
+      form.addEventListener('submit', function (event) {
+        if (Object.values(validate()).some(Boolean)) event.preventDefault();
+      });
+      validate();
+    }());
+  </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Spreadsheet</title>
+<style>
+  :root { color-scheme: light; font-family: system-ui, sans-serif; }
+  body { margin: 2rem; color: #1f2937; background: #f8fafc; }
+  main { max-width: 42rem; margin: auto; }
+  h1 { font-size: 1.35rem; margin: 0 0 1rem; }
+  .toolbar { margin-bottom: .9rem; }
+  button { border: 1px solid #94a3b8; border-radius: .35rem; background: white; padding: .4rem .8rem; cursor: pointer; }
+  button:hover { background: #e2e8f0; }
+  table { border-collapse: collapse; background: white; box-shadow: 0 1px 3px #0001; }
+  th, td { border: 1px solid #cbd5e1; padding: .35rem .45rem; }
+  th { background: #e2e8f0; font-weight: 600; text-align: center; }
+  td { white-space: nowrap; }
+  input { width: 7rem; box-sizing: border-box; border: 1px solid #94a3b8; border-radius: .2rem; padding: .35rem; font: inherit; }
+  input:focus { outline: 2px solid #60a5fa; border-color: #2563eb; }
+  .output { display: inline-block; min-width: 4.3rem; margin-left: .45rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .error { color: #b91c1c; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini Spreadsheet</h1>
+  <div class="toolbar"><button id="app-undo" type="button">Undo</button></div>
+  <table aria-label="Spreadsheet">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+    <tbody id="sheet-body"></tbody>
+  </table>
+</main>
+<script>
+(function () {
+  'use strict';
+  const cols = ['A', 'B', 'C', 'D'];
+  const rows = [1, 2, 3, 4];
+  const ids = [];
+  const inputs = Object.create(null);
+  const outputs = Object.create(null);
+  const history = [];
+  let editStart = null;
+
+  const body = document.getElementById('sheet-body');
+  rows.forEach(function (r) {
+    const tr = document.createElement('tr');
+    const heading = document.createElement('th');
+    heading.textContent = r;
+    tr.appendChild(heading);
+    cols.forEach(function (c) {
+      const id = c + r;
+      ids.push(id);
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.id = 'cell-' + id;
+      input.setAttribute('aria-label', id + ' input');
+      input.autocomplete = 'off';
+      const output = document.createElement('span');
+      output.id = 'out-' + id;
+      output.className = 'output';
+      output.setAttribute('aria-label', id + ' computed value');
+      td.append(input, output);
+      tr.appendChild(td);
+      inputs[id] = input;
+      outputs[id] = output;
+      input.addEventListener('focus', function () { editStart = { id: id, value: input.value }; });
+      input.addEventListener('input', recompute);
+      input.addEventListener('change', function () {
+        if (editStart && editStart.id === id && editStart.value !== input.value) {
+          history.push({ id: id, value: editStart.value });
+        }
+        editStart = null;
+        recompute();
+      });
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { input.blur(); }
+      });
+    });
+    body.appendChild(tr);
+  });
+
+  function isCellId(value) { return /^[A-D][1-4]$/.test(value); }
+  function numberValue(text) {
+    const n = Number(String(text).trim());
+    return Number.isFinite(n) ? n : 0;
+  }
+  function tokenize(source) {
+    const tokens = [];
+    let i = 0;
+    while (i < source.length) {
+      const ch = source[i];
+      if (/\s/.test(ch)) { i++; continue; }
+      if (/[0-9.]/.test(ch)) {
+        const match = source.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
+        if (!match) throw '#VALUE';
+        tokens.push({ type: 'number', value: Number(match[0]) }); i += match[0].length; continue;
+      }
+      if (/[A-Za-z]/.test(ch)) {
+        const match = source.slice(i).match(/^[A-Za-z]+[0-9]*/)[0];
+        tokens.push({ type: 'name', value: match.toUpperCase() }); i += match.length; continue;
+      }
+      if ('+-*/():'.includes(ch)) { tokens.push({ type: ch, value: ch }); i++; continue; }
+      throw '#VALUE';
+    }
+    tokens.push({ type: 'eof', value: '' });
+    return tokens;
+  }
+
+  function rangeCells(start, end) {
+    const a = start.match(/^([A-D])(\d+)$/), b = end.match(/^([A-D])(\d+)$/);
+    if (!a || !b || !isCellId(start) || !isCellId(end)) throw '#REF';
+    const c1 = cols.indexOf(a[1]), c2 = cols.indexOf(b[1]);
+    const r1 = Number(a[2]), r2 = Number(b[2]);
+    const result = [];
+    for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
+      for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) result.push(cols[c] + r);
+    }
+    return result;
+  }
+
+  function parseFormula(text, getValue) {
+    const tokens = tokenize(text.slice(1));
+    let pos = 0;
+    function peek(type) { return tokens[pos].type === type; }
+    function take(type) { if (!peek(type)) throw '#VALUE'; return tokens[pos++]; }
+    function primary() {
+      if (peek('number')) return take('number').value;
+      if (peek('(')) { take('('); const v = expression(); take(')'); return v; }
+      if (peek('name')) {
+        const name = take('name').value;
+        if (name === 'SUM') {
+          take('(');
+          const start = take('name').value;
+          take(':');
+          const end = take('name').value;
+          take(')');
+          let sum = 0;
+          rangeCells(start, end).forEach(function (cell) { sum += checkedNumber(getValue(cell)); });
+          return sum;
+        }
+        if (!isCellId(name)) throw '#REF';
+        return checkedNumber(getValue(name));
+      }
+      throw '#VALUE';
+    }
+    function unary() {
+      if (peek('+')) { take('+'); return unary(); }
+      if (peek('-')) { take('-'); return -unary(); }
+      return primary();
+    }
+    function term() {
+      let value = unary();
+      while (peek('*') || peek('/')) {
+        const op = tokens[pos++].type, right = unary();
+        if (op === '/' && right === 0) throw '#DIV/0';
+        value = op === '*' ? value * right : value / right;
+      }
+      return value;
+    }
+    function expression() {
+      let value = term();
+      while (peek('+') || peek('-')) {
+        const op = tokens[pos++].type, right = term();
+        value = op === '+' ? value + right : value - right;
+      }
+      return value;
+    }
+    const result = expression();
+    if (!peek('eof')) throw '#VALUE';
+    return result;
+  }
+
+  function checkedNumber(value) {
+    if (typeof value === 'string') throw value;
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function calculate() {
+    const state = Object.create(null), values = Object.create(null);
+    function evaluate(id) {
+      if (state[id] === 2) return values[id];
+      if (state[id] === 1) { values[id] = '#CYCLE'; return '#CYCLE'; }
+      state[id] = 1;
+      const raw = inputs[id].value;
+      let value;
+      if (raw.trim().charAt(0) !== '=') value = numberValue(raw);
+      else {
+        try { value = parseFormula(raw.trim(), evaluate); }
+        catch (error) { value = typeof error === 'string' ? error : '#VALUE'; }
+      }
+      state[id] = 2;
+      values[id] = value;
+      return value;
+    }
+    ids.forEach(evaluate);
+    return values;
+  }
+
+  function recompute() {
+    const values = calculate();
+    ids.forEach(function (id) {
+      const value = values[id];
+      if (typeof value === 'string') {
+        outputs[id].textContent = value;
+        outputs[id].classList.add('error');
+      } else {
+        outputs[id].textContent = value.toFixed(2);
+        outputs[id].classList.remove('error');
+      }
+    });
+  }
+
+  document.getElementById('app-undo').addEventListener('click', function () {
+    const last = history.pop();
+    if (!last) return;
+    inputs[last.id].value = last.value;
+    editStart = null;
+    recompute();
+    inputs[last.id].focus();
+  });
+  recompute();
+})();
+</script>
+</body>
+</html>

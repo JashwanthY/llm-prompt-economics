@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Spreadsheet</title>
+<style>
+  :root { font-family: system-ui, -apple-system, Segoe UI, sans-serif; color: #202124; }
+  body { margin: 2rem; background: #f5f7fa; }
+  main { max-width: 720px; margin: auto; background: white; padding: 1.25rem; border: 1px solid #d8dde5; border-radius: 10px; box-shadow: 0 3px 12px #00000010; }
+  h1 { font-size: 1.25rem; margin: 0 0 1rem; }
+  button { padding: .45rem .8rem; border: 1px solid #adb7c4; border-radius: 5px; background: #fff; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .5; }
+  .sheet { display: grid; grid-template-columns: 3.2rem repeat(4, minmax(9rem, 1fr)); margin-top: 1rem; border-top: 1px solid #c8d0da; border-left: 1px solid #c8d0da; }
+  .corner, .heading { background: #eef2f6; font-weight: 600; text-align: center; padding: .5rem .3rem; }
+  .corner, .heading, .rowhead, .cell { border-right: 1px solid #c8d0da; border-bottom: 1px solid #c8d0da; }
+  .rowhead { background: #eef2f6; font-weight: 600; display: flex; justify-content: center; align-items: center; }
+  .cell { display: flex; align-items: center; gap: .35rem; padding: .35rem; min-width: 0; }
+  .cell input { box-sizing: border-box; min-width: 0; width: 62%; padding: .35rem; border: 1px solid #bbc4cf; border-radius: 4px; font: inherit; }
+  .cell span { min-width: 0; flex: 1; text-align: right; font-variant-numeric: tabular-nums; color: #374151; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini Spreadsheet</h1>
+  <button id="app-undo" type="button" disabled>Undo</button>
+  <div class="sheet" aria-label="Spreadsheet">
+    <div class="corner"></div><div class="heading">A</div><div class="heading">B</div><div class="heading">C</div><div class="heading">D</div>
+    <div class="rowhead">1</div>
+    <div class="cell"><input id="cell-A1" aria-label="A1"><span id="out-A1">0.00</span></div>
+    <div class="cell"><input id="cell-B1" aria-label="B1"><span id="out-B1">0.00</span></div>
+    <div class="cell"><input id="cell-C1" aria-label="C1"><span id="out-C1">0.00</span></div>
+    <div class="cell"><input id="cell-D1" aria-label="D1"><span id="out-D1">0.00</span></div>
+    <div class="rowhead">2</div>
+    <div class="cell"><input id="cell-A2" aria-label="A2"><span id="out-A2">0.00</span></div>
+    <div class="cell"><input id="cell-B2" aria-label="B2"><span id="out-B2">0.00</span></div>
+    <div class="cell"><input id="cell-C2" aria-label="C2"><span id="out-C2">0.00</span></div>
+    <div class="cell"><input id="cell-D2" aria-label="D2"><span id="out-D2">0.00</span></div>
+    <div class="rowhead">3</div>
+    <div class="cell"><input id="cell-A3" aria-label="A3"><span id="out-A3">0.00</span></div>
+    <div class="cell"><input id="cell-B3" aria-label="B3"><span id="out-B3">0.00</span></div>
+    <div class="cell"><input id="cell-C3" aria-label="C3"><span id="out-C3">0.00</span></div>
+    <div class="cell"><input id="cell-D3" aria-label="D3"><span id="out-D3">0.00</span></div>
+    <div class="rowhead">4</div>
+    <div class="cell"><input id="cell-A4" aria-label="A4"><span id="out-A4">0.00</span></div>
+    <div class="cell"><input id="cell-B4" aria-label="B4"><span id="out-B4">0.00</span></div>
+    <div class="cell"><input id="cell-C4" aria-label="C4"><span id="out-C4">0.00</span></div>
+    <div class="cell"><input id="cell-D4" aria-label="D4"><span id="out-D4">0.00</span></div>
+  </div>
+</main>
+<script>
+(() => {
+  const cols = ['A','B','C','D'], rows = [1,2,3,4];
+  const names = rows.flatMap(r => cols.map(c => c + r));
+  const history = [];
+  const ERR = code => ({ error: code });
+
+  function tokenize(s) {
+    const t = []; let i = 0;
+    while (i < s.length) {
+      if (/\s/.test(s[i])) { i++; continue; }
+      const rest = s.slice(i), m = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
+      if (m) { t.push({type:'num', value:Number(m[0])}); i += m[0].length; continue; }
+      const ref = rest.match(/^([A-Za-z]+)(\d+)/);
+      if (ref) { t.push({type:'ref', value:ref[1].toUpperCase()+ref[2]}); i += ref[0].length; continue; }
+      const id = rest.match(/^[A-Za-z_][A-Za-z_0-9]*/);
+      if (id) { t.push({type:'id', value:id[0].toUpperCase()}); i += id[0].length; continue; }
+      if ('+-*/(),:'.includes(s[i])) t.push({type:s[i], value:s[i++]});
+      else t.push({type:'bad', value:s[i++]});
+    }
+    t.push({type:'eof'}); return t;
+  }
+  function parseFormula(text) {
+    const ts = tokenize(text), p = {i:0};
+    const peek = () => ts[p.i];
+    const take = type => peek().type === type ? ts[p.i++] : null;
+    function primary() {
+      if (take('(')) { const x = add(); if (!take(')')) throw 0; return x; }
+      if (peek().type === 'num') return {k:'num', v:ts[p.i++].value};
+      if (peek().type === 'ref') return {k:'ref', n:ts[p.i++].value};
+      if (peek().type === 'id' && peek().value === 'SUM') {
+        p.i++; if (!take('(')) throw 0;
+        const a = peek().type === 'ref' ? ts[p.i++].value : null;
+        if (!a || !take(':')) throw 0;
+        const b = peek().type === 'ref' ? ts[p.i++].value : null;
+        if (!b || !take(')')) throw 0;
+        return {k:'sum', a, b};
+      }
+      throw 0;
+    }
+    function unary() {
+      if (take('+')) return {k:'unary', op:'+', x:unary()};
+      if (take('-')) return {k:'unary', op:'-', x:unary()};
+      return primary();
+    }
+    function mul() { let x = unary(); while (peek().type === '*' || peek().type === '/') { const op=ts[p.i++].type; x={k:'bin',op,x,y:unary()}; } return x; }
+    function add() { let x = mul(); while (peek().type === '+' || peek().type === '-') { const op=ts[p.i++].type; x={k:'bin',op,x,y:mul()}; } return x; }
+    const tree = add(); if (peek().type !== 'eof') throw 0; return tree;
+  }
+  function validName(n) { return /^[A-D][1-4]$/.test(n); }
+  function coord(n) { return {c:cols.indexOf(n[0]), r:Number(n.slice(1))}; }
+  function range(a, b) {
+    if (!validName(a) || !validName(b)) return null;
+    const x=coord(a), y=coord(b), out=[];
+    for (let r=Math.min(x.r,y.r); r<=Math.max(x.r,y.r); r++) for (let c=Math.min(x.c,y.c); c<=Math.max(x.c,y.c); c++) out.push(cols[c]+r);
+    return out;
+  }
+  function evalTree(node, stack, memo) {
+    if (node.k === 'num') return node.v;
+    if (node.k === 'unary') { const v=evalTree(node.x,stack,memo); return typeof v === 'object' ? v : (node.op==='-' ? -v : v); }
+    if (node.k === 'ref') return evalCell(node.n, stack, memo);
+    if (node.k === 'sum') {
+      const rr=range(node.a,node.b); if (!rr) return ERR('#REF'); let total=0;
+      for (const n of rr) { const v=evalCell(n,stack,memo); if (typeof v === 'object') return v; total += v; } return total;
+    }
+    const a=evalTree(node.x,stack,memo); if (typeof a === 'object') return a;
+    const b=evalTree(node.y,stack,memo); if (typeof b === 'object') return b;
+    if (node.op === '/' && b === 0) return ERR('#DIV/0');
+    return node.op==='+' ? a+b : node.op==='-' ? a-b : node.op==='*' ? a*b : a/b;
+  }
+  function evalCell(name, stack, memo) {
+    if (!validName(name)) return ERR('#REF');
+    if (memo[name] !== undefined) return memo[name];
+    if (stack.has(name)) return ERR('#CYCLE');
+    stack.add(name);
+    const raw=document.getElementById('cell-'+name).value;
+    let result;
+    if (!raw.startsWith('=')) { const n=Number(raw); result=Number.isFinite(n) && raw.trim() !== '' ? n : 0; }
+    else { try { result=evalTree(parseFormula(raw.slice(1)),stack,memo); } catch (_) { result=0; } }
+    stack.delete(name); memo[name]=result; return result;
+  }
+  function recompute() {
+    const memo={};
+    names.forEach(n => {
+      const v=evalCell(n,new Set(),memo), out=document.getElementById('out-'+n);
+      out.textContent=typeof v === 'object' ? v.error : Number.isFinite(v) ? v.toFixed(2) : '0.00';
+    });
+  }
+  names.forEach(n => document.getElementById('cell-'+n).addEventListener('input', e => {
+    history.push({name:n, value:e.target.dataset.previous ?? ''}); e.target.dataset.previous=e.target.value;
+    recompute(); document.getElementById('app-undo').disabled=false;
+  }));
+  names.forEach(n => { const el=document.getElementById('cell-'+n); el.dataset.previous=el.value; });
+  document.getElementById('app-undo').addEventListener('click', () => {
+    const h=history.pop(); if (!h) return;
+    const el=document.getElementById('cell-'+h.name); el.value=h.value; el.dataset.previous=h.value; recompute();
+    document.getElementById('app-undo').disabled=history.length===0;
+  });
+  recompute();
+})();
+</script>
+</body>
+</html>

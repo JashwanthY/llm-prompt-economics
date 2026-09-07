@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Spreadsheet</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f4f7fb; color: #1b2538; font: 15px/1.4 system-ui, sans-serif; }
+  main { width: min(760px, calc(100% - 32px)); background: #fff; padding: 28px; border: 1px solid #dce3ef; border-radius: 12px; box-shadow: 0 10px 28px #20304a14; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p { margin: 0 0 20px; color: #647087; font-size: 13px; }
+  table { border-collapse: separate; border-spacing: 6px; width: 100%; table-layout: fixed; }
+  th { font-weight: 700; color: #536178; text-align: center; }
+  th:first-child { width: 30px; }
+  td { padding: 0; }
+  .cell { display: grid; gap: 4px; }
+  input { min-width: 0; width: 100%; padding: 8px; border: 1px solid #c9d3e2; border-radius: 6px; color: #182235; font: 14px ui-monospace, monospace; }
+  input:focus { outline: 2px solid #79a9ed; border-color: #4b89df; }
+  output { min-height: 20px; overflow: hidden; color: #167044; font: 13px ui-monospace, monospace; white-space: nowrap; text-overflow: ellipsis; }
+  output.error { color: #b32727; font-weight: 700; }
+  footer { display: flex; justify-content: flex-end; margin-top: 16px; }
+  button { padding: 8px 14px; border: 0; border-radius: 6px; background: #306fc5; color: #fff; font: inherit; cursor: pointer; }
+  button:hover { background: #235da9; }
+  button:disabled { cursor: not-allowed; opacity: .5; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini Spreadsheet</h1>
+  <p>Enter numbers or formulas (for example, <code>=SUM(A1:A4)/2</code>).</p>
+  <table aria-label="Spreadsheet">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1</th><td><div class="cell"><input id="cell-A1" aria-label="A1"><span id="out-A1"></span></div></td><td><div class="cell"><input id="cell-B1" aria-label="B1"><span id="out-B1"></span></div></td><td><div class="cell"><input id="cell-C1" aria-label="C1"><span id="out-C1"></span></div></td><td><div class="cell"><input id="cell-D1" aria-label="D1"><span id="out-D1"></span></div></td></tr>
+      <tr><th scope="row">2</th><td><div class="cell"><input id="cell-A2" aria-label="A2"><span id="out-A2"></span></div></td><td><div class="cell"><input id="cell-B2" aria-label="B2"><span id="out-B2"></span></div></td><td><div class="cell"><input id="cell-C2" aria-label="C2"><span id="out-C2"></span></div></td><td><div class="cell"><input id="cell-D2" aria-label="D2"><span id="out-D2"></span></div></td></tr>
+      <tr><th scope="row">3</th><td><div class="cell"><input id="cell-A3" aria-label="A3"><span id="out-A3"></span></div></td><td><div class="cell"><input id="cell-B3" aria-label="B3"><span id="out-B3"></span></div></td><td><div class="cell"><input id="cell-C3" aria-label="C3"><span id="out-C3"></span></div></td><td><div class="cell"><input id="cell-D3" aria-label="D3"><span id="out-D3"></span></div></td></tr>
+      <tr><th scope="row">4</th><td><div class="cell"><input id="cell-A4" aria-label="A4"><span id="out-A4"></span></div></td><td><div class="cell"><input id="cell-B4" aria-label="B4"><span id="out-B4"></span></div></td><td><div class="cell"><input id="cell-C4" aria-label="C4"><span id="out-C4"></span></div></td><td><div class="cell"><input id="cell-D4" aria-label="D4"><span id="out-D4"></span></div></td></tr>
+    </tbody>
+  </table>
+  <footer><button type="button" id="app-undo" disabled>Undo</button></footer>
+</main>
+<script>
+(() => {
+  const names = Array.from({length: 4}, (_, r) => Array.from({length: 4}, (_, c) => String.fromCharCode(65 + c) + (r + 1))).flat();
+  const history = [], values = Object.create(null), states = Object.create(null);
+  const undo = document.getElementById('app-undo');
+  const inGrid = ref => /^[A-D][1-4]$/.test(ref);
+  const error = code => ({ error: code });
+  const isError = x => x && typeof x === 'object' && 'error' in x;
+
+  function tokens(source) {
+    const result = []; let i = 0;
+    while (i < source.length) {
+      if (/\s/.test(source[i])) { i++; continue; }
+      const rest = source.slice(i);
+      const number = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)/);
+      const ref = rest.match(/^[A-Za-z]+\d+/);
+      if (number) { result.push({ type: 'number', value: Number(number[0]) }); i += number[0].length; }
+      else if (ref) { result.push({ type: 'word', value: ref[0].toUpperCase() }); i += ref[0].length; }
+      else if (/^[A-Za-z]+/.test(rest)) { const word = rest.match(/^[A-Za-z]+/)[0]; result.push({ type: 'word', value: word.toUpperCase() }); i += word.length; }
+      else if ('+-*/():,'.includes(source[i])) { result.push({ type: source[i], value: source[i++] }); }
+      else throw error('#ERROR');
+    }
+    result.push({ type: 'end' }); return result;
+  }
+
+  function evaluateFormula(source, resolve) {
+    let list, pos = 0;
+    try { list = tokens(source); } catch (e) { return isError(e) ? e : error('#ERROR'); }
+    const peek = () => list[pos];
+    const take = type => { if (peek().type !== type) throw error('#ERROR'); return list[pos++]; };
+    const checked = value => { if (!Number.isFinite(value)) throw error('#ERROR'); return value; };
+    function primary() {
+      if (peek().type === 'number') return take('number').value;
+      if (peek().type === '-') { take('-'); const v = primary(); if (isError(v)) return v; return -v; }
+      if (peek().type === '(') { take('('); const v = expression(); take(')'); return v; }
+      if (peek().type === 'word') {
+        const word = take('word').value;
+        if (word === 'SUM' && peek().type === '(') {
+          take('('); const a = take('word').value; take(':'); const b = take('word').value; take(')');
+          if (!inGrid(a) || !inGrid(b)) return error('#REF');
+          const c1 = a.charCodeAt(0) - 65, r1 = +a.slice(1) - 1, c2 = b.charCodeAt(0) - 65, r2 = +b.slice(1) - 1;
+          let sum = 0;
+          for (let r = Math.min(r1,r2); r <= Math.max(r1,r2); r++) for (let c = Math.min(c1,c2); c <= Math.max(c1,c2); c++) { const v = resolve(String.fromCharCode(65+c)+(r+1)); if (isError(v)) return v; sum += v; }
+          return checked(sum);
+        }
+        return inGrid(word) ? resolve(word) : error('#REF');
+      }
+      throw error('#ERROR');
+    }
+    function term() { let v = primary(); while (peek().type === '*' || peek().type === '/') { const op = list[pos++].type, rhs = primary(); if (isError(v)) return v; if (isError(rhs)) return rhs; if (op === '/' && rhs === 0) return error('#DIV/0'); v = checked(op === '*' ? v * rhs : v / rhs); } return v; }
+    function expression() { let v = term(); while (peek().type === '+' || peek().type === '-') { const op = list[pos++].type, rhs = term(); if (isError(v)) return v; if (isError(rhs)) return rhs; v = checked(op === '+' ? v + rhs : v - rhs); } return v; }
+    try { const result = expression(); return peek().type === 'end' ? result : error('#ERROR'); } catch (e) { return isError(e) ? e : error('#ERROR'); }
+  }
+
+  function calculate(name) {
+    if (states[name] === 'done') return values[name];
+    if (states[name] === 'visiting') return error('#CYCLE');
+    states[name] = 'visiting';
+    const raw = document.getElementById('cell-' + name).value;
+    let result;
+    if (raw.startsWith('=')) result = evaluateFormula(raw.slice(1), calculate);
+    else { const parsed = Number(raw.trim()); result = Number.isFinite(parsed) ? parsed : 0; }
+    states[name] = 'done'; values[name] = result; return result;
+  }
+  function recompute() {
+    for (const name of names) { delete values[name]; delete states[name]; }
+    for (const name of names) calculate(name);
+    for (const name of names) {
+      const out = document.getElementById('out-' + name), value = values[name];
+      out.textContent = isError(value) ? value.error : value.toFixed(2);
+      out.classList.toggle('error', isError(value));
+    }
+  }
+  for (const name of names) {
+    const input = document.getElementById('cell-' + name);
+    input.dataset.last = input.value;
+    const edited = () => {
+      const before = input.dataset.last;
+      if (input.value !== before) history.push({ name, value: before });
+      input.dataset.last = input.value;
+      undo.disabled = history.length === 0; recompute();
+    };
+    input.addEventListener('input', edited);
+    input.addEventListener('change', edited);
+  }
+  undo.addEventListener('click', () => { const edit = history.pop(); if (!edit) return; const input = document.getElementById('cell-' + edit.name); input.value = edit.value; input.dataset.last = edit.value; undo.disabled = history.length === 0; recompute(); });
+  recompute();
+})();
+</script>
+</body>
+</html>
