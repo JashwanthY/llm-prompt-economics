@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Directory</title>
+  <style>
+    :root {
+      --color-page: hsl(210 25% 97%);
+      --color-surface: hsl(0 0% 100%);
+      --color-text: hsl(215 28% 17%);
+      --color-muted: hsl(215 16% 43%);
+      --color-border: hsl(214 20% 82%);
+      --color-primary: hsl(217 72% 35%);
+      --color-primary-hover: hsl(217 72% 27%);
+      --color-primary-contrast: hsl(0 0% 100%);
+      --color-focus: hsl(43 96% 45%);
+      --color-row-alt: hsl(210 25% 98%);
+      --color-success: hsl(153 55% 27%);
+      --color-transparent: transparent;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.5rem;
+      --space-6: 2rem;
+      --radius: 0.5rem;
+      --shadow: 0 0.25rem 1rem hsl(215 28% 17% / 0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .app-shell {
+      width: min(100% - 2rem, 75rem);
+      margin: 0 auto;
+      padding: var(--space-6) 0;
+    }
+
+    .app-header { margin-bottom: var(--space-5); }
+    .app-header__title { margin: 0; font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.15; }
+    .app-header__description { margin: var(--space-2) 0 0; color: var(--color-muted); }
+
+    .directory {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--space-5);
+    }
+
+    .directory__controls {
+      align-items: end;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      justify-content: space-between;
+      margin-bottom: var(--space-5);
+    }
+
+    .directory__filters { align-items: end; display: flex; flex: 1 1 32rem; flex-wrap: wrap; gap: var(--space-4); }
+    .field { display: flex; flex-direction: column; gap: var(--space-1); min-width: min(100%, 18rem); }
+    .field__label, .checkbox-label { font-weight: 650; }
+    .field__input { border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-text); font: inherit; min-height: 2.75rem; padding: var(--space-2) var(--space-3); }
+    .checkbox-label { align-items: center; display: flex; gap: var(--space-2); min-height: 2.75rem; }
+    .checkbox-label input { block-size: 1.15rem; inline-size: 1.15rem; accent-color: var(--color-primary); }
+
+    .button { border: 1px solid var(--color-primary); border-radius: var(--radius); cursor: pointer; font: inherit; font-weight: 650; min-height: 2.75rem; padding: var(--space-2) var(--space-4); }
+    .button--primary { background: var(--color-primary); color: var(--color-primary-contrast); }
+    .button--primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .button--secondary { background: var(--color-surface); color: var(--color-primary); }
+    .button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .table-wrap { border: 1px solid var(--color-border); border-radius: var(--radius); overflow-x: auto; }
+    .employee-table { border-collapse: collapse; min-width: 44rem; width: 100%; }
+    .employee-table th, .employee-table td { border-bottom: 1px solid var(--color-border); padding: var(--space-3); text-align: left; vertical-align: middle; }
+    .employee-table th { background: var(--color-row-alt); font-size: 0.9rem; white-space: nowrap; }
+    .employee-table tbody tr:nth-child(even) { background: var(--color-row-alt); }
+    .employee-table tbody tr:last-child td { border-bottom: 0; }
+    .sort-button { align-items: center; background: var(--color-transparent); border: 0; color: var(--color-text); cursor: pointer; display: inline-flex; font: inherit; font-weight: 700; gap: var(--space-2); padding: 0; text-align: left; }
+    .sort-indicator { color: var(--color-primary); min-width: 1rem; }
+    .status { color: var(--color-muted); }
+    .status--active { color: var(--color-success); font-weight: 700; }
+    .empty-state { color: var(--color-muted); padding: var(--space-6); text-align: center; }
+
+    .directory__summary { color: var(--color-muted); margin: var(--space-4) 0; }
+    .directory__pagination { align-items: center; display: flex; gap: var(--space-3); justify-content: center; }
+    .page-status { font-weight: 650; min-width: 7rem; text-align: center; }
+    .directory__footer { color: var(--color-muted); font-size: 0.9rem; margin-top: var(--space-5); text-align: center; }
+
+    :focus-visible { outline: 0.2rem solid var(--color-focus); outline-offset: 0.15rem; }
+    .sr-only { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+
+    @media (max-width: 40rem) {
+      .app-shell { width: min(100% - 1rem, 75rem); padding: var(--space-4) 0; }
+      .directory { padding: var(--space-3); }
+      .directory__controls, .directory__filters { align-items: stretch; flex-direction: column; }
+      .field { min-width: 100%; }
+      .button--primary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1 class="app-header__title">Employee Directory</h1>
+      <p class="app-header__description">Browse, filter, and export employee records.</p>
+    </header>
+
+    <section class="directory" aria-labelledby="app-directory-heading">
+      <h2 id="app-directory-heading" class="sr-only">Employee records</h2>
+      <div class="directory__controls">
+        <div class="directory__filters">
+          <div class="field">
+            <label class="field__label" for="app-search">Search employees</label>
+            <input class="field__input" id="app-search" data-testid="search-input" type="search" autocomplete="off" placeholder="Name or department">
+          </div>
+          <label class="checkbox-label" for="app-active-only">
+            <input id="app-active-only" data-testid="active-only-checkbox" type="checkbox">
+            Active only
+          </label>
+        </div>
+        <button class="button button--primary" id="app-export" data-testid="export-csv-button" type="button">Export CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="employee-table">
+          <caption class="sr-only">Employee records with sortable columns</caption>
+          <thead>
+            <tr>
+              <th scope="col" aria-sort="none"><button class="sort-button" data-testid="sort-name" data-column="name" type="button">Name <span class="sort-indicator" aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button class="sort-button" data-testid="sort-department" data-column="department" type="button">Department <span class="sort-indicator" aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button class="sort-button" data-testid="sort-salary" data-column="salary" type="button">Salary <span class="sort-indicator" aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button class="sort-button" data-testid="sort-start-date" data-column="startDate" type="button">Start date <span class="sort-indicator" aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button class="sort-button" data-testid="sort-status" data-column="active" type="button">Status <span class="sort-indicator" aria-hidden="true"></span></button></th>
+            </tr>
+          </thead>
+          <tbody id="app-table-body"></tbody>
+        </table>
+      </div>
+
+      <p class="directory__summary" id="app-summary" aria-live="polite">Showing 0-0 of 0</p>
+      <nav class="directory__pagination" aria-label="Employee table pagination">
+        <button class="button button--secondary" id="app-previous" data-testid="previous-page-button" type="button">Previous</button>
+        <span class="page-status" id="app-page-status" aria-live="polite">Page 1 of 1</span>
+        <button class="button button--secondary" id="app-next" data-testid="next-page-button" type="button">Next</button>
+      </nav>
+    </section>
+
+    <footer class="directory__footer">Employee data is for demonstration purposes.</footer>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const PAGE_SIZE = 10;
+      const employees = [
+        { name: 'Aisha Patel', department: 'Engineering', salary: 118000, startDate: '2020-03-16', active: true },
+        { name: 'Marcus Chen', department: 'Sales', salary: 92000, startDate: '2021-07-12', active: true },
+        { name: 'Elena Rodriguez', department: 'Design', salary: 105000, startDate: '2019-11-04', active: true },
+        { name: 'Noah Williams', department: 'Support', salary: 76000, startDate: '2022-01-24', active: true },
+        { name: 'Priya Nair', department: 'Engineering', salary: 132000, startDate: '2018-06-18', active: true },
+        { name: 'Jonas Berg', department: 'Sales', salary: 87000, startDate: '2023-02-06', active: false },
+        { name: 'Maya Thompson', department: 'Support', salary: 71000, startDate: '2021-09-27', active: true },
+        { name: 'Gabriel Silva', department: 'Design', salary: 98000, startDate: '2020-12-07', active: true },
+        { name: 'Hannah Kim', department: 'Engineering', salary: 124000, startDate: '2017-04-10', active: true },
+        { name: 'Owen Murphy', department: 'Sales', salary: 89000, startDate: '2022-08-15', active: true },
+        { name: 'Fatima Hassan', department: 'Support', salary: 73500, startDate: '2020-05-11', active: false },
+        { name: 'Lucas Martin', department: 'Design', salary: 101000, startDate: '2023-04-03', active: true },
+        { name: 'Sofia Ivanova', department: 'Engineering', salary: 116000, startDate: '2021-01-19', active: true },
+        { name: 'Ethan Brooks', department: 'Sales', salary: 96000, startDate: '2019-08-26', active: true },
+        { name: 'Zoe Anderson', department: 'Support', salary: 68000, startDate: '2022-11-14', active: true },
+        { name: 'Ravi Shah', department: 'Design', salary: 110000, startDate: '2018-10-01', active: false },
+        { name: 'Camila Torres', department: 'Engineering', salary: 127000, startDate: '2020-07-20', active: true },
+        { name: 'Benjamin Lee', department: 'Sales', salary: 91000, startDate: '2021-05-03', active: true },
+        { name: 'Nora Jensen', department: 'Support', salary: 80500, startDate: '2019-02-25', active: true },
+        { name: 'Theo Johnson', department: 'Design', salary: 94000, startDate: '2022-03-28', active: true },
+        { name: 'Mei Wong', department: 'Engineering', salary: 139000, startDate: '2016-09-12', active: true },
+        { name: 'Samuel Okafor', department: 'Sales', salary: 99000, startDate: '2020-10-19', active: false },
+        { name: 'Isabella Rossi', department: 'Support', salary: 74500, startDate: '2023-01-09', active: true },
+        { name: 'Daniel Green', department: 'Design', salary: 108000, startDate: '2017-12-04', active: true }
+      ];
+
+      const elements = {
+        search: document.querySelector('#app-search'),
+        activeOnly: document.querySelector('#app-active-only'),
+        exportButton: document.querySelector('#app-export'),
+        tableBody: document.querySelector('#app-table-body'),
+        summary: document.querySelector('#app-summary'),
+        pageStatus: document.querySelector('#app-page-status'),
+        previous: document.querySelector('#app-previous'),
+        next: document.querySelector('#app-next'),
+        sortButtons: [...document.querySelectorAll('.sort-button')]
+      };
+
+      const state = { query: '', activeOnly: false, page: 1, sortColumn: 'name', sortDirection: 'ascending' };
+
+      const formatCurrency = (salary) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(salary);
+      const formatDate = (date) => new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(`${date}T00:00:00`));
+      const escapeCsv = (value) => `"${String(value).replaceAll('"', '""')}"`;
+
+      function getFilteredEmployees() {
+        const query = state.query.trim().toLowerCase();
+        return employees.filter((employee) => {
+          const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+          const matchesStatus = !state.activeOnly || employee.active;
+          return matchesText && matchesStatus;
+        });
+      }
+
+      function getSortedEmployees(records) {
+        const direction = state.sortDirection === 'ascending' ? 1 : -1;
+        return [...records].sort((first, second) => {
+          const firstValue = first[state.sortColumn];
+          const secondValue = second[state.sortColumn];
+          const comparison = typeof firstValue === 'string' ? firstValue.localeCompare(secondValue) : Number(firstValue) - Number(secondValue);
+          return comparison * direction;
+        });
+      }
+
+      function createCell(content, className = '') {
+        const cell = document.createElement('td');
+        cell.textContent = content;
+        if (className) cell.className = className;
+        return cell;
+      }
+
+      function renderRows(records) {
+        elements.tableBody.replaceChildren();
+        if (records.length === 0) {
+          const row = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.className = 'empty-state';
+          cell.colSpan = 5;
+          cell.textContent = 'No employees match the current filters.';
+          row.append(cell);
+          elements.tableBody.append(row);
+          return;
+        }
+        records.forEach((employee) => {
+          const row = document.createElement('tr');
+          row.append(
+            createCell(employee.name),
+            createCell(employee.department),
+            createCell(formatCurrency(employee.salary)),
+            createCell(formatDate(employee.startDate)),
+            createCell(employee.active ? 'Active' : 'Inactive', employee.active ? 'status status--active' : 'status')
+          );
+          elements.tableBody.append(row);
+        });
+      }
+
+      function updateSortIndicators() {
+        elements.sortButtons.forEach((button) => {
+          const header = button.closest('th');
+          const indicator = button.querySelector('.sort-indicator');
+          const isCurrent = button.dataset.column === state.sortColumn;
+          header.setAttribute('aria-sort', isCurrent ? state.sortDirection : 'none');
+          indicator.textContent = isCurrent ? (state.sortDirection === 'ascending' ? '↑' : '↓') : '';
+        });
+      }
+
+      function render() {
+        const filtered = getFilteredEmployees();
+        const sorted = getSortedEmployees(filtered);
+        const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+        state.page = Math.min(state.page, pageCount);
+        const startIndex = sorted.length === 0 ? 0 : (state.page - 1) * PAGE_SIZE;
+        const pageRows = sorted.slice(startIndex, startIndex + PAGE_SIZE);
+        const endIndex = sorted.length === 0 ? 0 : startIndex + pageRows.length;
+        renderRows(pageRows);
+        elements.summary.textContent = `Showing ${sorted.length === 0 ? 0 : startIndex + 1}-${endIndex} of ${sorted.length}`;
+        elements.pageStatus.textContent = `Page ${state.page} of ${pageCount}`;
+        elements.previous.disabled = state.page === 1;
+        elements.next.disabled = state.page === pageCount;
+        updateSortIndicators();
+      }
+
+      function exportCsv() {
+        const records = getSortedEmployees(getFilteredEmployees());
+        const headers = ['Name', 'Department', 'Salary', 'Start date', 'Status'];
+        const rows = records.map((employee) => [employee.name, employee.department, employee.salary, employee.startDate, employee.active ? 'Active' : 'Inactive']);
+        const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.dataset.testid = 'csv-download-link';
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        link.download = 'employee-records.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      elements.search.addEventListener('input', (event) => { state.query = event.target.value; state.page = 1; render(); });
+      elements.activeOnly.addEventListener('change', (event) => { state.activeOnly = event.target.checked; state.page = 1; render(); });
+      elements.previous.addEventListener('click', () => { if (state.page > 1) { state.page -= 1; render(); } });
+      elements.next.addEventListener('click', () => { const pageCount = Math.max(1, Math.ceil(getFilteredEmployees().length / PAGE_SIZE)); if (state.page < pageCount) { state.page += 1; render(); } });
+      elements.exportButton.addEventListener('click', exportCsv);
+      elements.sortButtons.forEach((button) => button.addEventListener('click', () => {
+        const selectedColumn = button.dataset.column;
+        state.sortDirection = state.sortColumn === selectedColumn && state.sortDirection === 'ascending' ? 'descending' : 'ascending';
+        state.sortColumn = selectedColumn;
+        state.page = 1;
+        render();
+      }));
+
+      render();
+    })();
+  </script>
+</body>
+</html>
