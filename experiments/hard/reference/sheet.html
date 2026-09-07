@@ -1,0 +1,96 @@
+<title>Sheet reference</title>
+<div id="grid"></div>
+<button id="app-undo">Undo</button>
+<script>
+const COLS = ["A","B","C","D"], ROWS = [1,2,3,4], ADDRS = [];
+COLS.forEach(c => ROWS.forEach(r => ADDRS.push(c + r)));
+const g = document.getElementById("grid");
+ADDRS.forEach(a => {
+  const wrap = document.createElement("div");
+  const inp = document.createElement("input");
+  inp.id = "cell-" + a;
+  const out = document.createElement("span");
+  out.id = "out-" + a;
+  wrap.appendChild(document.createTextNode(a + " "));
+  wrap.appendChild(inp); wrap.appendChild(out);
+  g.appendChild(wrap);
+});
+class Err { constructor(k) { this.k = k; } }
+const inGrid = a => /^[A-D][1-4]$/.test(a);
+const raw = a => (document.getElementById("cell-" + a) || {}).value || "";
+
+function evalCell(a, visiting) {
+  if (visiting.has(a)) return new Err("#CYCLE");
+  const v = raw(a).trim();
+  if (!v.startsWith("=")) { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+  visiting.add(a);
+  try { return evalExpr(v.slice(1), visiting); } finally { visiting.delete(a); }
+}
+function refVal(a, visiting) { return inGrid(a) ? evalCell(a, visiting) : new Err("#REF"); }
+function sumRange(s, e, visiting) {
+  if (!inGrid(s) || !inGrid(e)) return new Err("#REF");
+  const c1 = s.charCodeAt(0), c2 = e.charCodeAt(0), r1 = +s[1], r2 = +e[1];
+  let t = 0;
+  for (let c = Math.min(c1,c2); c <= Math.max(c1,c2); c++)
+    for (let r = Math.min(r1,r2); r <= Math.max(r1,r2); r++) {
+      const v = evalCell(String.fromCharCode(c) + r, visiting);
+      if (v instanceof Err) return v;
+      t += v;
+    }
+  return t;
+}
+function evalExpr(src, visiting) {
+  let i = 0;
+  const ws = () => { while (i < src.length && src[i] === " ") i++; };
+  const comb = (a, b, op) => {
+    if (a instanceof Err) return a;
+    if (b instanceof Err) return b;
+    if (op === "+") return a + b;
+    if (op === "-") return a - b;
+    if (op === "*") return a * b;
+    return b === 0 ? new Err("#DIV/0") : a / b;
+  };
+  function factor() {
+    ws();
+    if (src[i] === "(") { i++; const v = expr(); ws(); if (src[i] === ")") i++; return v; }
+    if (src[i] === "-") { i++; const v = factor(); return v instanceof Err ? v : -v; }
+    const rest = src.slice(i);
+    const m = /^SUM\(\s*([A-Za-z]+\d+)\s*:\s*([A-Za-z]+\d+)\s*\)/i.exec(rest);
+    if (m) { i += m[0].length; return sumRange(m[1].toUpperCase(), m[2].toUpperCase(), visiting); }
+    const r = /^[A-Za-z]+\d+/.exec(rest);
+    if (r) { i += r[0].length; return refVal(r[0].toUpperCase(), visiting); }
+    const n = /^\d+(\.\d+)?/.exec(rest);
+    if (n) { i += n[0].length; return parseFloat(n[0]); }
+    return new Err("#REF");
+  }
+  function term() { let v = factor();
+    for (;;) { ws(); const c = src[i];
+      if (c === "*" || c === "/") { i++; v = comb(v, factor(), c); } else return v; } }
+  function expr() { let v = term();
+    for (;;) { ws(); const c = src[i];
+      if (c === "+" || c === "-") { i++; v = comb(v, term(), c); } else return v; } }
+  return expr();
+}
+function render() {
+  ADDRS.forEach(a => {
+    const v = evalCell(a, new Set());
+    document.getElementById("out-" + a).textContent =
+      v instanceof Err ? v.k : v.toFixed(2);
+  });
+}
+const last = {}; ADDRS.forEach(a => last[a] = "");
+const undoStack = [];
+ADDRS.forEach(a => document.getElementById("cell-" + a).addEventListener("input", () => {
+  undoStack.push({ a, prev: last[a] });
+  last[a] = raw(a);
+  render();
+}));
+document.getElementById("app-undo").addEventListener("click", () => {
+  const u = undoStack.pop();
+  if (!u) return;
+  document.getElementById("cell-" + u.a).value = u.prev;
+  last[u.a] = u.prev;
+  render();
+});
+render();
+</script>

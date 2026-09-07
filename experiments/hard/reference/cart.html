@@ -1,0 +1,40 @@
+<title>Cart reference</title>
+<p>Widget <input id="qty-widget" type="number" value="0"></p>
+<p>Gadget <input id="qty-gadget" type="number" value="0"></p>
+<p>Doohickey <input id="qty-doohickey" type="number" value="0"></p>
+<p><input id="app-coupon"><button id="app-apply">Apply</button>
+   <span id="out-coupon-error"></span></p>
+<p>Subtotal <span id="out-subtotal"></span> Discount <span id="out-discount"></span>
+   Shipping <span id="out-shipping"></span> Tax <span id="out-tax"></span>
+   Total <span id="out-total"></span></p>
+<script>
+const P = {widget:24.99, gadget:79.50, doohickey:12.25};
+let coupon = "";
+const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
+const q = k => { const v = parseInt(document.getElementById("qty-"+k).value, 10);
+                 return Number.isFinite(v) && v > 0 ? v : 0; };
+function recompute() {
+  const sub = r2(q("widget")*P.widget + q("gadget")*P.gadget + q("doohickey")*P.doohickey);
+  const tier = sub >= 500 ? 0.15 : sub >= 250 ? 0.10 : sub >= 100 ? 0.05 : 0;
+  let disc = r2(sub * tier);
+  if (coupon === "SAVE10") disc = Math.max(disc, r2(sub * 0.10));
+  if (coupon === "BULK5")  disc = r2(disc + 5);
+  disc = Math.min(disc, sub);
+  const post = r2(sub - disc);
+  const ship = (coupon === "FREESHIP" || post >= 75) ? 0 : 8;
+  const tax  = r2(post * 0.0825);
+  const put = (id, v) => document.getElementById(id).textContent = "$" + v.toFixed(2);
+  put("out-subtotal", sub); put("out-discount", disc); put("out-shipping", ship);
+  put("out-tax", tax); put("out-total", r2(post + ship + tax));
+}
+["widget","gadget","doohickey"].forEach(k =>
+  document.getElementById("qty-"+k).addEventListener("input", recompute));
+document.getElementById("app-apply").addEventListener("click", () => {
+  const c = document.getElementById("app-coupon").value.trim().toUpperCase();
+  const err = document.getElementById("out-coupon-error");
+  if (c === "" || ["SAVE10","BULK5","FREESHIP"].includes(c)) { coupon = c; err.textContent = ""; }
+  else { coupon = ""; err.textContent = "Invalid coupon"; }
+  recompute();
+});
+recompute();
+</script>
