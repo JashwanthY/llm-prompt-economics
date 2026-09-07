@@ -1,0 +1,59 @@
+<title>Form reference</title>
+<p><input id="app-username"><span id="err-username"></span></p>
+<p><input id="app-email"><span id="err-email"></span></p>
+<p><input id="app-password"><span id="err-password"></span></p>
+<p><input id="app-confirm"><span id="err-confirm"></span></p>
+<p><input id="app-dob" type="date"><span id="err-dob"></span></p>
+<p><input id="app-phone"><span id="err-phone"></span></p>
+<button id="app-submit" disabled>Register</button>
+<script>
+const TAKEN = ["admin","root","test"];
+const val = id => document.getElementById("app-"+id).value;
+function checkUsername(v) {
+  if (v === "") return "Username is required";
+  if (v.length < 3 || v.length > 16) return "Username must be 3-16 characters";
+  if (!/^[A-Za-z0-9_]+$/.test(v)) return "Username may only contain letters, digits and underscore";
+  if (TAKEN.includes(v.toLowerCase())) return "Username is already taken";
+  return "";
+}
+function checkEmail(v) {
+  const parts = v.split("@");
+  return (parts.length === 2 && parts[0] !== "" && parts[1].includes(".")
+          && !parts[1].startsWith(".") && !parts[1].endsWith("."))
+    ? "" : "Enter a valid email address";
+}
+function checkPassword(v) {
+  if (v.length < 10) return "Password must be at least 10 characters";
+  const missing = [];
+  if (!/[A-Z]/.test(v)) missing.push("uppercase");
+  if (!/[a-z]/.test(v)) missing.push("lowercase");
+  if (!/[0-9]/.test(v)) missing.push("digit");
+  if (!/[^A-Za-z0-9]/.test(v)) missing.push("symbol");
+  return missing.length ? "Password needs: " + missing.join(", ") : "";
+}
+function checkDob(v) {
+  if (!v) return "You must be at least 18";
+  const d = new Date(v), now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  return age >= 18 ? "" : "You must be at least 18";
+}
+const checkPhone = v =>
+  /^\d{10}$/.test(v.replace(/[\s\-()]/g, "")) ? "" : "Enter a 10-digit phone number";
+function validate() {
+  const e = {
+    username: checkUsername(val("username")),
+    email:    checkEmail(val("email")),
+    password: checkPassword(val("password")),
+    confirm:  val("confirm") === val("password") ? "" : "Passwords do not match",
+    dob:      checkDob(val("dob")),
+    phone:    checkPhone(val("phone")),
+  };
+  for (const k in e) document.getElementById("err-"+k).textContent = e[k];
+  document.getElementById("app-submit").disabled = Object.values(e).some(x => x !== "");
+}
+["username","email","password","confirm","dob","phone"].forEach(k =>
+  document.getElementById("app-"+k).addEventListener("input", validate));
+validate();
+</script>
