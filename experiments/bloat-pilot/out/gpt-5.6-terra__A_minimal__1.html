@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --text: #172033;
+      --muted: #5d687a;
+      --border: #d6dce7;
+      --surface: #ffffff;
+      --background: #f4f7fb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 16px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--background);
+    }
+
+    main {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(23, 32, 51, 0.12);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 28px 28px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(1.65rem, 4vw, 2.2rem);
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .progress-track {
+      height: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+      background: #e6ebf3;
+      border-radius: 999px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--primary);
+      border-radius: inherit;
+      transition: width 0.2s ease;
+    }
+
+    form {
+      padding: 8px 28px 28px;
+    }
+
+    fieldset {
+      margin: 22px 0;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    legend {
+      padding: 0 6px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 13px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      background: #f0f5ff;
+    }
+
+    .option:focus-within {
+      outline: 3px solid rgba(37, 99, 235, 0.35);
+      outline-offset: 2px;
+      background: #f0f5ff;
+    }
+
+    input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      margin: 1px 0 0;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button[type="submit"] {
+      color: white;
+      background: var(--primary);
+    }
+
+    button[type="submit"]:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .retry-button {
+      color: var(--primary-dark);
+      background: #e8efff;
+    }
+
+    .retry-button:hover {
+      background: #d7e4ff;
+    }
+
+    .results {
+      margin: 0 28px 28px;
+      padding: 20px;
+      border: 1px solid #b9d9c1;
+      border-radius: 12px;
+      background: #f0fbf3;
+    }
+
+    .results[hidden] {
+      display: none;
+    }
+
+    .results h2 {
+      margin: 0 0 14px;
+      color: var(--success);
+      font-size: 1.4rem;
+    }
+
+    .results p {
+      line-height: 1.5;
+    }
+
+    .incorrect-list {
+      margin: 16px 0 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .incorrect-list li {
+      margin-top: 14px;
+      padding: 14px;
+      border-left: 4px solid var(--danger);
+      border-radius: 6px;
+      background: white;
+    }
+
+    .incorrect-list strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .wrong-answer {
+      color: var(--danger);
+    }
+
+    .correct-answer {
+      color: var(--success);
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 16px 10px;
+      }
+
+      header,
+      form {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .results {
+        margin-left: 18px;
+        margin-right: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>General Knowledge Quiz</h1>
+      <div class="progress-row">
+        <span id="progressText" aria-live="polite">0 of 5 answered</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </header>
+
+    <form id="quizForm">
+      <fieldset>
+        <legend>1. What is the capital city of Japan?</legend>
+        <label class="option"><input type="radio" name="q1" value="Seoul"> Seoul</label>
+        <label class="option"><input type="radio" name="q1" value="Tokyo"> Tokyo</label>
+        <label class="option"><input type="radio" name="q1" value="Beijing"> Beijing</label>
+        <label class="option"><input type="radio" name="q1" value="Bangkok"> Bangkok</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. Which planet is known as the Red Planet?</legend>
+        <label class="option"><input type="radio" name="q2" value="Venus"> Venus</label>
+        <label class="option"><input type="radio" name="q2" value="Mars"> Mars</label>
+        <label class="option"><input type="radio" name="q2" value="Jupiter"> Jupiter</label>
+        <label class="option"><input type="radio" name="q2" value="Mercury"> Mercury</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. What is the largest ocean on Earth?</legend>
+        <label class="option"><input type="radio" name="q3" value="Atlantic Ocean"> Atlantic Ocean</label>
+        <label class="option"><input type="radio" name="q3" value="Indian Ocean"> Indian Ocean</label>
+        <label class="option"><input type="radio" name="q3" value="Pacific Ocean"> Pacific Ocean</label>
+        <label class="option"><input type="radio" name="q3" value="Arctic Ocean"> Arctic Ocean</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. Which element has the chemical symbol O?</legend>
+        <label class="option"><input type="radio" name="q4" value="Gold"> Gold</label>
+        <label class="option"><input type="radio" name="q4" value="Oxygen"> Oxygen</label>
+        <label class="option"><input type="radio" name="q4" value="Osmium"> Osmium</label>
+        <label class="option"><input type="radio" name="q4" value="Iron"> Iron</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. Who wrote the play Romeo and Juliet?</legend>
+        <label class="option"><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+        <label class="option"><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+        <label class="option"><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+        <label class="option"><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="submitButton" disabled>Submit Quiz</button>
+        <button type="button" class="retry-button" id="retryButton">Retry</button>
+      </div>
+    </form>
+
+    <section class="results" id="results" hidden aria-live="polite" tabindex="-1">
+      <h2 id="scoreText"></h2>
+      <div id="feedback"></div>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      { name: "q1", text: "What is the capital city of Japan?", correct: "Tokyo" },
+      { name: "q2", text: "Which planet is known as the Red Planet?", correct: "Mars" },
+      { name: "q3", text: "What is the largest ocean on Earth?", correct: "Pacific Ocean" },
+      { name: "q4", text: "Which element has the chemical symbol O?", correct: "Oxygen" },
+      { name: "q5", text: "Who wrote the play Romeo and Juliet?", correct: "William Shakespeare" }
+    ];
+
+    const quizForm = document.getElementById("quizForm");
+    const submitButton = document.getElementById("submitButton");
+    const retryButton = document.getElementById("retryButton");
+    const progressText = document.getElementById("progressText");
+    const progressPercent = document.getElementById("progressPercent");
+    const progressBar = document.getElementById("progressBar");
+    const results = document.getElementById("results");
+    const scoreText = document.getElementById("scoreText");
+    const feedback = document.getElementById("feedback");
+
+    function getAnsweredCount() {
+      return questions.filter(question =>
+        document.querySelector(`input[name="${question.name}"]:checked`)
+      ).length;
+    }
+
+    function updateProgress() {
+      const answered = getAnsweredCount();
+      const total = questions.length;
+      const percentage = (answered / total) * 100;
+
+      progressText.textContent = `${answered} of ${total} answered`;
+      progressPercent.textContent = `${percentage}%`;
+      progressBar.style.width = `${percentage}%`;
+      submitButton.disabled = answered !== total;
+    }
+
+    quizForm.addEventListener("change", updateProgress);
+
+    quizForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      let score = 0;
+      const wrongAnswers = [];
+
+      questions.forEach(question => {
+        const selected = document.querySelector(`input[name="${question.name}"]:checked`);
+        const selectedValue = selected ? selected.value : "";
+
+        if (selectedValue === question.correct) {
+          score++;
+        } else {
+          wrongAnswers.push({
+            text: question.text,
+            chosen: selectedValue,
+            correct: question.correct
+          });
+        }
+      });
+
+      scoreText.textContent = `You scored ${score}/${questions.length}`;
+
+      if (wrongAnswers.length === 0) {
+        feedback.innerHTML = "<p>Excellent work! Every answer is correct.</p>";
+      } else {
+        const items = wrongAnswers.map(answer => `
+          <li>
+            <strong>${answer.text}</strong>
+            <div class="wrong-answer">Your answer: ${answer.chosen}</div>
+            <div class="correct-answer">Correct answer: ${answer.correct}</div>
+          </li>
+        `).join("");
+
+        feedback.innerHTML = `
+          <p>Review the questions below to see the correct answers.</p>
+          <ul class="incorrect-list">${items}</ul>
+        `;
+      }
+
+      results.hidden = false;
+      results.focus();
+    });
+
+    retryButton.addEventListener("click", function () {
+      quizForm.reset();
+      results.hidden = true;
+      feedback.innerHTML = "";
+      updateProgress();
+      document.querySelector('input[name="q1"]').focus();
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

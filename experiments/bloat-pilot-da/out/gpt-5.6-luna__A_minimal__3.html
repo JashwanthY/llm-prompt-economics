@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Check Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182230;
+      --muted: #5e6b7b;
+      --line: #d9e0e8;
+      --surface: #ffffff;
+      --background: #f4f7fb;
+      --accent: #2856c7;
+      --accent-dark: #1d419d;
+      --accent-soft: #edf2ff;
+      --success: #14734a;
+      --danger: #b42318;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    .intro { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.45rem); letter-spacing: -0.03em; }
+    .intro p { margin: 0; color: var(--muted); }
+
+    .quiz-card, .results {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(25, 45, 75, .06);
+    }
+
+    .quiz-card { padding: 24px; }
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    .progress-count { color: var(--accent); white-space: nowrap; }
+    .progress-track { height: 8px; overflow: hidden; border-radius: 99px; background: #e8edf5; margin-bottom: 28px; }
+    .progress-bar { height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .2s ease; }
+
+    fieldset {
+      margin: 0 0 25px;
+      padding: 0 0 23px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    fieldset:last-of-type { margin-bottom: 22px; }
+    legend { width: 100%; padding: 0; margin-bottom: 12px; font-size: 1.05rem; font-weight: 750; }
+    .option-list { display: grid; gap: 9px; }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      color: #303d4c;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .option:hover { border-color: #9aadd3; background: #fafbff; }
+    .option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: #173b99; }
+    .option:has(input:focus-visible) { outline: 3px solid rgba(40, 86, 199, .25); outline-offset: 2px; }
+    input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent); flex: 0 0 auto; }
+
+    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    button:focus-visible { outline: 3px solid rgba(40, 86, 199, .35); outline-offset: 3px; }
+    #submit { background: var(--accent); color: white; }
+    #submit:hover:not(:disabled) { background: var(--accent-dark); }
+    #submit:disabled { cursor: not-allowed; background: #c5cedc; color: #697587; }
+    #retry { background: #eaf0fa; color: #21499f; }
+    #retry:hover { background: #dce6f8; }
+
+    .results { display: none; margin-top: 22px; padding: 24px; }
+    .results.visible { display: block; }
+    .results h2 { margin: 0 0 12px; font-size: 1.5rem; }
+    .score { margin: 0 0 20px; color: var(--success); font-size: 1.1rem; font-weight: 750; }
+    .all-correct { margin: 0; color: var(--success); }
+    .wrong-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+    .wrong-item { padding: 15px; border-left: 4px solid var(--danger); border-radius: 5px; background: #fff7f6; }
+    .wrong-item strong { display: block; margin-bottom: 7px; }
+    .wrong-item p { margin: 3px 0; color: #4b5563; }
+    .wrong-item .chosen { color: var(--danger); }
+    .wrong-item .correct { color: var(--success); }
+
+    @media (max-width: 520px) {
+      main { width: min(100% - 20px, 760px); padding-top: 28px; }
+      .quiz-card, .results { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="intro">
+      <h1>Knowledge Check</h1>
+      <p>Answer all five questions, then submit your responses to see your results.</p>
+    </header>
+
+    <form id="quiz" class="quiz-card">
+      <div class="progress-row">
+        <span>Quiz progress</span>
+        <span id="progress-count" class="progress-count" aria-live="polite">0 of 5 answered</span>
+      </div>
+      <div class="progress-track" aria-hidden="true"><div id="progress-bar" class="progress-bar"></div></div>
+
+      <fieldset>
+        <legend>1. Which planet is known as the Red Planet?</legend>
+        <div class="option-list">
+          <label class="option"><input type="radio" name="q1" value="Venus"> Venus</label>
+          <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+          <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+          <label class="option"><input type="radio" name="q1" value="Mercury"> Mercury</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. What is the largest ocean on Earth?</legend>
+        <div class="option-list">
+          <label class="option"><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+          <label class="option"><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+          <label class="option"><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+          <label class="option"><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. Which language is primarily used to style web pages?</legend>
+        <div class="option-list">
+          <label class="option"><input type="radio" name="q3" value="HTML"> HTML</label>
+          <label class="option"><input type="radio" name="q3" value="Python"> Python</label>
+          <label class="option"><input type="radio" name="q3" value="CSS"> CSS</label>
+          <label class="option"><input type="radio" name="q3" value="SQL"> SQL</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. How many sides does a hexagon have?</legend>
+        <div class="option-list">
+          <label class="option"><input type="radio" name="q4" value="Five"> Five</label>
+          <label class="option"><input type="radio" name="q4" value="Six"> Six</label>
+          <label class="option"><input type="radio" name="q4" value="Seven"> Seven</label>
+          <label class="option"><input type="radio" name="q4" value="Eight"> Eight</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. Which gas do plants absorb from the atmosphere?</legend>
+        <div class="option-list">
+          <label class="option"><input type="radio" name="q5" value="Oxygen"> Oxygen</label>
+          <label class="option"><input type="radio" name="q5" value="Nitrogen"> Nitrogen</label>
+          <label class="option"><input type="radio" name="q5" value="Carbon dioxide"> Carbon dioxide</label>
+          <label class="option"><input type="radio" name="q5" value="Hydrogen"> Hydrogen</label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button id="submit" type="submit" disabled>Submit quiz</button>
+        <button id="retry" type="button">Retry</button>
+      </div>
+    </form>
+
+    <section id="results" class="results" aria-live="polite" aria-labelledby="results-title">
+      <h2 id="results-title">Your results</h2>
+      <p id="score" class="score"></p>
+      <div id="feedback"></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const quiz = document.getElementById('quiz');
+      const submit = document.getElementById('submit');
+      const retry = document.getElementById('retry');
+      const progressCount = document.getElementById('progress-count');
+      const progressBar = document.getElementById('progress-bar');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const feedback = document.getElementById('feedback');
+      const questions = [
+        { text: 'Which planet is known as the Red Planet?', answer: 'Mars' },
+        { text: 'What is the largest ocean on Earth?', answer: 'Pacific Ocean' },
+        { text: 'Which language is primarily used to style web pages?', answer: 'CSS' },
+        { text: 'How many sides does a hexagon have?', answer: 'Six' },
+        { text: 'Which gas do plants absorb from the atmosphere?', answer: 'Carbon dioxide' }
+      ];
+
+      function updateProgress() {
+        const answered = questions.filter((_, index) => quiz.querySelector(`input[name="q${index + 1}"]:checked`)).length;
+        progressCount.textContent = `${answered} of ${questions.length} answered`;
+        progressBar.style.width = `${answered / questions.length * 100}%`;
+        submit.disabled = answered !== questions.length;
+      }
+
+      quiz.addEventListener('change', updateProgress);
+
+      quiz.addEventListener('submit', (event) => {
+        event.preventDefault();
+        let correct = 0;
+        const wrong = [];
+        questions.forEach((question, index) => {
+          const chosen = quiz.querySelector(`input[name="q${index + 1}"]:checked`).value;
+          if (chosen === question.answer) correct++;
+          else wrong.push({ ...question, chosen });
+        });
+        score.textContent = `You scored ${correct}/${questions.length}`;
+        if (wrong.length === 0) {
+          feedback.innerHTML = '<p class="all-correct">Excellent work — every answer is correct!</p>';
+        } else {
+          const list = wrong.map(item => `<li class="wrong-item"><strong>${item.text}</strong><p class="chosen"><b>Your answer:</b> ${item.chosen}</p><p class="correct"><b>Correct answer:</b> ${item.answer}</p></li>`).join('');
+          feedback.innerHTML = `<ul class="wrong-list">${list}</ul>`;
+        }
+        results.classList.add('visible');
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      retry.addEventListener('click', () => {
+        quiz.reset();
+        results.classList.remove('visible');
+        score.textContent = '';
+        feedback.innerHTML = '';
+        updateProgress();
+        quiz.querySelector('input').focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --color-background: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-text: #172033;
+      --color-muted: #4b5870;
+      --color-primary: #174ea6;
+      --color-primary-dark: #103873;
+      --color-border: #aeb9ca;
+      --color-focus: #b54708;
+      --color-success: #146c43;
+      --color-error: #a61b1b;
+      --spacing-unit: 0.5rem;
+      --radius: 0.5rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-background);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    .site-header,
+    .site-footer {
+      background: var(--color-primary-dark);
+      color: #ffffff;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .site-header h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 5vw, 2.25rem);
+    }
+
+    .quiz-page {
+      margin: 0 auto;
+      max-width: 50rem;
+      padding: 1.5rem 1rem 2rem;
+    }
+
+    .quiz-card,
+    .results {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: 0 0.25rem 1rem rgba(23, 32, 51, 0.08);
+    }
+
+    .quiz-card h2,
+    .results h2 {
+      margin-top: 0;
+    }
+
+    .progress {
+      color: var(--color-muted);
+      font-weight: 700;
+      margin: 0 0 1.25rem;
+    }
+
+    .question {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      margin: 0 0 1rem;
+      padding: 1rem;
+    }
+
+    .question legend {
+      font-weight: 700;
+      padding: 0 0.25rem;
+    }
+
+    .option {
+      align-items: flex-start;
+      border: 1px solid var(--color-border);
+      border-radius: 0.35rem;
+      cursor: pointer;
+      display: flex;
+      gap: 0.65rem;
+      margin-top: 0.65rem;
+      padding: 0.7rem;
+    }
+
+    .option:hover {
+      border-color: var(--color-primary);
+      background: #eef4ff;
+    }
+
+    .option input {
+      flex: 0 0 auto;
+      margin-top: 0.25rem;
+    }
+
+    .option:has(input:checked) {
+      background: #e3edff;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 1px var(--color-primary);
+    }
+
+    button {
+      background: var(--color-primary);
+      border: 2px solid var(--color-primary);
+      border-radius: 0.35rem;
+      color: #ffffff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      padding: 0.7rem 1rem;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
+    }
+
+    button:disabled {
+      background: #68758a;
+      border-color: #68758a;
+      cursor: not-allowed;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    .option:focus-within {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .results {
+      margin-top: 1.5rem;
+    }
+
+    .results__score {
+      color: var(--color-success);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .wrong-answer {
+      border-left: 0.35rem solid var(--color-error);
+      margin: 1rem 0 0;
+      padding: 0.25rem 0 0.25rem 1rem;
+    }
+
+    .wrong-answer h3 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+    }
+
+    .wrong-answer p {
+      margin: 0.25rem 0;
+    }
+
+    .site-footer {
+      font-size: 0.9rem;
+    }
+
+    @media (min-width: 40rem) {
+      .quiz-page {
+        padding: 2.5rem 1.5rem 3rem;
+      }
+
+      .quiz-card,
+      .results {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Knowledge Check Quiz</h1>
+  </header>
+
+  <main class="quiz-page">
+    <section class="quiz-card" aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading">Answer all five questions</h2>
+      <p class="progress" id="progress" aria-live="polite">0 of 5 answered</p>
+
+      <form id="quiz-form">
+        <fieldset class="question" data-correct="Paris">
+          <legend>1. What is the capital city of France?</legend>
+          <label class="option">
+            <input type="radio" name="question-1" value="London" data-option-text="London">
+            <span>London</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Paris" data-option-text="Paris">
+            <span>Paris</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Berlin" data-option-text="Berlin">
+            <span>Berlin</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Rome" data-option-text="Rome">
+            <span>Rome</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="question" data-correct="Jupiter">
+          <legend>2. Which planet is the largest in our solar system?</legend>
+          <label class="option">
+            <input type="radio" name="question-2" value="Mars" data-option-text="Mars">
+            <span>Mars</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Jupiter" data-option-text="Jupiter">
+            <span>Jupiter</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Venus" data-option-text="Venus">
+            <span>Venus</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Saturn" data-option-text="Saturn">
+            <span>Saturn</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="question" data-correct="Oxygen">
+          <legend>3. Which gas do humans need to breathe to survive?</legend>
+          <label class="option">
+            <input type="radio" name="question-3" value="Oxygen" data-option-text="Oxygen">
+            <span>Oxygen</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Nitrogen" data-option-text="Nitrogen">
+            <span>Nitrogen</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Helium" data-option-text="Helium">
+            <span>Helium</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Hydrogen" data-option-text="Hydrogen">
+            <span>Hydrogen</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="question" data-correct="William Shakespeare">
+          <legend>4. Who wrote <cite>Romeo and Juliet</cite>?</legend>
+          <label class="option">
+            <input type="radio" name="question-4" value="Jane Austen" data-option-text="Jane Austen">
+            <span>Jane Austen</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="Mark Twain" data-option-text="Mark Twain">
+            <span>Mark Twain</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="William Shakespeare" data-option-text="William Shakespeare">
+            <span>William Shakespeare</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="Charles Dickens" data-option-text="Charles Dickens">
+            <span>Charles Dickens</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="question" data-correct="Pacific Ocean">
+          <legend>5. What is the largest ocean on Earth?</legend>
+          <label class="option">
+            <input type="radio" name="question-5" value="Atlantic Ocean" data-option-text="Atlantic Ocean">
+            <span>Atlantic Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="Indian Ocean" data-option-text="Indian Ocean">
+            <span>Indian Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="Arctic Ocean" data-option-text="Arctic Ocean">
+            <span>Arctic Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="Pacific Ocean" data-option-text="Pacific Ocean">
+            <span>Pacific Ocean</span>
+          </label>
+        </fieldset>
+
+        <nav class="form-actions" aria-label="Quiz actions">
+          <button id="submit-button" type="submit" disabled>Submit quiz</button>
+          <button id="retry-button" type="button">Retry</button>
+        </nav>
+      </form>
+    </section>
+
+    <section class="results" id="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 id="results-heading">Quiz results</h2>
+      <p class="results__score" id="score"></p>
+      <div id="wrong-answers"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Take your time and choose one answer for each question.</p>
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 5;
+      const form = document.querySelector("#quiz-form");
+      const questions = Array.from(document.querySelectorAll(".question"));
+      const progress = document.querySelector("#progress");
+      const submitButton = document.querySelector("#submit-button");
+      const retryButton = document.querySelector("#retry-button");
+      const results = document.querySelector("#results");
+      const score = document.querySelector("#score");
+      const wrongAnswers = document.querySelector("#wrong-answers");
+
+      const getAnsweredCount = () =>
+        questions.filter((question) => question.querySelector("input:checked")).length;
+
+      const updateProgress = () => {
+        const answeredCount = getAnsweredCount();
+        progress.textContent = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const createWrongAnswer = (question, selectedAnswer) => {
+        const article = document.createElement("article");
+        article.className = "wrong-answer";
+
+        const heading = document.createElement("h3");
+        heading.textContent = question.querySelector("legend").textContent;
+
+        const chosen = document.createElement("p");
+        chosen.textContent = `Your answer: ${selectedAnswer}`;
+
+        const correct = document.createElement("p");
+        correct.textContent = `Correct answer: ${question.dataset.correct}`;
+
+        article.append(heading, chosen, correct);
+        return article;
+      };
+
+      const showResults = () => {
+        let correctCount = 0;
+        const incorrectQuestions = [];
+
+        questions.forEach((question) => {
+          const selectedInput = question.querySelector("input:checked");
+          const selectedAnswer = selectedInput.dataset.optionText;
+
+          if (selectedAnswer === question.dataset.correct) {
+            correctCount += 1;
+          } else {
+            incorrectQuestions.push(createWrongAnswer(question, selectedAnswer));
+          }
+        });
+
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        wrongAnswers.replaceChildren();
+
+        if (incorrectQuestions.length > 0) {
+          incorrectQuestions.forEach((answer) => wrongAnswers.append(answer));
+        } else {
+          const perfectMessage = document.createElement("p");
+          perfectMessage.textContent = "Excellent work—every answer was correct!";
+          wrongAnswers.append(perfectMessage);
+        }
+
+        results.hidden = false;
+        results.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+
+      const resetQuiz = () => {
+        form.reset();
+        updateProgress();
+        results.hidden = true;
+        score.textContent = "";
+        wrongAnswers.replaceChildren();
+        questions[0].querySelector("input").focus();
+      };
+
+      form.addEventListener("change", updateProgress);
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (getAnsweredCount() === TOTAL_QUESTIONS) {
+          showResults();
+        }
+      });
+
+      retryButton.addEventListener("click", resetQuiz);
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everyday Science Quiz</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-primary: #174ea6;
+      --color-primary-dark: #0d3476;
+      --color-text: #172033;
+      --color-muted: #4b5565;
+      --color-border: #b8c3d6;
+      --color-focus: #d96b00;
+      --color-success: #146c43;
+      --color-error: #a61b1b;
+      --color-error-surface: #fff3f3;
+      --shadow-card: 0 0.5rem 1.5rem rgb(23 32 51 / 12%);
+      --radius: 0.75rem;
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 20rem;
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.2rem;
+    }
+
+    .site-header {
+      padding: var(--space-4) var(--space-2) var(--space-3);
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+
+    .site-header__content,
+    .quiz {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+    }
+
+    .site-header__title {
+      margin: 0;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 1.2;
+    }
+
+    .site-header__subtitle {
+      margin: var(--space-1) 0 0;
+      max-width: 42rem;
+    }
+
+    main {
+      padding: var(--space-3) 0 var(--space-4);
+    }
+
+    .quiz {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .quiz__status,
+    .quiz__results,
+    .question {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .quiz__status {
+      padding: var(--space-2);
+    }
+
+    .quiz__progress-text {
+      margin: 0 0 var(--space-1);
+      color: var(--color-muted);
+      font-weight: 700;
+    }
+
+    .quiz__progress-bar {
+      width: 100%;
+      height: 0.75rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dce4f0;
+    }
+
+    .quiz__progress-value {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--color-primary);
+      transition: width 160ms ease;
+    }
+
+    .quiz__questions {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .question {
+      min-inline-size: 0;
+      margin: 0;
+      padding: var(--space-3);
+    }
+
+    .question__legend {
+      padding: 0 var(--space-1);
+      font-weight: 750;
+      font-size: 1.125rem;
+    }
+
+    .question__number {
+      color: var(--color-primary);
+    }
+
+    .question__options {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: var(--space-2);
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid var(--color-border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      border-color: var(--color-primary);
+      background: #f0f5ff;
+    }
+
+    .option__input {
+      flex: 0 0 auto;
+      width: 1.15rem;
+      height: 1.15rem;
+      margin: 0.2rem 0 0;
+      accent-color: var(--color-primary);
+    }
+
+    .option:has(.option__input:checked) {
+      border-color: var(--color-primary);
+      background: #e9f0ff;
+      box-shadow: inset 0 0 0 1px var(--color-primary);
+    }
+
+    .quiz__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .button {
+      min-height: 2.75rem;
+      padding: 0.6rem 1.1rem;
+      border: 2px solid transparent;
+      border-radius: 0.5rem;
+      background: var(--color-primary);
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    .button:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+
+    .button:disabled {
+      background: #77849a;
+      cursor: not-allowed;
+    }
+
+    .button--secondary {
+      border-color: var(--color-primary);
+      background: var(--color-surface);
+      color: var(--color-primary-dark);
+    }
+
+    .button--secondary:hover {
+      background: #e9f0ff;
+    }
+
+    .quiz__results {
+      padding: var(--space-3);
+    }
+
+    .quiz__results[hidden] {
+      display: none;
+    }
+
+    .quiz__results-title {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .quiz__score {
+      margin: var(--space-1) 0 var(--space-2);
+      color: var(--color-success);
+      font-size: 1.15rem;
+      font-weight: 750;
+    }
+
+    .quiz__feedback-intro {
+      margin: var(--space-2) 0;
+    }
+
+    .quiz__feedback-list {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .feedback-item {
+      padding: var(--space-2);
+      border-left: 0.3rem solid var(--color-error);
+      background: var(--color-error-surface);
+    }
+
+    .feedback-item__question,
+    .feedback-item__answer {
+      margin: 0;
+    }
+
+    .feedback-item__answer + .feedback-item__answer {
+      margin-top: 0.25rem;
+    }
+
+    .site-footer {
+      padding: var(--space-3) var(--space-2);
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted);
+      text-align: center;
+    }
+
+    .site-footer p {
+      margin: 0;
+    }
+
+    @media (min-width: 40rem) {
+      .site-header {
+        padding-top: 3rem;
+        padding-bottom: 2.5rem;
+      }
+
+      main {
+        padding-top: var(--space-4);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <section class="site-header__content" aria-labelledby="page-title">
+      <h1 class="site-header__title" id="page-title">Everyday Science Quiz</h1>
+      <p class="site-header__subtitle">Choose one answer for each question, then submit your quiz to see your score and feedback.</p>
+    </section>
+  </header>
+
+  <main>
+    <section class="quiz" aria-labelledby="quiz-title">
+      <h2 id="quiz-title">Test your knowledge</h2>
+
+      <section class="quiz__status" aria-label="Quiz progress">
+        <p class="quiz__progress-text" id="progress-text" aria-live="polite">0 of 5 answered</p>
+        <div class="quiz__progress-bar" role="progressbar" aria-labelledby="progress-text" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+          <span class="quiz__progress-value" id="progress-value"></span>
+        </div>
+      </section>
+
+      <form id="quiz-form" novalidate>
+        <section class="quiz__questions" aria-label="Quiz questions">
+          <fieldset class="question">
+            <legend class="question__legend"><span class="question__number">1.</span> Which planet is known as the Red Planet?</legend>
+            <section class="question__options" aria-label="Answer choices for question 1">
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Venus"><span>Venus</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Mars"><span>Mars</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Jupiter"><span>Jupiter</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Mercury"><span>Mercury</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend"><span class="question__number">2.</span> What gas do plants absorb from the atmosphere for photosynthesis?</legend>
+            <section class="question__options" aria-label="Answer choices for question 2">
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Oxygen"><span>Oxygen</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Nitrogen"><span>Nitrogen</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Carbon dioxide"><span>Carbon dioxide</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Helium"><span>Helium</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend"><span class="question__number">3.</span> At sea level, what is the boiling point of water in degrees Celsius?</legend>
+            <section class="question__options" aria-label="Answer choices for question 3">
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="0°C"><span>0°C</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="50°C"><span>50°C</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="100°C"><span>100°C</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="212°C"><span>212°C</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend"><span class="question__number">4.</span> Which part of a cell contains most of its genetic material?</legend>
+            <section class="question__options" aria-label="Answer choices for question 4">
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Cell membrane"><span>Cell membrane</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Nucleus"><span>Nucleus</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Cytoplasm"><span>Cytoplasm</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Ribosome"><span>Ribosome</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend"><span class="question__number">5.</span> What force pulls objects toward Earth's center?</legend>
+            <section class="question__options" aria-label="Answer choices for question 5">
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Magnetism"><span>Magnetism</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Friction"><span>Friction</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Gravity"><span>Gravity</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Electricity"><span>Electricity</span></label>
+            </section>
+          </fieldset>
+        </section>
+
+        <section class="quiz__actions" aria-label="Quiz actions">
+          <button class="button" id="submit-button" type="submit" disabled>Submit quiz</button>
+          <button class="button button--secondary" id="retry-button" type="button">Retry quiz</button>
+        </section>
+      </form>
+
+      <section class="quiz__results" id="results" hidden aria-labelledby="results-title" aria-live="polite" tabindex="-1">
+        <h2 class="quiz__results-title" id="results-title">Quiz results</h2>
+        <p class="quiz__score" id="score"></p>
+        <section id="feedback"></section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Use Tab to move between controls and the arrow keys to select an option within a question.</p>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const TOTAL_QUESTIONS = 5;
+      const quizForm = document.querySelector('#quiz-form');
+      const questionInputs = [...document.querySelectorAll('.option__input')];
+      const submitButton = document.querySelector('#submit-button');
+      const retryButton = document.querySelector('#retry-button');
+      const progressText = document.querySelector('#progress-text');
+      const progressBar = document.querySelector('.quiz__progress-bar');
+      const progressValue = document.querySelector('#progress-value');
+      const results = document.querySelector('#results');
+      const score = document.querySelector('#score');
+      const feedback = document.querySelector('#feedback');
+
+      const questions = [
+        { name: 'question-1', text: 'Which planet is known as the Red Planet?', correct: 'Mars' },
+        { name: 'question-2', text: 'What gas do plants absorb from the atmosphere for photosynthesis?', correct: 'Carbon dioxide' },
+        { name: 'question-3', text: 'At sea level, what is the boiling point of water in degrees Celsius?', correct: '100°C' },
+        { name: 'question-4', text: 'Which part of a cell contains most of its genetic material?', correct: 'Nucleus' },
+        { name: 'question-5', text: "What force pulls objects toward Earth's center?", correct: 'Gravity' }
+      ];
+
+      const getSelections = () => questions.map((question) => {
+        const selected = quizForm.querySelector(`input[name="${question.name}"]:checked`);
+        return selected ? selected.value : null;
+      });
+
+      const updateProgress = () => {
+        const answeredCount = getSelections().filter(Boolean).length;
+        const percentage = (answeredCount / TOTAL_QUESTIONS) * 100;
+        const statusText = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+
+        progressText.textContent = statusText;
+        progressBar.setAttribute('aria-valuenow', String(answeredCount));
+        progressBar.setAttribute('aria-valuetext', statusText);
+        progressValue.style.width = `${percentage}%`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const createFeedbackItem = (question, selectedAnswer) => {
+        const item = document.createElement('li');
+        item.className = 'feedback-item';
+        item.innerHTML = `
+          <p class="feedback-item__question"><strong>${question.text}</strong></p>
+          <p class="feedback-item__answer">Your answer: ${selectedAnswer}</p>
+          <p class="feedback-item__answer">Correct answer: ${question.correct}</p>
+        `;
+        return item;
+      };
+
+      const showResults = () => {
+        const selections = getSelections();
+        const incorrectAnswers = questions.filter((question, index) => selections[index] !== question.correct);
+        const correctCount = TOTAL_QUESTIONS - incorrectAnswers.length;
+
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        feedback.replaceChildren();
+
+        if (incorrectAnswers.length === 0) {
+          const message = document.createElement('p');
+          message.textContent = 'Excellent work! Every answer is correct.';
+          feedback.append(message);
+        } else {
+          const intro = document.createElement('p');
+          intro.className = 'quiz__feedback-intro';
+          intro.textContent = 'Review the questions below to see the correct answers.';
+          const list = document.createElement('ul');
+          list.className = 'quiz__feedback-list';
+
+          incorrectAnswers.forEach((question) => {
+            const selectedAnswer = selections[questions.indexOf(question)];
+            list.append(createFeedbackItem(question, selectedAnswer));
+          });
+
+          feedback.append(intro, list);
+        }
+
+        results.hidden = false;
+        results.focus();
+      };
+
+      const resetQuiz = () => {
+        quizForm.reset();
+        feedback.replaceChildren();
+        results.hidden = true;
+        updateProgress();
+        const firstInput = questionInputs[0];
+        if (firstInput) {
+          firstInput.focus();
+        }
+      };
+
+      questionInputs.forEach((input) => {
+        input.addEventListener('change', updateProgress);
+      });
+
+      quizForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (getSelections().filter(Boolean).length !== TOTAL_QUESTIONS) {
+          updateProgress();
+          return;
+        }
+        showResults();
+      });
+
+      retryButton.addEventListener('click', resetQuiz);
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

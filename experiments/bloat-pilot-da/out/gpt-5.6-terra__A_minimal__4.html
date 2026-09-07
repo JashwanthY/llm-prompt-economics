@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Knowledge Quiz</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f4f7fb;
+      color: #172033;
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px #17203318;
+      padding: clamp(24px, 5vw, 40px);
+    }
+    h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    .intro { margin: 0 0 20px; color: #536075; }
+    #progress { margin: 0 0 22px; font-weight: 700; color: #284b9b; }
+    fieldset {
+      margin: 0 0 22px;
+      padding: 16px;
+      border: 1px solid #d9e0ed;
+      border-radius: 10px;
+    }
+    legend { padding: 0 5px; font-weight: 700; }
+    label {
+      display: block;
+      margin-top: 9px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    label:hover { background: #f1f5ff; }
+    input { margin-right: 9px; accent-color: #315bb5; }
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 10px 17px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: #315bb5;
+      color: #fff;
+    }
+    button:disabled { cursor: not-allowed; background: #a8b2c4; }
+    button + button { margin-left: 10px; background: #e8edf6; color: #25344f; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #f3ab25; outline-offset: 2px; }
+    #results {
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 1px solid #d9e0ed;
+    }
+    #results[hidden] { display: none; }
+    #score { margin: 0 0 14px; font-size: 1.25rem; font-weight: 800; }
+    .missed {
+      margin: 12px 0;
+      padding: 14px;
+      border-left: 4px solid #c63b3b;
+      background: #fff5f5;
+      border-radius: 4px;
+    }
+    .missed p { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Quick Knowledge Quiz</h1>
+    <p class="intro">Choose one answer for every question.</p>
+    <p id="progress" aria-live="polite">0 of 5 answered</p>
+
+    <form id="quiz" novalidate>
+      <fieldset>
+        <legend>1. Which planet is known as the Red Planet?</legend>
+        <label><input type="radio" name="q1" value="Earth"> Earth</label>
+        <label><input type="radio" name="q1" value="Mars"> Mars</label>
+        <label><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+        <label><input type="radio" name="q1" value="Venus"> Venus</label>
+      </fieldset>
+      <fieldset>
+        <legend>2. What is the largest ocean on Earth?</legend>
+        <label><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+        <label><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+        <label><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+        <label><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+      </fieldset>
+      <fieldset>
+        <legend>3. Which gas do plants primarily absorb from the atmosphere?</legend>
+        <label><input type="radio" name="q3" value="Oxygen"> Oxygen</label>
+        <label><input type="radio" name="q3" value="Carbon dioxide"> Carbon dioxide</label>
+        <label><input type="radio" name="q3" value="Nitrogen"> Nitrogen</label>
+        <label><input type="radio" name="q3" value="Helium"> Helium</label>
+      </fieldset>
+      <fieldset>
+        <legend>4. How many sides does a hexagon have?</legend>
+        <label><input type="radio" name="q4" value="Five"> Five</label>
+        <label><input type="radio" name="q4" value="Six"> Six</label>
+        <label><input type="radio" name="q4" value="Seven"> Seven</label>
+        <label><input type="radio" name="q4" value="Eight"> Eight</label>
+      </fieldset>
+      <fieldset>
+        <legend>5. Who wrote <em>Romeo and Juliet</em>?</legend>
+        <label><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+        <label><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+        <label><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+        <label><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+      </fieldset>
+      <button id="submit" type="submit" disabled>Submit</button>
+      <button id="retry" type="button">Retry</button>
+    </form>
+
+    <section id="results" hidden aria-live="polite" aria-labelledby="score">
+      <p id="score"></p>
+      <div id="feedback"></div>
+    </section>
+  </main>
+  <script>
+    const quiz = document.getElementById('quiz');
+    const progress = document.getElementById('progress');
+    const submit = document.getElementById('submit');
+    const results = document.getElementById('results');
+    const score = document.getElementById('score');
+    const feedback = document.getElementById('feedback');
+    const answers = {
+      q1: 'Mars', q2: 'Pacific Ocean', q3: 'Carbon dioxide',
+      q4: 'Six', q5: 'William Shakespeare'
+    };
+
+    function updateProgress() {
+      const answered = Object.keys(answers).filter(name => quiz.elements[name].value).length;
+      progress.textContent = `${answered} of 5 answered`;
+      submit.disabled = answered !== 5;
+    }
+
+    quiz.addEventListener('change', updateProgress);
+    quiz.addEventListener('submit', event => {
+      event.preventDefault();
+      let total = 0;
+      feedback.replaceChildren();
+      Object.entries(answers).forEach(([name, correct], index) => {
+        const chosen = quiz.elements[name].value;
+        if (chosen === correct) {
+          total++;
+        } else {
+          const item = document.createElement('article');
+          item.className = 'missed';
+          const question = quiz.querySelector(`input[name="${name}"]`).closest('fieldset').querySelector('legend').textContent;
+          item.innerHTML = `<strong>${question}</strong><p>Your answer: ${chosen}</p><p>Correct answer: ${correct}</p>`;
+          feedback.append(item);
+        }
+      });
+      score.textContent = `You scored ${total}/5`;
+      if (total === 5) feedback.textContent = 'Excellent work — every answer is correct.';
+      results.hidden = false;
+      results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    document.getElementById('retry').addEventListener('click', () => {
+      quiz.reset();
+      results.hidden = true;
+      feedback.replaceChildren();
+      updateProgress();
+      quiz.querySelector('input').focus();
+    });
+  </script>
+</body>
+</html>

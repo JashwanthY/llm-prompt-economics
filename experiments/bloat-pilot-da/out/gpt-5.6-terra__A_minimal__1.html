@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Quiz</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f6fb;
+      color: #172033;
+    }
+    main { width: min(100%, 700px); background: #fff; padding: 32px; border-radius: 16px; box-shadow: 0 12px 32px #1b31521f; }
+    h1 { margin: 0 0 8px; }
+    #progress { margin: 0 0 24px; font-weight: 700; color: #40516e; }
+    fieldset { margin: 0 0 22px; padding: 0; border: 0; }
+    legend { margin-bottom: 10px; font-weight: 700; }
+    .options { display: grid; gap: 8px; }
+    label { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
+    label:has(input:checked) { border-color: #2563eb; background: #eff6ff; }
+    input { accent-color: #2563eb; }
+    button { border: 0; border-radius: 8px; padding: 11px 18px; font: inherit; font-weight: 700; cursor: pointer; background: #2563eb; color: #fff; }
+    button:disabled { cursor: not-allowed; background: #9ca3af; }
+    #retry { margin-left: 8px; background: #475569; }
+    #results { margin-top: 28px; padding-top: 20px; border-top: 1px solid #dbe3ef; }
+    #results h2 { margin-top: 0; }
+    .wrong { margin: 14px 0; padding: 14px; border-left: 4px solid #dc2626; background: #fef2f2; border-radius: 4px; }
+    .wrong p { margin: 6px 0; }
+    .correct { color: #166534; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>General Knowledge Quiz</h1>
+    <p id="progress" aria-live="polite">0 of 5 answered</p>
+    <form id="quizForm">
+      <fieldset>
+        <legend>1. What is the capital of Japan?</legend>
+        <div class="options">
+          <label><input type="radio" name="q1" value="Seoul"> Seoul</label>
+          <label><input type="radio" name="q1" value="Tokyo"> Tokyo</label>
+          <label><input type="radio" name="q1" value="Beijing"> Beijing</label>
+          <label><input type="radio" name="q1" value="Bangkok"> Bangkok</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>2. Which planet is known as the Red Planet?</legend>
+        <div class="options">
+          <label><input type="radio" name="q2" value="Venus"> Venus</label>
+          <label><input type="radio" name="q2" value="Mars"> Mars</label>
+          <label><input type="radio" name="q2" value="Jupiter"> Jupiter</label>
+          <label><input type="radio" name="q2" value="Mercury"> Mercury</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>3. What is the largest ocean on Earth?</legend>
+        <div class="options">
+          <label><input type="radio" name="q3" value="Atlantic Ocean"> Atlantic Ocean</label>
+          <label><input type="radio" name="q3" value="Indian Ocean"> Indian Ocean</label>
+          <label><input type="radio" name="q3" value="Pacific Ocean"> Pacific Ocean</label>
+          <label><input type="radio" name="q3" value="Arctic Ocean"> Arctic Ocean</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>4. Who wrote <em>Romeo and Juliet</em>?</legend>
+        <div class="options">
+          <label><input type="radio" name="q4" value="Jane Austen"> Jane Austen</label>
+          <label><input type="radio" name="q4" value="William Shakespeare"> William Shakespeare</label>
+          <label><input type="radio" name="q4" value="Charles Dickens"> Charles Dickens</label>
+          <label><input type="radio" name="q4" value="Mark Twain"> Mark Twain</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>5. What is H2O commonly called?</legend>
+        <div class="options">
+          <label><input type="radio" name="q5" value="Oxygen"> Oxygen</label>
+          <label><input type="radio" name="q5" value="Salt"> Salt</label>
+          <label><input type="radio" name="q5" value="Water"> Water</label>
+          <label><input type="radio" name="q5" value="Hydrogen"> Hydrogen</label>
+        </div>
+      </fieldset>
+      <button id="submit" type="submit" disabled>Submit Quiz</button>
+      <button id="retry" type="button" hidden>Retry</button>
+    </form>
+    <section id="results" aria-live="polite" hidden></section>
+  </main>
+  <script>
+    const form = document.getElementById('quizForm');
+    const progress = document.getElementById('progress');
+    const submit = document.getElementById('submit');
+    const retry = document.getElementById('retry');
+    const results = document.getElementById('results');
+    const answers = {
+      q1: { text: 'What is the capital of Japan?', correct: 'Tokyo' },
+      q2: { text: 'Which planet is known as the Red Planet?', correct: 'Mars' },
+      q3: { text: 'What is the largest ocean on Earth?', correct: 'Pacific Ocean' },
+      q4: { text: 'Who wrote Romeo and Juliet?', correct: 'William Shakespeare' },
+      q5: { text: 'What is H2O commonly called?', correct: 'Water' }
+    };
+
+    function updateProgress() {
+      const count = Object.keys(answers).filter(name => form.elements[name].value).length;
+      progress.textContent = `${count} of 5 answered`;
+      submit.disabled = count !== 5;
+    }
+
+    form.addEventListener('change', updateProgress);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      let score = 0;
+      const mistakes = [];
+      for (const [name, item] of Object.entries(answers)) {
+        const chosen = form.elements[name].value;
+        if (chosen === item.correct) score++;
+        else mistakes.push(`<article class="wrong"><strong>${item.text}</strong><p>Your answer: ${chosen}</p><p class="correct">Correct answer: ${item.correct}</p></article>`);
+      }
+      results.innerHTML = `<h2>You scored ${score}/5</h2>${mistakes.length ? '<h3>Review your incorrect answers</h3>' + mistakes.join('') : '<p class="correct">Excellent work — every answer is correct!</p>'}`;
+      results.hidden = false;
+      retry.hidden = false;
+      results.focus?.();
+    });
+
+    retry.addEventListener('click', () => {
+      form.reset();
+      updateProgress();
+      results.hidden = true;
+      results.innerHTML = '';
+      retry.hidden = true;
+      document.querySelector('input[name="q1"]').focus();
+    });
+  </script>
+</body>
+</html>
