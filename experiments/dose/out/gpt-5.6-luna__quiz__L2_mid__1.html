@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Everyday Science Quiz</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-text: #172033;
+      --color-muted: #4b5870;
+      --color-border: #b8c4d6;
+      --color-primary: #154c8a;
+      --color-primary-dark: #0d3765;
+      --color-primary-soft: #e6f0fc;
+      --color-success: #146c43;
+      --color-success-soft: #e7f5ed;
+      --color-error: #a32828;
+      --color-error-soft: #fff0f0;
+      --color-focus: #f08a24;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --space-6: 3rem;
+      --radius: 0.75rem;
+      --shadow: 0 0.5rem 1.5rem rgba(23, 32, 51, 0.1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 18rem;
+      background: var(--color-page);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible + label {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.2rem;
+    }
+
+    .quiz-shell {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+      padding: var(--space-5) 0;
+    }
+
+    .quiz-header {
+      margin-bottom: var(--space-5);
+      text-align: center;
+    }
+
+    .quiz-header__title {
+      margin: 0 0 var(--space-1);
+      color: var(--color-primary-dark);
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 1.15;
+    }
+
+    .quiz-header__intro {
+      margin: 0;
+      color: var(--color-muted);
+    }
+
+    .quiz-progress {
+      margin-bottom: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      color: var(--color-primary-dark);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .quiz-form {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .question-card {
+      margin: 0;
+      padding: var(--space-4);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .question-card__legend {
+      width: 100%;
+      margin-bottom: var(--space-3);
+      padding: 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    .question-card__number {
+      display: block;
+      margin-bottom: var(--space-1);
+      color: var(--color-primary);
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .question-card__options {
+      display: grid;
+      gap: var(--space-2);
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .question-card__option {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: 0.5rem;
+      background: var(--color-surface);
+      cursor: pointer;
+    }
+
+    .question-card__option:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+
+    .question-card__option input {
+      flex: 0 0 auto;
+      width: 1.15rem;
+      height: 1.15rem;
+      margin: 0.15rem 0 0;
+      accent-color: var(--color-primary);
+    }
+
+    .question-card__option:has(input:checked) {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+      font-weight: 600;
+    }
+
+    .quiz-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-1);
+    }
+
+    .quiz-button {
+      min-height: 3rem;
+      padding: var(--space-2) var(--space-4);
+      border: 0.125rem solid transparent;
+      border-radius: 0.5rem;
+      background: var(--color-primary);
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .quiz-button:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+
+    .quiz-button:disabled {
+      background: #76849a;
+      color: #ffffff;
+      cursor: not-allowed;
+    }
+
+    .quiz-button--secondary {
+      border-color: var(--color-primary);
+      background: var(--color-surface);
+      color: var(--color-primary-dark);
+    }
+
+    .quiz-button--secondary:hover {
+      background: var(--color-primary-soft);
+    }
+
+    .results {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      border: 0.125rem solid var(--color-success);
+      border-radius: var(--radius);
+      background: var(--color-success-soft);
+    }
+
+    .results[hidden] {
+      display: none;
+    }
+
+    .results__title {
+      margin: 0 0 var(--space-2);
+      color: var(--color-success);
+      font-size: 1.5rem;
+    }
+
+    .results__summary {
+      margin: 0 0 var(--space-4);
+      font-weight: 600;
+    }
+
+    .results__list {
+      display: grid;
+      gap: var(--space-3);
+      margin: 0 0 var(--space-4);
+      padding: 0;
+      list-style: none;
+    }
+
+    .results__item {
+      padding: var(--space-3);
+      border-left: 0.35rem solid var(--color-error);
+      background: var(--color-error-soft);
+    }
+
+    .results__question,
+    .results__answer {
+      margin: 0;
+    }
+
+    .results__question {
+      margin-bottom: var(--space-1);
+      font-weight: 700;
+    }
+
+    .results__answer--chosen {
+      color: var(--color-error);
+    }
+
+    .results__answer--correct {
+      color: var(--color-success);
+    }
+
+    .quiz-footer {
+      margin-top: var(--space-5);
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    @media (max-width: 30rem) {
+      .quiz-shell {
+        width: min(100% - 1rem, 48rem);
+        padding-top: var(--space-4);
+      }
+
+      .question-card {
+        padding: var(--space-3);
+      }
+
+      .quiz-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="quiz-shell">
+    <header class="quiz-header">
+      <h1 class="quiz-header__title">Everyday Science Quiz</h1>
+      <p class="quiz-header__intro">Test your knowledge with five quick questions.</p>
+    </header>
+
+    <p class="quiz-progress" id="progress" aria-live="polite">Answered: 0 of 5</p>
+
+    <form class="quiz-form" id="quiz-form">
+      <fieldset class="question-card">
+        <legend class="question-card__legend"><span class="question-card__number">Question 1</span>What is the closest star to Earth?</legend>
+        <div class="question-card__options">
+          <div class="question-card__option"><input id="q1-a" name="question-1" type="radio" value="The Sun"><label for="q1-a">The Sun</label></div>
+          <div class="question-card__option"><input id="q1-b" name="question-1" type="radio" value="Sirius"><label for="q1-b">Sirius</label></div>
+          <div class="question-card__option"><input id="q1-c" name="question-1" type="radio" value="Polaris"><label for="q1-c">Polaris</label></div>
+          <div class="question-card__option"><input id="q1-d" name="question-1" type="radio" value="Proxima Centauri"><label for="q1-d">Proxima Centauri</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="question-card">
+        <legend class="question-card__legend"><span class="question-card__number">Question 2</span>Which process do plants use to convert light into chemical energy?</legend>
+        <div class="question-card__options">
+          <div class="question-card__option"><input id="q2-a" name="question-2" type="radio" value="Respiration"><label for="q2-a">Respiration</label></div>
+          <div class="question-card__option"><input id="q2-b" name="question-2" type="radio" value="Photosynthesis"><label for="q2-b">Photosynthesis</label></div>
+          <div class="question-card__option"><input id="q2-c" name="question-2" type="radio" value="Fermentation"><label for="q2-c">Fermentation</label></div>
+          <div class="question-card__option"><input id="q2-d" name="question-2" type="radio" value="Transpiration"><label for="q2-d">Transpiration</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="question-card">
+        <legend class="question-card__legend"><span class="question-card__number">Question 3</span>What is the chemical symbol for gold?</legend>
+        <div class="question-card__options">
+          <div class="question-card__option"><input id="q3-a" name="question-3" type="radio" value="Ag"><label for="q3-a">Ag</label></div>
+          <div class="question-card__option"><input id="q3-b" name="question-3" type="radio" value="Gd"><label for="q3-b">Gd</label></div>
+          <div class="question-card__option"><input id="q3-c" name="question-3" type="radio" value="Au"><label for="q3-c">Au</label></div>
+          <div class="question-card__option"><input id="q3-d" name="question-3" type="radio" value="Go"><label for="q3-d">Go</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="question-card">
+        <legend class="question-card__legend"><span class="question-card__number">Question 4</span>At sea level, at what temperature does water boil?</legend>
+        <div class="question-card__options">
+          <div class="question-card__option"><input id="q4-a" name="question-4" type="radio" value="50°C"><label for="q4-a">50°C</label></div>
+          <div class="question-card__option"><input id="q4-b" name="question-4" type="radio" value="75°C"><label for="q4-b">75°C</label></div>
+          <div class="question-card__option"><input id="q4-c" name="question-4" type="radio" value="100°C"><label for="q4-c">100°C</label></div>
+          <div class="question-card__option"><input id="q4-d" name="question-4" type="radio" value="150°C"><label for="q4-d">150°C</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="question-card">
+        <legend class="question-card__legend"><span class="question-card__number">Question 5</span>Which organ pumps blood around the human body?</legend>
+        <div class="question-card__options">
+          <div class="question-card__option"><input id="q5-a" name="question-5" type="radio" value="Lungs"><label for="q5-a">Lungs</label></div>
+          <div class="question-card__option"><input id="q5-b" name="question-5" type="radio" value="Heart"><label for="q5-b">Heart</label></div>
+          <div class="question-card__option"><input id="q5-c" name="question-5" type="radio" value="Liver"><label for="q5-c">Liver</label></div>
+          <div class="question-card__option"><input id="q5-d" name="question-5" type="radio" value="Kidneys"><label for="q5-d">Kidneys</label></div>
+        </div>
+      </fieldset>
+
+      <div class="quiz-actions">
+        <button class="quiz-button" id="submit-button" type="submit" disabled>Submit quiz</button>
+      </div>
+    </form>
+
+    <section class="results" id="results" aria-labelledby="results-title" hidden>
+      <h2 class="results__title" id="results-title">Quiz results</h2>
+      <p class="results__summary" id="score"></p>
+      <ul class="results__list" id="wrong-answers"></ul>
+      <button class="quiz-button quiz-button--secondary" id="retry-button" type="button">Retry quiz</button>
+    </section>
+
+    <footer class="quiz-footer">
+      <p>Select one answer for each question before submitting.</p>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const TOTAL_QUESTIONS = 5;
+      const quizData = [
+        { question: 'What is the closest star to Earth?', answer: 'The Sun' },
+        { question: 'Which process do plants use to convert light into chemical energy?', answer: 'Photosynthesis' },
+        { question: 'What is the chemical symbol for gold?', answer: 'Au' },
+        { question: 'At sea level, at what temperature does water boil?', answer: '100°C' },
+        { question: 'Which organ pumps blood around the human body?', answer: 'Heart' }
+      ];
+
+      const quizForm = document.querySelector('#quiz-form');
+      const progress = document.querySelector('#progress');
+      const submitButton = document.querySelector('#submit-button');
+      const results = document.querySelector('#results');
+      const score = document.querySelector('#score');
+      const wrongAnswers = document.querySelector('#wrong-answers');
+      const retryButton = document.querySelector('#retry-button');
+      const radioButtons = [...quizForm.querySelectorAll('input[type="radio"]')];
+
+      const getSelectedAnswers = () => quizData.map((_, index) => {
+        const selected = quizForm.querySelector(`input[name="question-${index + 1}"]:checked`);
+        return selected ? selected.value : null;
+      });
+
+      const updateProgress = () => {
+        const answeredCount = getSelectedAnswers().filter(Boolean).length;
+        progress.textContent = `Answered: ${answeredCount} of ${TOTAL_QUESTIONS}`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const renderResults = (selectedAnswers) => {
+        const correctCount = selectedAnswers.filter((answer, index) => answer === quizData[index].answer).length;
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        wrongAnswers.replaceChildren();
+
+        quizData.forEach((item, index) => {
+          if (selectedAnswers[index] === item.answer) {
+            return;
+          }
+
+          const resultItem = document.createElement('li');
+          resultItem.className = 'results__item';
+          resultItem.innerHTML = `<p class="results__question">${item.question}</p><p class="results__answer results__answer--chosen"><strong>Your answer:</strong> ${selectedAnswers[index]}</p><p class="results__answer results__answer--correct"><strong>Correct answer:</strong> ${item.answer}</p>`;
+          wrongAnswers.append(resultItem);
+        });
+
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      const resetQuiz = () => {
+        quizForm.reset();
+        results.hidden = true;
+        wrongAnswers.replaceChildren();
+        score.textContent = '';
+        updateProgress();
+        radioButtons[0].focus();
+      };
+
+      radioButtons.forEach((radioButton) => {
+        radioButton.addEventListener('change', updateProgress);
+      });
+
+      quizForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const selectedAnswers = getSelectedAnswers();
+        if (selectedAnswers.every(Boolean)) {
+          renderResults(selectedAnswers);
+        }
+      });
+
+      retryButton.addEventListener('click', resetQuiz);
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

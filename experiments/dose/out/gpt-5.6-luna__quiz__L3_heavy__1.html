@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Everyday Science Quiz</title>
+  <style>
+    :root {
+      --color-ink: #172033;
+      --color-muted: #526078;
+      --color-surface: #ffffff;
+      --color-background: #eef3f8;
+      --color-primary: #154c79;
+      --color-primary-dark: #0e3555;
+      --color-accent: #d96b27;
+      --color-accent-dark: #9b4314;
+      --color-border: #b8c5d5;
+      --color-success: #176b45;
+      --color-error: #a62f2f;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --radius: 0.75rem;
+      --shadow: 0 0.75rem 2rem rgb(23 32 51 / 0.1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 18rem;
+      color: var(--color-ink);
+      background: var(--color-background);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    .page-shell {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .site-header {
+      padding: var(--space-5) var(--space-3);
+      color: #fff;
+      background: var(--color-primary);
+    }
+
+    .site-header__inner,
+    .site-footer__inner,
+    .quiz {
+      width: min(100% - 2rem, 54rem);
+      margin: 0 auto;
+    }
+
+    .site-header__eyebrow {
+      margin: 0 0 var(--space-1);
+      color: #dcecff;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .site-header h1 {
+      max-width: 38rem;
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 2.75rem);
+      line-height: 1.1;
+    }
+
+    .site-header p {
+      max-width: 38rem;
+      margin: var(--space-2) 0 0;
+      color: #e7f0fa;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: var(--space-5) 0 3rem;
+    }
+
+    .quiz__status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .quiz__status-label {
+      font-weight: 700;
+    }
+
+    .quiz__progress {
+      flex: 1;
+      max-width: 19rem;
+      height: 0.75rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dce4ed;
+    }
+
+    .quiz__progress-value {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: var(--color-accent);
+      transition: width 180ms ease;
+    }
+
+    .quiz__questions {
+      display: grid;
+      gap: var(--space-4);
+      margin: 0;
+    }
+
+    .question-card {
+      margin: 0;
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .question-card__legend {
+      width: 100%;
+      margin-bottom: var(--space-3);
+      padding: 0;
+      font-size: 1.1rem;
+      font-weight: 750;
+    }
+
+    .question-card__number {
+      display: block;
+      margin-bottom: var(--space-1);
+      color: var(--color-primary);
+      font-size: 0.8125rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .question-card__options {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .option {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 2px solid var(--color-border);
+      border-radius: 0.6rem;
+      cursor: pointer;
+      transition: border-color 150ms ease, background-color 150ms ease;
+    }
+
+    .option:hover {
+      border-color: var(--color-primary);
+      background: #f2f7fc;
+    }
+
+    .option input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .option__indicator {
+      display: grid;
+      flex: 0 0 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0.1rem;
+      place-items: center;
+      border: 2px solid var(--color-muted);
+      border-radius: 50%;
+      background: var(--color-surface);
+    }
+
+    .option__indicator::after {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 50%;
+      background: var(--color-primary);
+      content: "";
+      opacity: 0;
+    }
+
+    .option input:checked + .option__indicator {
+      border-color: var(--color-primary);
+    }
+
+    .option input:checked + .option__indicator::after {
+      opacity: 1;
+    }
+
+    .option input:focus-visible + .option__indicator {
+      outline: 3px solid var(--color-accent);
+      outline-offset: 3px;
+    }
+
+    .option:has(input:checked) {
+      border-color: var(--color-primary);
+      background: #eaf3fb;
+    }
+
+    .quiz__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .button {
+      min-height: 3rem;
+      padding: 0.75rem 1.25rem;
+      border: 2px solid transparent;
+      border-radius: 0.55rem;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+
+    .button:focus-visible,
+    .button:hover:not(:disabled) {
+      outline: 3px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .button--primary {
+      color: #fff;
+      background: var(--color-primary);
+    }
+
+    .button--primary:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+
+    .button--secondary {
+      color: var(--color-primary-dark);
+      border-color: var(--color-primary);
+      background: var(--color-surface);
+    }
+
+    .button--secondary:hover:not(:disabled) {
+      background: #eaf3fb;
+    }
+
+    .button:disabled {
+      color: #687589;
+      background: #dce2e9;
+      cursor: not-allowed;
+    }
+
+    .quiz__hint {
+      margin: var(--space-2) 0 0;
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    .results {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      border: 2px solid var(--color-success);
+      border-radius: var(--radius);
+      background: #f0faf5;
+    }
+
+    .results h2 {
+      margin: 0;
+      color: var(--color-success);
+      font-size: 1.5rem;
+    }
+
+    .results__summary {
+      margin: var(--space-1) 0 var(--space-4);
+      font-size: 1.1rem;
+    }
+
+    .results__list {
+      display: grid;
+      gap: var(--space-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .results__item {
+      padding: var(--space-3);
+      border-left: 0.35rem solid var(--color-error);
+      background: #fff;
+    }
+
+    .results__item p {
+      margin: var(--space-1) 0 0;
+    }
+
+    .results__item strong {
+      color: var(--color-error);
+    }
+
+    .site-footer {
+      padding: var(--space-4) var(--space-3);
+      color: #dcecff;
+      background: var(--color-primary-dark);
+      font-size: 0.875rem;
+    }
+
+    .site-footer p {
+      margin: 0;
+    }
+
+    [hidden] {
+      display: none;
+    }
+
+    @media (max-width: 38rem) {
+      .quiz__status {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .quiz__progress {
+        max-width: none;
+      }
+
+      .question-card {
+        padding: var(--space-3);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="site-header__inner">
+        <p class="site-header__eyebrow">Quick knowledge check</p>
+        <h1>Everyday Science Quiz</h1>
+        <p>Answer all five questions, then submit your responses to see how you did.</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="quiz" aria-labelledby="quiz-title">
+        <h2 id="quiz-title" class="visually-hidden">Quiz questions</h2>
+        <div class="quiz__status" aria-label="Quiz progress">
+          <span class="quiz__status-label" id="progress-text">0 of 5 answered</span>
+          <span class="quiz__progress" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="progress-text">
+            <span class="quiz__progress-value"></span>
+          </span>
+        </div>
+
+        <form id="quiz-form" novalidate>
+          <div class="quiz__questions">
+            <fieldset class="question-card">
+              <legend class="question-card__legend"><span class="question-card__number">Question 1</span>Which gas do plants absorb from the atmosphere during photosynthesis?</legend>
+              <div class="question-card__options">
+                <label class="option"><input type="radio" name="question-1" value="Oxygen"><span class="option__indicator" aria-hidden="true"></span><span>Oxygen</span></label>
+                <label class="option"><input type="radio" name="question-1" value="Nitrogen"><span class="option__indicator" aria-hidden="true"></span><span>Nitrogen</span></label>
+                <label class="option"><input type="radio" name="question-1" value="Carbon dioxide"><span class="option__indicator" aria-hidden="true"></span><span>Carbon dioxide</span></label>
+                <label class="option"><input type="radio" name="question-1" value="Hydrogen"><span class="option__indicator" aria-hidden="true"></span><span>Hydrogen</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-card">
+              <legend class="question-card__legend"><span class="question-card__number">Question 2</span>What is the hardest naturally occurring mineral?</legend>
+              <div class="question-card__options">
+                <label class="option"><input type="radio" name="question-2" value="Quartz"><span class="option__indicator" aria-hidden="true"></span><span>Quartz</span></label>
+                <label class="option"><input type="radio" name="question-2" value="Diamond"><span class="option__indicator" aria-hidden="true"></span><span>Diamond</span></label>
+                <label class="option"><input type="radio" name="question-2" value="Granite"><span class="option__indicator" aria-hidden="true"></span><span>Granite</span></label>
+                <label class="option"><input type="radio" name="question-2" value="Topaz"><span class="option__indicator" aria-hidden="true"></span><span>Topaz</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-card">
+              <legend class="question-card__legend"><span class="question-card__number">Question 3</span>Which part of the human body pumps blood through the circulatory system?</legend>
+              <div class="question-card__options">
+                <label class="option"><input type="radio" name="question-3" value="Lungs"><span class="option__indicator" aria-hidden="true"></span><span>Lungs</span></label>
+                <label class="option"><input type="radio" name="question-3" value="Liver"><span class="option__indicator" aria-hidden="true"></span><span>Liver</span></label>
+                <label class="option"><input type="radio" name="question-3" value="Heart"><span class="option__indicator" aria-hidden="true"></span><span>Heart</span></label>
+                <label class="option"><input type="radio" name="question-3" value="Kidneys"><span class="option__indicator" aria-hidden="true"></span><span>Kidneys</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-card">
+              <legend class="question-card__legend"><span class="question-card__number">Question 4</span>At sea level, at what temperature does water freeze on the Celsius scale?</legend>
+              <div class="question-card__options">
+                <label class="option"><input type="radio" name="question-4" value="-10°C"><span class="option__indicator" aria-hidden="true"></span><span>-10°C</span></label>
+                <label class="option"><input type="radio" name="question-4" value="0°C"><span class="option__indicator" aria-hidden="true"></span><span>0°C</span></label>
+                <label class="option"><input type="radio" name="question-4" value="10°C"><span class="option__indicator" aria-hidden="true"></span><span>10°C</span></label>
+                <label class="option"><input type="radio" name="question-4" value="32°C"><span class="option__indicator" aria-hidden="true"></span><span>32°C</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-card">
+              <legend class="question-card__legend"><span class="question-card__number">Question 5</span>Which force pulls objects toward the center of Earth?</legend>
+              <div class="question-card__options">
+                <label class="option"><input type="radio" name="question-5" value="Magnetism"><span class="option__indicator" aria-hidden="true"></span><span>Magnetism</span></label>
+                <label class="option"><input type="radio" name="question-5" value="Friction"><span class="option__indicator" aria-hidden="true"></span><span>Friction</span></label>
+                <label class="option"><input type="radio" name="question-5" value="Gravity"><span class="option__indicator" aria-hidden="true"></span><span>Gravity</span></label>
+                <label class="option"><input type="radio" name="question-5" value="Buoyancy"><span class="option__indicator" aria-hidden="true"></span><span>Buoyancy</span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="quiz__actions">
+            <button class="button button--primary" id="submit-button" type="submit" disabled aria-disabled="true">Submit answers</button>
+            <button class="button button--secondary" id="retry-button" type="button" hidden>Retry quiz</button>
+          </div>
+          <p class="quiz__hint" id="submit-hint">Answer all 5 questions to enable submission.</p>
+        </form>
+
+        <section class="results" id="results" aria-labelledby="results-title" aria-live="polite" hidden>
+          <h2 id="results-title">Results</h2>
+          <p class="results__summary" id="results-summary"></p>
+          <ul class="results__list" id="results-list"></ul>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <p>Take your time and learn something new.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 5;
+      const answerKey = ["Carbon dioxide", "Diamond", "Heart", "0°C", "Gravity"];
+      const questionElements = [...document.querySelectorAll(".question-card")];
+      const form = document.querySelector("#quiz-form");
+      const progressText = document.querySelector("#progress-text");
+      const progressBar = document.querySelector(".quiz__progress");
+      const progressValue = document.querySelector(".quiz__progress-value");
+      const submitButton = document.querySelector("#submit-button");
+      const retryButton = document.querySelector("#retry-button");
+      const submitHint = document.querySelector("#submit-hint");
+      const results = document.querySelector("#results");
+      const resultsSummary = document.querySelector("#results-summary");
+      const resultsList = document.querySelector("#results-list");
+
+      const getSelectedAnswers = () => questionElements.map((question) => {
+        const selected = question.querySelector("input:checked");
+        return selected ? selected.value : null;
+      });
+
+      const updateProgress = () => {
+        const answers = getSelectedAnswers();
+        const answeredCount = answers.filter(Boolean).length;
+        const progressPercent = (answeredCount / TOTAL_QUESTIONS) * 100;
+        progressText.textContent = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+        progressBar.setAttribute("aria-valuenow", String(answeredCount));
+        progressValue.style.width = `${progressPercent}%`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+        submitButton.setAttribute("aria-disabled", String(submitButton.disabled));
+        submitHint.textContent = submitButton.disabled
+          ? `Answer all ${TOTAL_QUESTIONS} questions to enable submission.`
+          : "All questions answered. You can submit your quiz.";
+      };
+
+      const showResults = (answers) => {
+        const score = answers.reduce((total, answer, index) => (
+          total + (answer === answerKey[index] ? 1 : 0)
+        ), 0);
+        const incorrectAnswers = questionElements
+          .map((question, index) => ({
+            questionText: question.querySelector("legend").textContent.replace(/^Question \d+/, "").trim(),
+            selected: answers[index],
+            correct: answerKey[index]
+          }))
+          .filter((answer, index) => answer.selected !== answerKey[index]);
+
+        resultsSummary.textContent = `You scored ${score}/${TOTAL_QUESTIONS}`;
+        resultsList.replaceChildren();
+
+        if (incorrectAnswers.length === 0) {
+          const perfectMessage = document.createElement("li");
+          perfectMessage.className = "results__item";
+          perfectMessage.textContent = "Excellent work — every answer is correct.";
+          resultsList.append(perfectMessage);
+        } else {
+          incorrectAnswers.forEach((answer) => {
+            const item = document.createElement("li");
+            item.className = "results__item";
+            item.innerHTML = `<strong>${answer.questionText}</strong><p>Your answer: ${answer.selected || "No answer"}</p><p>Correct answer: ${answer.correct}</p>`;
+            resultsList.append(item);
+          });
+        }
+
+        results.hidden = false;
+        retryButton.hidden = false;
+        results.focus({ preventScroll: true });
+      };
+
+      const resetQuiz = () => {
+        form.reset();
+        results.hidden = true;
+        retryButton.hidden = true;
+        updateProgress();
+        questionElements[0]?.querySelector("input")?.focus();
+      };
+
+      form.addEventListener("change", updateProgress);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const answers = getSelectedAnswers();
+        if (answers.some((answer) => !answer)) {
+          updateProgress();
+          return;
+        }
+        showResults(answers);
+      });
+      retryButton.addEventListener("click", resetQuiz);
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

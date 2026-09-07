@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Check Quiz</title>
+  <style>
+    :root {
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --surface: #ffffff;
+      --background: #f4f7fb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #047857;
+      --error: #b91c1c;
+      --focus: #93c5fd;
+      --shadow: 0 16px 40px rgba(15, 23, 42, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--background);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: clamp(24px, 5vw, 44px);
+    }
+
+    h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 4vw, 2.4rem); line-height: 1.15; }
+    .intro { margin: 0 0 28px; color: var(--muted); }
+
+    .progress-wrap { margin-bottom: 28px; }
+    .progress-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-weight: 700; font-size: .95rem; }
+    .progress-track { height: 10px; overflow: hidden; background: #e8eef6; border-radius: 999px; }
+    .progress-bar { width: 0%; height: 100%; background: var(--primary); border-radius: inherit; transition: width .2s ease; }
+
+    fieldset { border: 0; padding: 0; margin: 0 0 26px; min-width: 0; }
+    legend { width: 100%; margin-bottom: 12px; padding: 0; font-weight: 750; font-size: 1.08rem; }
+    .option-list { display: grid; gap: 10px; }
+    .option { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .option:hover { border-color: #9db8dc; background: #f8fbff; }
+    .option:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus); }
+    .option input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--primary); flex: 0 0 auto; }
+    .option:has(input:checked) { border-color: var(--primary); background: #eff6ff; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 8px; }
+    button { border: 0; border-radius: 9px; padding: 12px 20px; font: inherit; font-weight: 700; cursor: pointer; }
+    button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    #submit { color: white; background: var(--primary); }
+    #submit:hover:not(:disabled) { background: var(--primary-dark); }
+    #submit:disabled { color: #94a3b8; background: #e2e8f0; cursor: not-allowed; }
+    #retry { color: var(--primary-dark); background: #dbeafe; }
+    #retry:hover { background: #bfdbfe; }
+
+    [hidden] { display: none !important; }
+    .results { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .score { margin: 0 0 18px; color: var(--success); font-size: 1.45rem; font-weight: 800; }
+    .results h2 { margin: 0 0 14px; font-size: 1.2rem; }
+    .wrong-list { display: grid; gap: 14px; margin: 0 0 22px; padding: 0; list-style: none; }
+    .wrong-item { padding: 15px; border-left: 4px solid var(--error); background: #fff7f7; border-radius: 5px 10px 10px 5px; }
+    .wrong-item p { margin: 4px 0; }
+    .wrong-item .question { font-weight: 750; }
+    .chosen { color: var(--error); }
+    .correct { color: var(--success); }
+    .empty-results { color: var(--success); margin-bottom: 22px; }
+
+    @media (max-width: 520px) {
+      main { width: min(100% - 20px, 760px); padding-top: 20px; }
+      .card { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" aria-labelledby="quiz-title">
+      <h1 id="quiz-title">Knowledge Check</h1>
+      <p class="intro">Choose one answer for each question, then submit your quiz.</p>
+
+      <div class="progress-wrap" aria-label="Quiz progress">
+        <div class="progress-label"><span>Progress</span><span id="progress-text" aria-live="polite">0 of 5 answered</span></div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-label="Questions answered">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <form id="quiz-form">
+        <fieldset>
+          <legend>1. Which language is used to structure content on the web?</legend>
+          <div class="option-list">
+            <label class="option"><input type="radio" name="q1" value="HTML"> <span>HTML</span></label>
+            <label class="option"><input type="radio" name="q1" value="Python"> <span>Python</span></label>
+            <label class="option"><input type="radio" name="q1" value="SQL"> <span>SQL</span></label>
+            <label class="option"><input type="radio" name="q1" value="Bash"> <span>Bash</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>2. What does CSS primarily control?</legend>
+          <div class="option-list">
+            <label class="option"><input type="radio" name="q2" value="Database records"> <span>Database records</span></label>
+            <label class="option"><input type="radio" name="q2" value="Visual presentation"> <span>Visual presentation</span></label>
+            <label class="option"><input type="radio" name="q2" value="Server hardware"> <span>Server hardware</span></label>
+            <label class="option"><input type="radio" name="q2" value="User passwords"> <span>User passwords</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>3. Which JavaScript keyword declares a variable that cannot be reassigned?</legend>
+          <div class="option-list">
+            <label class="option"><input type="radio" name="q3" value="let"> <span>let</span></label>
+            <label class="option"><input type="radio" name="q3" value="var"> <span>var</span></label>
+            <label class="option"><input type="radio" name="q3" value="const"> <span>const</span></label>
+            <label class="option"><input type="radio" name="q3" value="static"> <span>static</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>4. What is the main purpose of an accessible label for a form control?</legend>
+          <div class="option-list">
+            <label class="option"><input type="radio" name="q4" value="To add animation"> <span>To add animation</span></label>
+            <label class="option"><input type="radio" name="q4" value="To identify the control"> <span>To identify the control</span></label>
+            <label class="option"><input type="radio" name="q4" value="To compress images"> <span>To compress images</span></label>
+            <label class="option"><input type="radio" name="q4" value="To change the URL"> <span>To change the URL</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>5. Which HTTP status code means “Not Found”?</legend>
+          <div class="option-list">
+            <label class="option"><input type="radio" name="q5" value="200"> <span>200</span></label>
+            <label class="option"><input type="radio" name="q5" value="301"> <span>301</span></label>
+            <label class="option"><input type="radio" name="q5" value="404"> <span>404</span></label>
+            <label class="option"><input type="radio" name="q5" value="500"> <span>500</span></label>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="submit" type="submit" disabled>Submit quiz</button>
+        </div>
+      </form>
+
+      <section class="results" id="results" aria-labelledby="results-title" hidden>
+        <h2 id="results-title">Your results</h2>
+        <p class="score" id="score" aria-live="polite"></p>
+        <div id="wrong-answers"></div>
+        <div class="actions"><button id="retry" type="button">Retry</button></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const form = document.getElementById('quiz-form');
+      const submit = document.getElementById('submit');
+      const progressText = document.getElementById('progress-text');
+      const progressBar = document.getElementById('progress-bar');
+      const progressTrack = document.querySelector('.progress-track');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const wrongAnswers = document.getElementById('wrong-answers');
+      const retry = document.getElementById('retry');
+      const answers = { q1: 'HTML', q2: 'Visual presentation', q3: 'const', q4: 'To identify the control', q5: '404' };
+      const questions = Array.from(form.querySelectorAll('fieldset')).map(function (fieldset) {
+        return fieldset.querySelector('legend').textContent;
+      });
+
+      function updateProgress() {
+        const answered = Object.keys(answers).filter(function (name) {
+          return form.querySelector('input[name="' + name + '"]:checked');
+        }).length;
+        progressText.textContent = answered + ' of 5 answered';
+        progressBar.style.width = (answered / 5 * 100) + '%';
+        progressTrack.setAttribute('aria-valuenow', answered);
+        submit.disabled = answered !== 5;
+      }
+
+      form.addEventListener('change', updateProgress);
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        let total = 0;
+        const wrong = [];
+        Object.keys(answers).forEach(function (name, index) {
+          const chosen = form.querySelector('input[name="' + name + '"]:checked').value;
+          if (chosen === answers[name]) total++;
+          else wrong.push({ question: questions[index], chosen: chosen, correct: answers[name] });
+        });
+        score.textContent = 'You scored ' + total + '/5';
+        if (wrong.length === 0) {
+          wrongAnswers.innerHTML = '<p class="empty-results">Perfect score! Every answer was correct.</p>';
+        } else {
+          wrongAnswers.innerHTML = '<h2>Review your incorrect answers</h2><ul class="wrong-list">' + wrong.map(function (item) {
+            return '<li class="wrong-item"><p class="question">' + item.question + '</p><p class="chosen"><strong>Your answer:</strong> ' + item.chosen + '</p><p class="correct"><strong>Correct answer:</strong> ' + item.correct + '</p></li>';
+          }).join('') + '</ul>';
+        }
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      retry.addEventListener('click', function () {
+        form.reset();
+        results.hidden = true;
+        wrongAnswers.innerHTML = '';
+        updateProgress();
+        form.querySelector('input').focus();
+      });
+
+      updateProgress();
+    }());
+  </script>
+</body>
+</html>

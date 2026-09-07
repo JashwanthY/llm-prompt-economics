@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Check Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #4d5b73;
+      --surface: #ffffff;
+      --background: #eef3f8;
+      --border: #9aa9bd;
+      --accent: #165d9b;
+      --accent-dark: #0d3f6c;
+      --accent-soft: #e6f1fb;
+      --success: #17623d;
+      --error: #9b2d30;
+      --shadow: 0 12px 28px rgba(24, 45, 72, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--background);
+      font: 1rem/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 2.5rem 1.25rem 1.5rem;
+      background: var(--accent-dark);
+      color: #fff;
+    }
+
+    header h1, header p, main, footer { max-width: 48rem; margin-left: auto; margin-right: auto; }
+    header h1 { margin-top: 0; margin-bottom: .5rem; font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.15; }
+    header p { margin-top: 0; margin-bottom: 0; color: #e8f2fb; }
+
+    main { padding: 1.5rem 1.25rem 3rem; }
+
+    .progress-panel, .quiz-card, #results {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      box-shadow: var(--shadow);
+    }
+
+    .progress-panel { padding: 1rem 1.1rem; margin-bottom: 1.25rem; }
+    .progress-label { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .5rem; font-weight: 700; }
+    progress { width: 100%; height: 1rem; accent-color: var(--accent); }
+
+    .quiz-card { margin-bottom: 1.25rem; padding: 1.25rem; }
+    fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+    legend { width: 100%; padding: 0; margin-bottom: 1rem; font-size: 1.15rem; font-weight: 750; }
+    .question-number { color: var(--accent-dark); font-size: .9rem; }
+
+    .option { position: relative; display: block; margin-top: .65rem; }
+    .option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .option label {
+      display: block;
+      padding: .8rem 1rem .8rem 2.65rem;
+      border: 2px solid var(--border);
+      border-radius: .55rem;
+      cursor: pointer;
+      position: relative;
+      transition: background .15s, border-color .15s;
+    }
+    .option label::before {
+      content: "";
+      position: absolute;
+      left: .95rem;
+      top: 50%;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid var(--muted);
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: #fff;
+    }
+    .option input:checked + label { border-color: var(--accent); background: var(--accent-soft); }
+    .option input:checked + label::after {
+      content: "";
+      position: absolute;
+      left: 1.29rem;
+      top: 50%;
+      width: .56rem;
+      height: .56rem;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translateY(-50%);
+    }
+    .option input:focus-visible + label { outline: 3px solid #f2a900; outline-offset: 3px; }
+    .option label:hover { border-color: var(--accent); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0; }
+    button {
+      border: 2px solid var(--accent-dark);
+      border-radius: .5rem;
+      padding: .75rem 1.25rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+    button:hover:not(:disabled) { background: var(--accent-dark); }
+    button:focus-visible { outline: 3px solid #f2a900; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; color: #536174; background: #d8dee7; border-color: #aeb9c8; }
+    #retry { background: #fff; color: var(--accent-dark); }
+    #retry:hover { background: var(--accent-soft); }
+
+    #results { padding: 1.25rem; border-left: .45rem solid var(--success); }
+    #results h2 { margin-top: 0; }
+    .result-list { padding-left: 1.25rem; }
+    .result-list li { margin-bottom: 1rem; }
+    .result-list strong { display: block; }
+    .result-label { font-weight: 700; }
+    .your-answer { color: var(--error); }
+    .correct-answer { color: var(--success); }
+    footer { padding: 0 1.25rem 2rem; color: var(--muted); font-size: .9rem; }
+
+    @media (min-width: 42rem) {
+      main { padding-top: 2rem; }
+      .quiz-card, #results { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Knowledge Check</h1>
+    <p>Answer all five questions, then submit to see your score and review any missed answers.</p>
+  </header>
+
+  <main>
+    <section class="progress-panel" aria-labelledby="progress-heading">
+      <h2 id="progress-heading" class="visually-hidden" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;">Quiz progress</h2>
+      <div class="progress-label"><span>Progress</span><span id="progress-text" aria-live="polite">0 of 5 answered</span></div>
+      <progress id="progress" max="5" value="0">0 of 5 answered</progress>
+    </section>
+
+    <form id="quiz-form" novalidate>
+      <section class="quiz-card" aria-labelledby="question-1">
+        <fieldset>
+          <legend id="question-1"><span class="question-number">Question 1 of 5</span><br>Which language is used to structure the content of a web page?</legend>
+          <div class="option"><input id="q1-a" type="radio" name="q1" value="JavaScript"><label for="q1-a">JavaScript</label></div>
+          <div class="option"><input id="q1-b" type="radio" name="q1" value="HTML"><label for="q1-b">HTML</label></div>
+          <div class="option"><input id="q1-c" type="radio" name="q1" value="Python"><label for="q1-c">Python</label></div>
+          <div class="option"><input id="q1-d" type="radio" name="q1" value="SQL"><label for="q1-d">SQL</label></div>
+        </fieldset>
+      </section>
+
+      <section class="quiz-card" aria-labelledby="question-2">
+        <fieldset>
+          <legend id="question-2"><span class="question-number">Question 2 of 5</span><br>Which CSS property changes the background color of an element?</legend>
+          <div class="option"><input id="q2-a" type="radio" name="q2" value="color"><label for="q2-a">color</label></div>
+          <div class="option"><input id="q2-b" type="radio" name="q2" value="fill"><label for="q2-b">fill</label></div>
+          <div class="option"><input id="q2-c" type="radio" name="q2" value="background-color"><label for="q2-c">background-color</label></div>
+          <div class="option"><input id="q2-d" type="radio" name="q2" value="surface"><label for="q2-d">surface</label></div>
+        </fieldset>
+      </section>
+
+      <section class="quiz-card" aria-labelledby="question-3">
+        <fieldset>
+          <legend id="question-3"><span class="question-number">Question 3 of 5</span><br>Which HTTP status code means “Not Found”?</legend>
+          <div class="option"><input id="q3-a" type="radio" name="q3" value="200"><label for="q3-a">200</label></div>
+          <div class="option"><input id="q3-b" type="radio" name="q3" value="301"><label for="q3-b">301</label></div>
+          <div class="option"><input id="q3-c" type="radio" name="q3" value="403"><label for="q3-c">403</label></div>
+          <div class="option"><input id="q3-d" type="radio" name="q3" value="404"><label for="q3-d">404</label></div>
+        </fieldset>
+      </section>
+
+      <section class="quiz-card" aria-labelledby="question-4">
+        <fieldset>
+          <legend id="question-4"><span class="question-number">Question 4 of 5</span><br>What does CSS primarily control?</legend>
+          <div class="option"><input id="q4-a" type="radio" name="q4" value="Web page presentation"><label for="q4-a">Web page presentation</label></div>
+          <div class="option"><input id="q4-b" type="radio" name="q4" value="Database records"><label for="q4-b">Database records</label></div>
+          <div class="option"><input id="q4-c" type="radio" name="q4" value="Server hardware"><label for="q4-c">Server hardware</label></div>
+          <div class="option"><input id="q4-d" type="radio" name="q4" value="Email delivery"><label for="q4-d">Email delivery</label></div>
+        </fieldset>
+      </section>
+
+      <section class="quiz-card" aria-labelledby="question-5">
+        <fieldset>
+          <legend id="question-5"><span class="question-number">Question 5 of 5</span><br>Which HTML element creates a hyperlink?</legend>
+          <div class="option"><input id="q5-a" type="radio" name="q5" value="&lt;link&gt;"><label for="q5-a">&lt;link&gt;</label></div>
+          <div class="option"><input id="q5-b" type="radio" name="q5" value="&lt;a&gt;"><label for="q5-b">&lt;a&gt;</label></div>
+          <div class="option"><input id="q5-c" type="radio" name="q5" value="&lt;href&gt;"><label for="q5-c">&lt;href&gt;</label></div>
+          <div class="option"><input id="q5-d" type="radio" name="q5" value="&lt;url&gt;"><label for="q5-d">&lt;url&gt;</label></div>
+        </fieldset>
+      </section>
+
+      <div class="actions">
+        <button id="submit" type="submit" disabled>Submit answers</button>
+        <button id="retry" type="button">Retry</button>
+      </div>
+    </form>
+
+    <section id="results" aria-labelledby="results-heading" tabindex="-1" hidden>
+      <h2 id="results-heading">Your results</h2>
+      <p id="score"></p>
+      <div id="review"></div>
+    </section>
+  </main>
+
+  <footer>Choose one answer for each question. Your selections can be changed before submitting.</footer>
+
+  <script>
+    (() => {
+      const form = document.getElementById('quiz-form');
+      const submit = document.getElementById('submit');
+      const retry = document.getElementById('retry');
+      const progress = document.getElementById('progress');
+      const progressText = document.getElementById('progress-text');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const review = document.getElementById('review');
+      const answers = ['HTML', 'background-color', '404', 'Web page presentation', '<a>'];
+      const questionText = [
+        'Which language is used to structure the content of a web page?',
+        'Which CSS property changes the background color of an element?',
+        'Which HTTP status code means “Not Found”?',
+        'What does CSS primarily control?',
+        'Which HTML element creates a hyperlink?'
+      ];
+
+      function updateProgress() {
+        const answered = [...Array(5)].reduce((total, _, index) =>
+          total + (form.querySelector(`input[name="q${index + 1}"]:checked`) ? 1 : 0), 0);
+        progress.value = answered;
+        progressText.textContent = `${answered} of 5 answered`;
+        submit.disabled = answered !== 5;
+      }
+
+      form.addEventListener('change', updateProgress);
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        let total = 0;
+        const missed = [];
+        answers.forEach((correct, index) => {
+          const chosen = form.querySelector(`input[name="q${index + 1}"]:checked`).value;
+          if (chosen === correct) total++;
+          else missed.push({ number: index + 1, question: questionText[index], chosen, correct });
+        });
+        score.textContent = `You scored ${total}/5`;
+        review.innerHTML = '';
+        if (missed.length === 0) {
+          const message = document.createElement('p');
+          message.textContent = 'Excellent work—you answered every question correctly.';
+          review.appendChild(message);
+        } else {
+          const heading = document.createElement('h3');
+          heading.textContent = 'Review the questions you missed';
+          review.appendChild(heading);
+          const list = document.createElement('ol');
+          list.className = 'result-list';
+          missed.forEach(item => {
+            const entry = document.createElement('li');
+            entry.innerHTML = `<strong>${item.question}</strong><span class="result-label your-answer">Your answer: </span>${item.chosen}<br><span class="result-label correct-answer">Correct answer: </span>${item.correct}`;
+            list.appendChild(entry);
+          });
+          review.appendChild(list);
+        }
+        results.hidden = false;
+        results.focus();
+      });
+
+      retry.addEventListener('click', () => {
+        form.reset();
+        results.hidden = true;
+        score.textContent = '';
+        review.innerHTML = '';
+        updateProgress();
+        form.querySelector('input').focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>
