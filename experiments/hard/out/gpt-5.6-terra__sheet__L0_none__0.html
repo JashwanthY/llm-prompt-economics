@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Spreadsheet</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f4f7fb; color: #172033; font: 14px/1.4 system-ui, sans-serif; }
+  main { width: min(680px, calc(100% - 32px)); padding: 26px; background: white; border: 1px solid #dbe3ee; border-radius: 12px; box-shadow: 0 8px 24px #1b2a4012; }
+  h1 { margin: 0 0 5px; font-size: 20px; }
+  p { margin: 0 0 20px; color: #5d6b80; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { border: 1px solid #dbe3ee; padding: 7px; text-align: left; vertical-align: middle; }
+  th { background: #f7f9fc; color: #58667a; font-weight: 700; text-align: center; }
+  th:first-child { width: 42px; }
+  .cell { display: grid; gap: 5px; }
+  input { width: 100%; min-width: 0; padding: 6px 7px; border: 1px solid #b9c7d9; border-radius: 5px; color: #172033; font: inherit; }
+  input:focus { outline: 2px solid #78a8ef; outline-offset: 1px; border-color: #5d96e7; }
+  .out { min-height: 20px; padding: 2px 3px; overflow-wrap: anywhere; color: #1e4f91; font-variant-numeric: tabular-nums; }
+  .out.error { color: #b42318; font-weight: 700; }
+  footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; color: #66758a; font-size: 12px; }
+  button { padding: 7px 11px; border: 1px solid #9eb1c9; border-radius: 6px; background: #fff; color: #243b5b; font: inherit; cursor: pointer; }
+  button:hover:not(:disabled) { background: #eef5ff; }
+  button:disabled { cursor: not-allowed; opacity: .5; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mini Spreadsheet</h1>
+  <p>Enter numbers or formulas such as <code>=SUM(A1:A4)</code> and <code>=(A1+B1)/2</code>.</p>
+  <table aria-label="4 by 4 spreadsheet">
+    <thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+    <tbody id="sheet-body"></tbody>
+  </table>
+  <footer><span>Outputs are calculated to two decimal places.</span><button id="app-undo" type="button" disabled>Undo</button></footer>
+</main>
+<script>
+(() => {
+  'use strict';
+  const cols = ['A', 'B', 'C', 'D'];
+  const rows = [1, 2, 3, 4];
+  const ids = rows.flatMap(row => cols.map(col => col + row));
+  const values = Object.fromEntries(ids.map(id => [id, '']));
+  const history = [];
+  let applyingUndo = false;
+
+  const body = document.getElementById('sheet-body');
+  for (const row of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<th scope="row">' + row + '</th>';
+    for (const col of cols) {
+      const id = col + row;
+      const td = document.createElement('td');
+      td.innerHTML = '<div class="cell"><input id="cell-' + id + '" aria-label="Cell ' + id + '" autocomplete="off"><span id="out-' + id + '" class="out" aria-live="polite"></span></div>';
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  }
+
+  function isValidRef(ref) { return /^[A-D][1-4]$/.test(ref); }
+  function resultError(code) { return { error: code }; }
+  function isError(result) { return Object.prototype.hasOwnProperty.call(result, 'error'); }
+
+  function tokenize(text) {
+    const tokens = [];
+    let i = 0;
+    while (i < text.length) {
+      const rest = text.slice(i);
+      const ws = rest.match(/^\s+/);
+      if (ws) { i += ws[0].length; continue; }
+      const number = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
+      if (number) { tokens.push({ type: 'number', value: Number(number[0]) }); i += number[0].length; continue; }
+      const word = rest.match(/^[A-Za-z]+\d+/);
+      if (word) { tokens.push({ type: 'ref', value: word[0].toUpperCase() }); i += word[0].length; continue; }
+      const name = rest.match(/^[A-Za-z]+/);
+      if (name) { tokens.push({ type: 'name', value: name[0].toUpperCase() }); i += name[0].length; continue; }
+      if ('+-*/():'.includes(text[i])) { tokens.push({ type: text[i], value: text[i] }); i++; continue; }
+      throw new Error('Invalid token');
+    }
+    tokens.push({ type: 'end' });
+    return tokens;
+  }
+
+  function parseFormula(text) {
+    const tokens = tokenize(text);
+    let pos = 0;
+    const peek = () => tokens[pos];
+    const take = type => {
+      if (peek().type !== type) throw new Error('Expected ' + type);
+      return tokens[pos++];
+    };
+    const expression = () => {
+      let node = term();
+      while (peek().type === '+' || peek().type === '-') {
+        const op = tokens[pos++].type;
+        node = { kind: 'binary', op, left: node, right: term() };
+      }
+      return node;
+    };
+    const term = () => {
+      let node = factor();
+      while (peek().type === '*' || peek().type === '/') {
+        const op = tokens[pos++].type;
+        node = { kind: 'binary', op, left: node, right: factor() };
+      }
+      return node;
+    };
+    const factor = () => {
+      if (peek().type === '+' || peek().type === '-') return { kind: 'unary', op: tokens[pos++].type, value: factor() };
+      if (peek().type === 'number') return { kind: 'number', value: tokens[pos++].value };
+      if (peek().type === 'ref') return { kind: 'ref', ref: tokens[pos++].value };
+      if (peek().type === '(') { take('('); const node = expression(); take(')'); return node; }
+      if (peek().type === 'name' && peek().value === 'SUM') {
+        pos++; take('(');
+        const start = take('ref').value;
+        take(':');
+        const end = take('ref').value;
+        take(')');
+        return { kind: 'sum', start, end };
+      }
+      throw new Error('Expected value');
+    };
+    const tree = expression();
+    take('end');
+    return tree;
+  }
+
+  function recompute() {
+    const states = Object.fromEntries(ids.map(id => [id, 'new']));
+    const cache = {};
+    const evaluate = id => {
+      if (states[id] === 'done') return cache[id];
+      if (states[id] === 'visiting') return resultError('#CYCLE');
+      states[id] = 'visiting';
+      const raw = values[id].trim();
+      let answer;
+      if (!raw.startsWith('=')) {
+        const numeric = raw === '' ? 0 : Number(raw);
+        answer = Number.isFinite(numeric) ? { value: numeric } : { value: 0 };
+      } else {
+        try { answer = evaluateNode(parseFormula(raw.slice(1))); }
+        catch (_) { answer = resultError('#ERROR'); }
+      }
+      states[id] = 'done';
+      cache[id] = answer;
+      return answer;
+    };
+    const evaluateNode = node => {
+      if (node.kind === 'number') return { value: node.value };
+      if (node.kind === 'ref') return isValidRef(node.ref) ? evaluate(node.ref) : resultError('#REF');
+      if (node.kind === 'unary') {
+        const v = evaluateNode(node.value); if (isError(v)) return v;
+        return { value: node.op === '-' ? -v.value : v.value };
+      }
+      if (node.kind === 'binary') {
+        const a = evaluateNode(node.left); if (isError(a)) return a;
+        const b = evaluateNode(node.right); if (isError(b)) return b;
+        if (node.op === '/' && b.value === 0) return resultError('#DIV/0');
+        const n = node.op === '+' ? a.value + b.value : node.op === '-' ? a.value - b.value : node.op === '*' ? a.value * b.value : a.value / b.value;
+        return Number.isFinite(n) ? { value: n } : resultError('#ERROR');
+      }
+      if (!isValidRef(node.start) || !isValidRef(node.end)) return resultError('#REF');
+      const c1 = cols.indexOf(node.start[0]), c2 = cols.indexOf(node.end[0]);
+      const r1 = Number(node.start.slice(1)), r2 = Number(node.end.slice(1));
+      let total = 0;
+      for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
+        const v = evaluate(cols[c] + r); if (isError(v)) return v; total += v.value;
+      }
+      return Number.isFinite(total) ? { value: total } : resultError('#ERROR');
+    };
+    for (const id of ids) {
+      const result = evaluate(id);
+      const output = document.getElementById('out-' + id);
+      if (isError(result)) { output.textContent = result.error; output.classList.add('error'); }
+      else { output.textContent = (Object.is(result.value, -0) ? 0 : result.value).toFixed(2); output.classList.remove('error'); }
+    }
+  }
+
+  function updateUndoButton() { document.getElementById('app-undo').disabled = history.length === 0; }
+  for (const id of ids) {
+    const input = document.getElementById('cell-' + id);
+    input.addEventListener('focus', () => {
+      input.dataset.beforeEdit = input.value;
+      delete input.dataset.historyRecorded;
+    });
+    const recordAndRecompute = () => {
+      const before = input.dataset.beforeEdit === undefined ? values[id] : input.dataset.beforeEdit;
+      if (!applyingUndo && !input.dataset.historyRecorded && input.value !== before) {
+        history.push({ id, oldValue: before, newValue: input.value });
+        input.dataset.historyRecorded = 'true';
+      }
+      values[id] = input.value;
+      updateUndoButton(); recompute();
+    };
+    input.addEventListener('input', recordAndRecompute);
+    input.addEventListener('change', recordAndRecompute);
+  }
+  document.getElementById('app-undo').addEventListener('click', () => {
+    const last = history.pop();
+    if (!last) return;
+    applyingUndo = true;
+    values[last.id] = last.oldValue;
+    const input = document.getElementById('cell-' + last.id);
+    input.value = last.oldValue;
+    input.dataset.beforeEdit = last.oldValue;
+    applyingUndo = false;
+    updateUndoButton(); recompute();
+  });
+  recompute();
+})();
+</script>
+</body>
+</html>
