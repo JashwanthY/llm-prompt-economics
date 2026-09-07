@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --surface: #ffffff;
+      --background: #f3f4f6;
+      --success: #166534;
+      --success-bg: #dcfce7;
+      --error: #991b1b;
+      --error-bg: #fee2e2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(720px, 100%);
+      margin: 0 auto;
+    }
+
+    .quiz-card {
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+      background: var(--surface);
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+    }
+
+    .intro {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+
+    .progress {
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background: #eff6ff;
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    fieldset {
+      margin: 0 0 1.25rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+    }
+
+    legend {
+      max-width: 100%;
+      padding: 0 0.35rem;
+      font-weight: 700;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin-top: 0.7rem;
+      padding: 0.7rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .option:hover,
+    .option:has(input:focus-visible) {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .option input {
+      width: 1.1rem;
+      height: 1.1rem;
+      margin-top: 0.15rem;
+      accent-color: var(--primary);
+      flex: 0 0 auto;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.75rem 1.25rem;
+      border: 0;
+      border-radius: 0.5rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    #submit-btn {
+      background: var(--primary);
+      color: white;
+    }
+
+    #submit-btn:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    #submit-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    #retry-btn {
+      background: #e5e7eb;
+      color: var(--text);
+    }
+
+    #retry-btn:hover {
+      background: #d1d5db;
+    }
+
+    .results {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #e5e7eb;
+    }
+
+    .results h2 {
+      margin-top: 0;
+    }
+
+    .score {
+      padding: 0.85rem 1rem;
+      border-radius: 0.5rem;
+      background: var(--success-bg);
+      color: var(--success);
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .wrong-answer {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-left: 4px solid var(--error);
+      border-radius: 0.35rem;
+      background: var(--error-bg);
+    }
+
+    .wrong-answer p {
+      margin: 0.35rem 0;
+    }
+
+    .wrong-answer strong {
+      color: var(--error);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="quiz-card" aria-labelledby="quiz-title">
+      <h1 id="quiz-title">General Knowledge Quiz</h1>
+      <p class="intro">Answer all five questions, then submit your answers.</p>
+
+      <div class="progress" id="progress" role="status" aria-live="polite">
+        0 of 5 answered
+      </div>
+
+      <form id="quiz-form">
+        <fieldset data-correct="1">
+          <legend>1. Which planet is known as the Red Planet?</legend>
+          <label class="option">
+            <input type="radio" name="question-1" value="Mercury">
+            <span>Mercury</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Mars">
+            <span>Mars</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Jupiter">
+            <span>Jupiter</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-1" value="Venus">
+            <span>Venus</span>
+          </label>
+        </fieldset>
+
+        <fieldset data-correct="2">
+          <legend>2. What is the largest ocean on Earth?</legend>
+          <label class="option">
+            <input type="radio" name="question-2" value="Atlantic Ocean">
+            <span>Atlantic Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Indian Ocean">
+            <span>Indian Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Pacific Ocean">
+            <span>Pacific Ocean</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-2" value="Arctic Ocean">
+            <span>Arctic Ocean</span>
+          </label>
+        </fieldset>
+
+        <fieldset data-correct="0">
+          <legend>3. Which element has the chemical symbol O?</legend>
+          <label class="option">
+            <input type="radio" name="question-3" value="Oxygen">
+            <span>Oxygen</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Gold">
+            <span>Gold</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Osmium">
+            <span>Osmium</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-3" value="Iron">
+            <span>Iron</span>
+          </label>
+        </fieldset>
+
+        <fieldset data-correct="3">
+          <legend>4. How many sides does a hexagon have?</legend>
+          <label class="option">
+            <input type="radio" name="question-4" value="Four">
+            <span>Four</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="Five">
+            <span>Five</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="Seven">
+            <span>Seven</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-4" value="Six">
+            <span>Six</span>
+          </label>
+        </fieldset>
+
+        <fieldset data-correct="1">
+          <legend>5. Who wrote the play Romeo and Juliet?</legend>
+          <label class="option">
+            <input type="radio" name="question-5" value="Charles Dickens">
+            <span>Charles Dickens</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="William Shakespeare">
+            <span>William Shakespeare</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="Jane Austen">
+            <span>Jane Austen</span>
+          </label>
+          <label class="option">
+            <input type="radio" name="question-5" value="Mark Twain">
+            <span>Mark Twain</span>
+          </label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="submit-btn" disabled>Submit</button>
+          <button type="button" id="retry-btn" hidden>Retry</button>
+        </div>
+      </form>
+
+      <section class="results" id="results" aria-live="polite" hidden>
+        <h2>Quiz Results</h2>
+        <div class="score" id="score"></div>
+        <div id="wrong-answers"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("quiz-form");
+    const fieldsets = [...form.querySelectorAll("fieldset")];
+    const progress = document.getElementById("progress");
+    const submitButton = document.getElementById("submit-btn");
+    const retryButton = document.getElementById("retry-btn");
+    const results = document.getElementById("results");
+    const score = document.getElementById("score");
+    const wrongAnswers = document.getElementById("wrong-answers");
+
+    function updateProgress() {
+      const answered = fieldsets.filter(fieldset =>
+        fieldset.querySelector("input[type='radio']:checked")
+      ).length;
+
+      progress.textContent = `${answered} of ${fieldsets.length} answered`;
+      submitButton.disabled = answered !== fieldsets.length;
+    }
+
+    form.addEventListener("change", updateProgress);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      let correctCount = 0;
+      wrongAnswers.replaceChildren();
+
+      fieldsets.forEach((fieldset) => {
+        const options = [...fieldset.querySelectorAll("input[type='radio']")];
+        const selected = fieldset.querySelector("input[type='radio']:checked");
+        const correctIndex = Number(fieldset.dataset.correct);
+        const correctOption = options[correctIndex].value;
+
+        if (selected && selected.value === correctOption) {
+          correctCount++;
+        } else if (selected) {
+          const item = document.createElement("article");
+          item.className = "wrong-answer";
+
+          const question = document.createElement("p");
+          question.innerHTML = `<strong>Question:</strong> ${fieldset.querySelector("legend").textContent}`;
+
+          const chosen = document.createElement("p");
+          chosen.innerHTML = `<strong>Your answer:</strong> ${selected.value}`;
+
+          const answer = document.createElement("p");
+          answer.innerHTML = `<strong>Correct answer:</strong> ${correctOption}`;
+
+          item.append(question, chosen, answer);
+          wrongAnswers.appendChild(item);
+        }
+      });
+
+      score.textContent = `You scored ${correctCount}/${fieldsets.length}`;
+      results.hidden = false;
+      retryButton.hidden = false;
+      submitButton.disabled = true;
+      results.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    retryButton.addEventListener("click", function () {
+      form.reset();
+      results.hidden = true;
+      retryButton.hidden = true;
+      wrongAnswers.replaceChildren();
+      score.textContent = "";
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

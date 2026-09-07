@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --border: #d9e1ec;
+      --accent: #315efb;
+      --accent-dark: #2447c7;
+      --success: #16794c;
+      --error: #b42318;
+      --error-bg: #fff3f1;
+      --focus: #94b4ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 12px 30px rgba(30, 48, 80, 0.08);
+    }
+
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: clamp(1.75rem, 4vw, 2.4rem); }
+    .intro { color: var(--muted); margin-bottom: 24px; }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e8edf5;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width 180ms ease;
+    }
+
+    fieldset {
+      margin: 0 0 26px;
+      padding: 0;
+      border: 0;
+    }
+
+    legend {
+      width: 100%;
+      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 1.08rem;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 120ms ease, background 120ms ease;
+    }
+
+    .option:hover { border-color: var(--accent); background: #f7f9ff; }
+    .option:has(input:checked) { border-color: var(--accent); background: #eef2ff; }
+    .option input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .option input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 20px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    #submit { color: #fff; background: var(--accent); }
+    #submit:hover:not(:disabled) { background: var(--accent-dark); }
+    #submit:disabled { cursor: not-allowed; opacity: 0.5; }
+    #retry { color: var(--accent-dark); background: #e9eeff; }
+    #retry:hover { background: #dce5ff; }
+
+    .results {
+      margin-top: 30px;
+      padding-top: 26px;
+      border-top: 1px solid var(--border);
+    }
+    .results h2 { margin-bottom: 8px; }
+    .score { color: var(--success); font-size: 1.25rem; font-weight: 800; }
+    .wrong-list { margin: 20px 0 0; padding: 0; list-style: none; }
+    .wrong-item {
+      margin: 12px 0;
+      padding: 16px;
+      border-left: 4px solid var(--error);
+      border-radius: 6px;
+      background: var(--error-bg);
+    }
+    .wrong-item strong { display: block; margin-bottom: 5px; }
+    .wrong-item p { margin: 4px 0; }
+    .label { font-weight: 700; }
+
+    @media (max-width: 560px) {
+      main { width: min(100% - 20px, 760px); padding: 20px 0; }
+      .card { padding: 22px 18px; }
+      .status { align-items: flex-start; flex-direction: column; gap: 8px; }
+      .progress-track { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" aria-labelledby="quiz-title">
+      <h1 id="quiz-title">General Knowledge Quiz</h1>
+      <p class="intro">Choose one answer for each question.</p>
+
+      <div class="status" aria-live="polite">
+        <span id="progress-text">0 of 5 answered</span>
+        <div class="progress-track" role="progressbar" aria-label="Quiz completion" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <form id="quiz-form">
+        <fieldset>
+          <legend>1. What is the largest planet in our solar system?</legend>
+          <label class="option"><input type="radio" name="q1" value="Mercury"> Mercury</label>
+          <label class="option"><input type="radio" name="q1" value="Earth"> Earth</label>
+          <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+          <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>2. Which language is primarily used to style web pages?</legend>
+          <label class="option"><input type="radio" name="q2" value="HTML"> HTML</label>
+          <label class="option"><input type="radio" name="q2" value="CSS"> CSS</label>
+          <label class="option"><input type="radio" name="q2" value="SQL"> SQL</label>
+          <label class="option"><input type="radio" name="q2" value="Python"> Python</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>3. What is the chemical symbol for gold?</legend>
+          <label class="option"><input type="radio" name="q3" value="Ag"> Ag</label>
+          <label class="option"><input type="radio" name="q3" value="Gd"> Gd</label>
+          <label class="option"><input type="radio" name="q3" value="Au"> Au</label>
+          <label class="option"><input type="radio" name="q3" value="Fe"> Fe</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>4. Which ocean is the largest?</legend>
+          <label class="option"><input type="radio" name="q4" value="Atlantic Ocean"> Atlantic Ocean</label>
+          <label class="option"><input type="radio" name="q4" value="Indian Ocean"> Indian Ocean</label>
+          <label class="option"><input type="radio" name="q4" value="Arctic Ocean"> Arctic Ocean</label>
+          <label class="option"><input type="radio" name="q4" value="Pacific Ocean"> Pacific Ocean</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>5. Who wrote the play <em>Romeo and Juliet</em>?</legend>
+          <label class="option"><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+          <label class="option"><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+          <label class="option"><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+          <label class="option"><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+        </fieldset>
+
+        <div class="actions">
+          <button id="submit" type="submit" disabled>Submit</button>
+          <button id="retry" type="button" hidden>Retry</button>
+        </div>
+      </form>
+
+      <section id="results" class="results" aria-live="polite" hidden>
+        <h2>Results</h2>
+        <p id="score" class="score"></p>
+        <ul id="wrong-list" class="wrong-list"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const form = document.getElementById('quiz-form');
+      const submit = document.getElementById('submit');
+      const retry = document.getElementById('retry');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const wrongList = document.getElementById('wrong-list');
+      const progressText = document.getElementById('progress-text');
+      const progressBar = document.getElementById('progress-bar');
+      const progressTrack = document.querySelector('.progress-track');
+      const answers = {
+        q1: 'Jupiter',
+        q2: 'CSS',
+        q3: 'Au',
+        q4: 'Pacific Ocean',
+        q5: 'William Shakespeare'
+      };
+      const questionTexts = Array.from(form.querySelectorAll('legend')).map((legend) => legend.textContent.trim());
+      const questionNames = Object.keys(answers);
+
+      function updateProgress() {
+        const answered = questionNames.filter((name) => form.querySelector(`input[name="${name}"]:checked`)).length;
+        progressText.textContent = `${answered} of ${questionNames.length} answered`;
+        progressBar.style.width = `${answered / questionNames.length * 100}%`;
+        progressTrack.setAttribute('aria-valuenow', answered);
+        submit.disabled = answered !== questionNames.length;
+      }
+
+      form.addEventListener('change', updateProgress);
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        let total = 0;
+        wrongList.replaceChildren();
+
+        questionNames.forEach((name, index) => {
+          const selected = form.querySelector(`input[name="${name}"]:checked`).value;
+          if (selected === answers[name]) {
+            total += 1;
+          } else {
+            const item = document.createElement('li');
+            item.className = 'wrong-item';
+            item.innerHTML = `<strong>${questionTexts[index]}</strong><p><span class="label">Your answer:</span> ${selected}</p><p><span class="label">Correct answer:</span> ${answers[name]}</p>`;
+            wrongList.appendChild(item);
+          }
+        });
+
+        score.textContent = `You scored ${total}/5`;
+        results.hidden = false;
+        retry.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      retry.addEventListener('click', () => {
+        form.reset();
+        results.hidden = true;
+        retry.hidden = true;
+        wrongList.replaceChildren();
+        updateProgress();
+        form.querySelector('input')?.focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Knowledge Quiz</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 2rem 1rem; font-family: Arial, sans-serif; color: #172033; background: #f3f6fb; }
+  main { width: min(100%, 720px); background: #fff; padding: clamp(1.5rem, 4vw, 2.5rem); border-radius: 14px; box-shadow: 0 8px 28px #17203318; }
+  h1 { margin: 0 0 .35rem; font-size: 1.8rem; }
+  .intro { margin: 0 0 1.25rem; color: #536176; }
+  #progress { display: inline-block; margin: 0 0 1.25rem; padding: .45rem .75rem; border-radius: 999px; color: #16408b; background: #e8f0ff; font-weight: 700; }
+  fieldset { margin: 0 0 1rem; padding: 1rem; border: 1px solid #d8dfeb; border-radius: 9px; }
+  legend { padding: 0 .25rem; font-weight: 700; }
+  .options { display: grid; gap: .5rem; margin-top: .7rem; }
+  label { display: flex; align-items: center; gap: .6rem; padding: .65rem .75rem; border: 1px solid #d8dfeb; border-radius: 6px; cursor: pointer; }
+  label:hover { background: #f5f8ff; }
+  input { accent-color: #215ec9; }
+  button { padding: .7rem 1.1rem; border: 0; border-radius: 7px; background: #215ec9; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+  button:disabled { background: #9aa6b9; cursor: not-allowed; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #f0ae25; outline-offset: 2px; }
+  #results { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #d8dfeb; }
+  #results[hidden] { display: none; }
+  #score { margin-top: 0; }
+  .mistake { margin: .8rem 0; padding: .85rem; border-left: 4px solid #c63838; background: #fff4f4; }
+  .mistake p { margin: .3rem 0; }
+  #retry { margin-top: .4rem; background: #536176; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Quick Knowledge Quiz</h1>
+  <p class="intro">Choose one answer for each question.</p>
+  <p id="progress" aria-live="polite">0 of 5 answered</p>
+
+  <form id="quiz">
+    <fieldset>
+      <legend>1. Which planet is known as the Red Planet?</legend>
+      <div class="options">
+        <label><input type="radio" name="q1" value="Venus"> Venus</label>
+        <label><input type="radio" name="q1" value="Mars"> Mars</label>
+        <label><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+        <label><input type="radio" name="q1" value="Mercury"> Mercury</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>2. What is the largest ocean on Earth?</legend>
+      <div class="options">
+        <label><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+        <label><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+        <label><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+        <label><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>3. Which gas do plants primarily absorb from the atmosphere?</legend>
+      <div class="options">
+        <label><input type="radio" name="q3" value="Oxygen"> Oxygen</label>
+        <label><input type="radio" name="q3" value="Nitrogen"> Nitrogen</label>
+        <label><input type="radio" name="q3" value="Carbon dioxide"> Carbon dioxide</label>
+        <label><input type="radio" name="q3" value="Helium"> Helium</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>4. What is 9 × 7?</legend>
+      <div class="options">
+        <label><input type="radio" name="q4" value="56"> 56</label>
+        <label><input type="radio" name="q4" value="63"> 63</label>
+        <label><input type="radio" name="q4" value="72"> 72</label>
+        <label><input type="radio" name="q4" value="49"> 49</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>5. Who wrote <em>Romeo and Juliet</em>?</legend>
+      <div class="options">
+        <label><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+        <label><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+        <label><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+        <label><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+      </div>
+    </fieldset>
+    <button id="submit" type="submit" disabled>Submit quiz</button>
+  </form>
+
+  <section id="results" hidden aria-live="polite" tabindex="-1">
+    <h2 id="score"></h2>
+    <div id="feedback"></div>
+    <button id="retry" type="button">Retry</button>
+  </section>
+</main>
+<script>
+  const quiz = document.getElementById('quiz');
+  const progress = document.getElementById('progress');
+  const submit = document.getElementById('submit');
+  const results = document.getElementById('results');
+  const score = document.getElementById('score');
+  const feedback = document.getElementById('feedback');
+  const answers = [
+    { name: 'q1', question: 'Which planet is known as the Red Planet?', correct: 'Mars' },
+    { name: 'q2', question: 'What is the largest ocean on Earth?', correct: 'Pacific Ocean' },
+    { name: 'q3', question: 'Which gas do plants primarily absorb from the atmosphere?', correct: 'Carbon dioxide' },
+    { name: 'q4', question: 'What is 9 × 7?', correct: '63' },
+    { name: 'q5', question: 'Who wrote Romeo and Juliet?', correct: 'William Shakespeare' }
+  ];
+
+  function updateProgress() {
+    const answered = answers.filter(({ name }) => quiz.elements[name].value).length;
+    progress.textContent = `${answered} of ${answers.length} answered`;
+    submit.disabled = answered !== answers.length;
+  }
+
+  quiz.addEventListener('change', updateProgress);
+  quiz.addEventListener('submit', event => {
+    event.preventDefault();
+    let total = 0;
+    const wrong = [];
+    answers.forEach(item => {
+      const chosen = quiz.elements[item.name].value;
+      if (chosen === item.correct) total++;
+      else wrong.push({ ...item, chosen });
+    });
+    score.textContent = `You scored ${total}/5`;
+    feedback.innerHTML = wrong.length
+      ? '<h3>Review your answers</h3>' + wrong.map(item => `<article class="mistake"><p><strong>Question:</strong> ${item.question}</p><p><strong>Your answer:</strong> ${item.chosen}</p><p><strong>Correct answer:</strong> ${item.correct}</p></article>`).join('')
+      : '<p>Excellent—every answer is correct.</p>';
+    results.hidden = false;
+    results.focus();
+  });
+
+  document.getElementById('retry').addEventListener('click', () => {
+    quiz.reset();
+    results.hidden = true;
+    feedback.textContent = '';
+    updateProgress();
+    document.querySelector('input[name="q1"]').focus();
+  });
+</script>
+</body>
+</html>

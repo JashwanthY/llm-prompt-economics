@@ -1,0 +1,222 @@
+[
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 0,
+    "exists": true,
+    "chars": 11258,
+    "turns": 4,
+    "in_tokens": 8302,
+    "out_tokens": 3727,
+    "secs": 26.1
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 0,
+    "exists": true,
+    "chars": 17404,
+    "turns": 4,
+    "in_tokens": 10847,
+    "out_tokens": 5140,
+    "secs": 40.7
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 0,
+    "exists": true,
+    "chars": 7187,
+    "turns": 4,
+    "in_tokens": 6921,
+    "out_tokens": 2346,
+    "secs": 18.2
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 0,
+    "exists": true,
+    "chars": 14461,
+    "turns": 4,
+    "in_tokens": 9901,
+    "out_tokens": 4194,
+    "secs": 29.7
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 1,
+    "exists": true,
+    "chars": 9174,
+    "turns": 6,
+    "in_tokens": 10281,
+    "out_tokens": 2985,
+    "secs": 24.4
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 2,
+    "exists": true,
+    "chars": 8882,
+    "turns": 4,
+    "in_tokens": 7393,
+    "out_tokens": 2818,
+    "secs": 20.9
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 3,
+    "exists": true,
+    "chars": 10728,
+    "turns": 4,
+    "in_tokens": 8008,
+    "out_tokens": 3433,
+    "secs": 29.6
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 4,
+    "exists": true,
+    "chars": 10134,
+    "turns": 4,
+    "in_tokens": 7776,
+    "out_tokens": 3201,
+    "secs": 22.5
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 1,
+    "exists": true,
+    "chars": 11891,
+    "turns": 6,
+    "in_tokens": 13215,
+    "out_tokens": 3866,
+    "secs": 31.8
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 2,
+    "exists": true,
+    "chars": 17026,
+    "turns": 4,
+    "in_tokens": 10828,
+    "out_tokens": 5121,
+    "secs": 35.9
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 3,
+    "exists": true,
+    "chars": 14849,
+    "turns": 4,
+    "in_tokens": 10165,
+    "out_tokens": 4458,
+    "secs": 33.5
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 4,
+    "exists": true,
+    "chars": 16692,
+    "turns": 4,
+    "in_tokens": 10741,
+    "out_tokens": 5034,
+    "secs": 37.0
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 1,
+    "exists": true,
+    "chars": 6529,
+    "turns": 6,
+    "in_tokens": 10222,
+    "out_tokens": 2174,
+    "secs": 17.6
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 2,
+    "exists": true,
+    "chars": 6450,
+    "turns": 6,
+    "in_tokens": 10369,
+    "out_tokens": 2219,
+    "secs": 17.9
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 3,
+    "exists": true,
+    "chars": 6784,
+    "turns": 6,
+    "in_tokens": 10527,
+    "out_tokens": 2316,
+    "secs": 18.1
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 4,
+    "exists": true,
+    "chars": 6790,
+    "turns": 6,
+    "in_tokens": 10627,
+    "out_tokens": 2293,
+    "secs": 17.9
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 1,
+    "exists": true,
+    "chars": 15167,
+    "turns": 4,
+    "in_tokens": 10210,
+    "out_tokens": 4503,
+    "secs": 31.8
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 2,
+    "exists": true,
+    "chars": 17779,
+    "turns": 4,
+    "in_tokens": 10970,
+    "out_tokens": 5263,
+    "secs": 35.1
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 3,
+    "exists": true,
+    "chars": 16631,
+    "turns": 6,
+    "in_tokens": 15245,
+    "out_tokens": 4939,
+    "secs": 35.1
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 4,
+    "exists": true,
+    "chars": 15887,
+    "turns": 6,
+    "in_tokens": 15269,
+    "out_tokens": 4857,
+    "secs": 34.5
+  }
+]

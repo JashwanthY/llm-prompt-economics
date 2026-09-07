@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>General Knowledge Quiz</title>
+  <style>
+    :root {
+      --color-background: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-text: #172033;
+      --color-muted: #4d5b73;
+      --color-primary: #124ea8;
+      --color-primary-hover: #0b3d87;
+      --color-success: #0b6b3a;
+      --color-danger: #a12222;
+      --color-border: #b7c3d6;
+      --color-focus: #f08a00;
+      --shadow: 0 0.25rem 1rem rgba(23, 32, 51, 0.12);
+      --radius: 0.75rem;
+      --space-xs: 0.5rem;
+      --space-sm: 0.75rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --max-width: 48rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 20rem;
+      margin: 0;
+      background: var(--color-background);
+      color: var(--color-text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      padding: var(--space-xl) var(--space-md) var(--space-lg);
+      background: #102a56;
+      color: #ffffff;
+    }
+
+    .page-header__content,
+    .quiz,
+    .page-footer__content {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+    }
+
+    .page-header__title {
+      margin: 0;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 1.2;
+    }
+
+    .page-header__description {
+      max-width: 42rem;
+      margin: var(--space-sm) 0 0;
+      color: #e2eaff;
+    }
+
+    main {
+      padding: var(--space-lg) var(--space-md) var(--space-xl);
+    }
+
+    .quiz {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .quiz__progress {
+      margin: 0;
+      padding: var(--space-sm) var(--space-md);
+      border-left: 0.3rem solid var(--color-primary);
+      background: #e6efff;
+      color: #102a56;
+      font-weight: 700;
+    }
+
+    .quiz__form {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .question {
+      margin: 0;
+      padding: var(--space-md);
+      border: 0.1rem solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .question__legend {
+      max-width: 100%;
+      padding: 0 var(--space-xs);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .question__options {
+      display: grid;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm);
+      border: 0.1rem solid transparent;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      background: #edf3ff;
+    }
+
+    .option:focus-within {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.15rem;
+      background: #fff6e8;
+    }
+
+    .option__input {
+      width: 1.2rem;
+      height: 1.2rem;
+      flex: 0 0 auto;
+      margin: 0.15rem 0 0;
+      accent-color: var(--color-primary);
+    }
+
+    .option__text {
+      flex: 1;
+    }
+
+    .quiz__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .button {
+      min-height: 2.75rem;
+      padding: 0.65rem 1.15rem;
+      border: 0.15rem solid var(--color-primary);
+      border-radius: 0.5rem;
+      background: var(--color-primary);
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:hover:not(:disabled) {
+      border-color: var(--color-primary-hover);
+      background: var(--color-primary-hover);
+    }
+
+    .button:focus-visible {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.2rem;
+    }
+
+    .button:disabled {
+      border-color: #8a96a9;
+      background: #8a96a9;
+      color: #ffffff;
+      cursor: not-allowed;
+    }
+
+    .button--secondary {
+      background: #ffffff;
+      color: var(--color-primary);
+    }
+
+    .button--secondary:hover:not(:disabled) {
+      background: #e6efff;
+      color: var(--color-primary-hover);
+    }
+
+    .results {
+      padding: var(--space-lg);
+      border: 0.15rem solid var(--color-success);
+      border-radius: var(--radius);
+      background: #f0fff6;
+    }
+
+    .results__title {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .results__score {
+      margin: var(--space-sm) 0 0;
+      color: var(--color-success);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .results__message {
+      margin: var(--space-sm) 0 0;
+    }
+
+    .results__list {
+      display: grid;
+      gap: var(--space-md);
+      margin: var(--space-lg) 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .result-item {
+      padding: var(--space-md);
+      border-left: 0.3rem solid var(--color-danger);
+      border-radius: 0 0.5rem 0.5rem 0;
+      background: #ffffff;
+    }
+
+    .result-item__title {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .result-item__detail {
+      margin: var(--space-xs) 0 0;
+    }
+
+    .result-item__chosen {
+      color: var(--color-danger);
+      font-weight: 700;
+    }
+
+    .result-item__correct {
+      color: var(--color-success);
+      font-weight: 700;
+    }
+
+    .page-footer {
+      padding: var(--space-lg) var(--space-md);
+      border-top: 0.1rem solid var(--color-border);
+      background: #ffffff;
+      color: var(--color-muted);
+    }
+
+    .page-footer__content {
+      margin-top: 0;
+      margin-bottom: 0;
+      font-size: 0.9rem;
+    }
+
+    [hidden] {
+      display: none;
+    }
+
+    @media (min-width: 40rem) {
+      .question {
+        padding: var(--space-lg);
+      }
+
+      .results {
+        padding: var(--space-xl);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <section class="page-header__content" aria-labelledby="page-title">
+      <h1 class="page-header__title" id="page-title">General Knowledge Quiz</h1>
+      <p class="page-header__description">Answer all five questions, then submit your quiz to see your score and review any incorrect answers.</p>
+    </section>
+  </header>
+
+  <main>
+    <section class="quiz" aria-labelledby="page-title">
+      <p class="quiz__progress" id="progress" role="status" aria-live="polite">0 of 5 answered</p>
+
+      <form class="quiz__form" id="quiz-form" novalidate>
+        <fieldset class="question">
+          <legend class="question__legend">1. Which planet is known as the Red Planet?</legend>
+          <section class="question__options" aria-label="Answer options">
+            <label class="option" for="q1-a">
+              <input class="option__input" id="q1-a" name="question-1" type="radio" value="Venus">
+              <span class="option__text">Venus</span>
+            </label>
+            <label class="option" for="q1-b">
+              <input class="option__input" id="q1-b" name="question-1" type="radio" value="Mars">
+              <span class="option__text">Mars</span>
+            </label>
+            <label class="option" for="q1-c">
+              <input class="option__input" id="q1-c" name="question-1" type="radio" value="Jupiter">
+              <span class="option__text">Jupiter</span>
+            </label>
+            <label class="option" for="q1-d">
+              <input class="option__input" id="q1-d" name="question-1" type="radio" value="Mercury">
+              <span class="option__text">Mercury</span>
+            </label>
+          </section>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend">2. What is the largest ocean on Earth?</legend>
+          <section class="question__options" aria-label="Answer options">
+            <label class="option" for="q2-a">
+              <input class="option__input" id="q2-a" name="question-2" type="radio" value="Atlantic Ocean">
+              <span class="option__text">Atlantic Ocean</span>
+            </label>
+            <label class="option" for="q2-b">
+              <input class="option__input" id="q2-b" name="question-2" type="radio" value="Indian Ocean">
+              <span class="option__text">Indian Ocean</span>
+            </label>
+            <label class="option" for="q2-c">
+              <input class="option__input" id="q2-c" name="question-2" type="radio" value="Pacific Ocean">
+              <span class="option__text">Pacific Ocean</span>
+            </label>
+            <label class="option" for="q2-d">
+              <input class="option__input" id="q2-d" name="question-2" type="radio" value="Arctic Ocean">
+              <span class="option__text">Arctic Ocean</span>
+            </label>
+          </section>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend">3. Which gas do plants absorb from the atmosphere?</legend>
+          <section class="question__options" aria-label="Answer options">
+            <label class="option" for="q3-a">
+              <input class="option__input" id="q3-a" name="question-3" type="radio" value="Oxygen">
+              <span class="option__text">Oxygen</span>
+            </label>
+            <label class="option" for="q3-b">
+              <input class="option__input" id="q3-b" name="question-3" type="radio" value="Nitrogen">
+              <span class="option__text">Nitrogen</span>
+            </label>
+            <label class="option" for="q3-c">
+              <input class="option__input" id="q3-c" name="question-3" type="radio" value="Carbon dioxide">
+              <span class="option__text">Carbon dioxide</span>
+            </label>
+            <label class="option" for="q3-d">
+              <input class="option__input" id="q3-d" name="question-3" type="radio" value="Hydrogen">
+              <span class="option__text">Hydrogen</span>
+            </label>
+          </section>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend">4. Who wrote the play <em>Romeo and Juliet</em>?</legend>
+          <section class="question__options" aria-label="Answer options">
+            <label class="option" for="q4-a">
+              <input class="option__input" id="q4-a" name="question-4" type="radio" value="Charles Dickens">
+              <span class="option__text">Charles Dickens</span>
+            </label>
+            <label class="option" for="q4-b">
+              <input class="option__input" id="q4-b" name="question-4" type="radio" value="William Shakespeare">
+              <span class="option__text">William Shakespeare</span>
+            </label>
+            <label class="option" for="q4-c">
+              <input class="option__input" id="q4-c" name="question-4" type="radio" value="Jane Austen">
+              <span class="option__text">Jane Austen</span>
+            </label>
+            <label class="option" for="q4-d">
+              <input class="option__input" id="q4-d" name="question-4" type="radio" value="Mark Twain">
+              <span class="option__text">Mark Twain</span>
+            </label>
+          </section>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend">5. What is the capital city of Japan?</legend>
+          <section class="question__options" aria-label="Answer options">
+            <label class="option" for="q5-a">
+              <input class="option__input" id="q5-a" name="question-5" type="radio" value="Kyoto">
+              <span class="option__text">Kyoto</span>
+            </label>
+            <label class="option" for="q5-b">
+              <input class="option__input" id="q5-b" name="question-5" type="radio" value="Osaka">
+              <span class="option__text">Osaka</span>
+            </label>
+            <label class="option" for="q5-c">
+              <input class="option__input" id="q5-c" name="question-5" type="radio" value="Tokyo">
+              <span class="option__text">Tokyo</span>
+            </label>
+            <label class="option" for="q5-d">
+              <input class="option__input" id="q5-d" name="question-5" type="radio" value="Sapporo">
+              <span class="option__text">Sapporo</span>
+            </label>
+          </section>
+        </fieldset>
+
+        <section class="quiz__actions" aria-label="Quiz actions">
+          <button class="button" id="submit-button" type="submit" disabled>Submit quiz</button>
+        </section>
+      </form>
+
+      <section class="results" id="results" aria-labelledby="results-title" hidden>
+        <h2 class="results__title" id="results-title" tabindex="-1">Quiz Results</h2>
+        <p class="results__score" id="score" role="status" aria-live="polite"></p>
+        <p class="results__message" id="results-message"></p>
+        <ol class="results__list" id="results-list"></ol>
+        <button class="button button--secondary" id="retry-button" type="button">Retry quiz</button>
+      </section>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <p class="page-footer__content">Use Tab to move between controls and the arrow keys to choose an option within each question.</p>
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const QUESTION_COUNT = 5;
+      const correctAnswers = [
+        "Mars",
+        "Pacific Ocean",
+        "Carbon dioxide",
+        "William Shakespeare",
+        "Tokyo"
+      ];
+
+      const quizForm = document.getElementById("quiz-form");
+      const progress = document.getElementById("progress");
+      const submitButton = document.getElementById("submit-button");
+      const results = document.getElementById("results");
+      const resultsTitle = document.getElementById("results-title");
+      const score = document.getElementById("score");
+      const resultsMessage = document.getElementById("results-message");
+      const resultsList = document.getElementById("results-list");
+      const retryButton = document.getElementById("retry-button");
+      const fieldsets = Array.from(quizForm.querySelectorAll("fieldset"));
+      const radioInputs = Array.from(quizForm.querySelectorAll('input[type="radio"]'));
+
+      function getSelectedAnswer(questionNumber) {
+        const selectedInput = quizForm.querySelector(
+          `input[name="question-${questionNumber}"]:checked`
+        );
+
+        return selectedInput ? selectedInput.value : null;
+      }
+
+      function getAnsweredCount() {
+        return correctAnswers.filter((_, index) => {
+          return getSelectedAnswer(index + 1) !== null;
+        }).length;
+      }
+
+      function updateProgress() {
+        const answeredCount = getAnsweredCount();
+        const isComplete = answeredCount === QUESTION_COUNT;
+
+        progress.textContent = `${answeredCount} of ${QUESTION_COUNT} answered`;
+        submitButton.disabled = !isComplete;
+      }
+
+      function createWrongAnswerItem(questionNumber, chosenAnswer, correctAnswer) {
+        const listItem = document.createElement("li");
+        const article = document.createElement("article");
+        const title = document.createElement("h3");
+        const chosenDetail = document.createElement("p");
+        const correctDetail = document.createElement("p");
+
+        article.className = "result-item";
+        title.className = "result-item__title";
+        chosenDetail.className = "result-item__detail";
+        correctDetail.className = "result-item__detail";
+
+        title.textContent = `${questionNumber}. ${fieldsets[questionNumber - 1].querySelector("legend").textContent}`;
+        chosenDetail.innerHTML = `<span class="result-item__chosen">Your answer:</span> ${chosenAnswer}`;
+        correctDetail.innerHTML = `<span class="result-item__correct">Correct answer:</span> ${correctAnswer}`;
+
+        article.append(title, chosenDetail, correctDetail);
+        listItem.append(article);
+
+        return listItem;
+      }
+
+      function showResults() {
+        const wrongAnswers = correctAnswers.reduce((incorrectAnswers, correctAnswer, index) => {
+          const questionNumber = index + 1;
+          const selectedAnswer = getSelectedAnswer(questionNumber);
+
+          if (selectedAnswer !== correctAnswer) {
+            incorrectAnswers.push({
+              questionNumber,
+              selectedAnswer,
+              correctAnswer
+            });
+          }
+
+          return incorrectAnswers;
+        }, []);
+
+        const correctCount = QUESTION_COUNT - wrongAnswers.length;
+        const resultItems = wrongAnswers.map((answer) => {
+          return createWrongAnswerItem(
+            answer.questionNumber,
+            answer.selectedAnswer,
+            answer.correctAnswer
+          );
+        });
+
+        score.textContent = `You scored ${correctCount}/${QUESTION_COUNT}`;
+
+        if (wrongAnswers.length === 0) {
+          resultsMessage.textContent = "Excellent work! You answered every question correctly.";
+          resultsList.replaceChildren();
+        } else {
+          resultsMessage.textContent = "Review the questions below to see the correct answers.";
+          resultsList.replaceChildren(...resultItems);
+        }
+
+        results.hidden = false;
+        resultsTitle.focus();
+      }
+
+      function resetQuiz() {
+        quizForm.reset();
+        results.hidden = true;
+        score.textContent = "";
+        resultsMessage.textContent = "";
+        resultsList.replaceChildren();
+        updateProgress();
+
+        const firstInput = radioInputs[0];
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+
+      quizForm.addEventListener("change", (event) => {
+        if (event.target.matches('input[type="radio"]')) {
+          updateProgress();
+        }
+      });
+
+      quizForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (getAnsweredCount() !== QUESTION_COUNT) {
+          updateProgress();
+          return;
+        }
+
+        showResults();
+      });
+
+      retryButton.addEventListener("click", resetQuiz);
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

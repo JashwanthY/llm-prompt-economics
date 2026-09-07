@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Knowledge Quiz</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #172033;
+    }
+    main {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(24, 43, 75, .12);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.75rem; }
+    #progress { margin: 0 0 24px; font-weight: 700; color: #334a70; }
+    fieldset { margin: 0 0 22px; padding: 16px; border: 1px solid #d5ddeb; border-radius: 10px; }
+    legend { padding: 0 5px; font-weight: 700; }
+    label { display: block; margin: 10px 0; cursor: pointer; }
+    input[type="radio"] { margin-right: 9px; accent-color: #2459bc; }
+    button {
+      padding: 11px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #2459bc;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: #19448f; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #f2b94b; outline-offset: 3px; }
+    button:disabled { background: #aab6c9; cursor: not-allowed; }
+    #results { margin-top: 24px; padding: 18px; border-radius: 10px; background: #eef5ff; }
+    #results[hidden] { display: none; }
+    #results h2 { margin-top: 0; }
+    .mistake { padding: 13px; margin: 12px 0; border-left: 4px solid #c43b3b; background: #fff; }
+    .mistake p { margin: 6px 0; }
+    .correct { color: #16703c; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Quick Knowledge Quiz</h1>
+    <p id="progress" aria-live="polite">0 of 5 answered</p>
+
+    <form id="quiz">
+      <fieldset>
+        <legend>1. Which planet is known as the Red Planet?</legend>
+        <label><input type="radio" name="q1" value="Earth"> Earth</label>
+        <label><input type="radio" name="q1" value="Mars"> Mars</label>
+        <label><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+        <label><input type="radio" name="q1" value="Venus"> Venus</label>
+      </fieldset>
+      <fieldset>
+        <legend>2. What is the largest ocean on Earth?</legend>
+        <label><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+        <label><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+        <label><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+        <label><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+      </fieldset>
+      <fieldset>
+        <legend>3. Which gas do plants primarily absorb from the atmosphere?</legend>
+        <label><input type="radio" name="q3" value="Oxygen"> Oxygen</label>
+        <label><input type="radio" name="q3" value="Carbon dioxide"> Carbon dioxide</label>
+        <label><input type="radio" name="q3" value="Nitrogen"> Nitrogen</label>
+        <label><input type="radio" name="q3" value="Helium"> Helium</label>
+      </fieldset>
+      <fieldset>
+        <legend>4. How many sides does a hexagon have?</legend>
+        <label><input type="radio" name="q4" value="Five"> Five</label>
+        <label><input type="radio" name="q4" value="Six"> Six</label>
+        <label><input type="radio" name="q4" value="Seven"> Seven</label>
+        <label><input type="radio" name="q4" value="Eight"> Eight</label>
+      </fieldset>
+      <fieldset>
+        <legend>5. Who wrote <em>Romeo and Juliet</em>?</legend>
+        <label><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+        <label><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+        <label><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+        <label><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+      </fieldset>
+      <button id="submit" type="submit" disabled>Submit answers</button>
+    </form>
+
+    <section id="results" aria-live="polite" hidden></section>
+  </main>
+
+  <script>
+    const quiz = document.getElementById('quiz');
+    const progress = document.getElementById('progress');
+    const submit = document.getElementById('submit');
+    const results = document.getElementById('results');
+    const answers = {
+      q1: 'Mars',
+      q2: 'Pacific Ocean',
+      q3: 'Carbon dioxide',
+      q4: 'Six',
+      q5: 'William Shakespeare'
+    };
+    const questions = {
+      q1: 'Which planet is known as the Red Planet?',
+      q2: 'What is the largest ocean on Earth?',
+      q3: 'Which gas do plants primarily absorb from the atmosphere?',
+      q4: 'How many sides does a hexagon have?',
+      q5: 'Who wrote Romeo and Juliet?'
+    };
+
+    function updateProgress() {
+      const answered = Object.keys(answers).filter(name => quiz.elements[name].value).length;
+      progress.textContent = `${answered} of 5 answered`;
+      submit.disabled = answered !== 5;
+    }
+
+    quiz.addEventListener('change', updateProgress);
+
+    quiz.addEventListener('submit', event => {
+      event.preventDefault();
+      let score = 0;
+      let details = '';
+      Object.keys(answers).forEach(name => {
+        const chosen = quiz.elements[name].value;
+        if (chosen === answers[name]) {
+          score++;
+        } else {
+          details += `<article class="mistake"><p><strong>${questions[name]}</strong></p><p>Your answer: ${chosen}</p><p class="correct">Correct answer: ${answers[name]}</p></article>`;
+        }
+      });
+      results.innerHTML = `<h2>You scored ${score}/5</h2>${details || '<p class="correct">Excellent work — every answer was correct.</p>'}<button type="button" id="retry">Retry</button>`;
+      results.hidden = false;
+      quiz.querySelectorAll('input, button').forEach(control => control.disabled = true);
+      document.getElementById('retry').focus();
+    });
+
+    results.addEventListener('click', event => {
+      if (event.target.id !== 'retry') return;
+      quiz.reset();
+      quiz.querySelectorAll('input').forEach(input => input.disabled = false);
+      results.hidden = true;
+      results.innerHTML = '';
+      updateProgress();
+      quiz.querySelector('input').focus();
+    });
+  </script>
+</body>
+</html>

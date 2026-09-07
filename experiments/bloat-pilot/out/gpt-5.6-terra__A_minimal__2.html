@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #64748b;
+      --border: #dbe3ef;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 16px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(760px, 100%);
+      margin: 0 auto;
+    }
+
+    .quiz-card {
+      padding: 28px;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+    }
+
+    .intro {
+      margin: 0 0 22px;
+      color: var(--muted);
+    }
+
+    .progress-wrap {
+      margin-bottom: 26px;
+    }
+
+    #progressText {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+
+    #progressFill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+      transition: width 0.2s ease;
+    }
+
+    .question {
+      margin: 0 0 24px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .question legend {
+      padding: 0 6px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .option:hover {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .option:focus-within {
+      outline: 3px solid rgba(37, 99, 235, 0.3);
+      outline-offset: 2px;
+    }
+
+    .option input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--primary);
+    }
+
+    .option:has(input:checked) {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+      border-radius: 8px;
+    }
+
+    #submitButton {
+      color: white;
+      background: var(--primary);
+    }
+
+    #submitButton:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    #submitButton:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    #retryButton {
+      display: none;
+      color: var(--primary-dark);
+      background: #dbeafe;
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.45);
+      outline-offset: 3px;
+    }
+
+    #results {
+      display: none;
+      margin-top: 26px;
+      padding: 22px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+
+    #score {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+      color: var(--success);
+    }
+
+    #feedback {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    #feedback li {
+      margin: 14px 0;
+      line-height: 1.5;
+    }
+
+    .wrong-question {
+      font-weight: 700;
+    }
+
+    .chosen {
+      color: var(--danger);
+    }
+
+    .correct {
+      color: var(--success);
+    }
+
+    .all-correct {
+      margin: 0;
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    @media (max-width: 540px) {
+      .quiz-card {
+        padding: 20px;
+      }
+
+      .question {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="quiz-card" aria-labelledby="quizTitle">
+      <h1 id="quizTitle">General Knowledge Quiz</h1>
+      <p class="intro">Choose one answer for each question, then submit your quiz.</p>
+
+      <div class="progress-wrap">
+        <span id="progressText" aria-live="polite">0 of 5 answered</span>
+        <div
+          class="progress-bar"
+          role="progressbar"
+          aria-label="Quiz completion progress"
+          aria-valuemin="0"
+          aria-valuemax="5"
+          aria-valuenow="0"
+        >
+          <div id="progressFill"></div>
+        </div>
+      </div>
+
+      <form id="quizForm">
+        <fieldset class="question">
+          <legend>1. Which planet is known as the Red Planet?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q1" value="Earth"> Earth</label>
+            <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+            <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+            <label class="option"><input type="radio" name="q1" value="Venus"> Venus</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend>2. What is the largest ocean on Earth?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend>3. Which language is primarily used to structure web pages?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q3" value="CSS"> CSS</label>
+            <label class="option"><input type="radio" name="q3" value="HTML"> HTML</label>
+            <label class="option"><input type="radio" name="q3" value="JavaScript"> JavaScript</label>
+            <label class="option"><input type="radio" name="q3" value="Python"> Python</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend>4. What is 9 × 7?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q4" value="56"> 56</label>
+            <label class="option"><input type="radio" name="q4" value="63"> 63</label>
+            <label class="option"><input type="radio" name="q4" value="72"> 72</label>
+            <label class="option"><input type="radio" name="q4" value="79"> 79</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend>5. Who wrote the play <em>Romeo and Juliet</em>?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+            <label class="option"><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+            <label class="option"><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+            <label class="option"><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="submitButton" type="submit" disabled>Submit Quiz</button>
+          <button id="retryButton" type="button">Retry Quiz</button>
+        </div>
+      </form>
+
+      <section id="results" aria-live="polite" aria-labelledby="score">
+        <h2 id="score"></h2>
+        <div id="feedback"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      { name: "q1", text: "Which planet is known as the Red Planet?", correct: "Mars" },
+      { name: "q2", text: "What is the largest ocean on Earth?", correct: "Pacific Ocean" },
+      { name: "q3", text: "Which language is primarily used to structure web pages?", correct: "HTML" },
+      { name: "q4", text: "What is 9 × 7?", correct: "63" },
+      { name: "q5", text: "Who wrote the play Romeo and Juliet?", correct: "William Shakespeare" }
+    ];
+
+    const form = document.getElementById("quizForm");
+    const progressText = document.getElementById("progressText");
+    const progressBar = document.querySelector(".progress-bar");
+    const progressFill = document.getElementById("progressFill");
+    const submitButton = document.getElementById("submitButton");
+    const retryButton = document.getElementById("retryButton");
+    const results = document.getElementById("results");
+    const score = document.getElementById("score");
+    const feedback = document.getElementById("feedback");
+
+    function updateProgress() {
+      const answered = questions.filter(question =>
+        form.querySelector(`input[name="${question.name}"]:checked`)
+      ).length;
+
+      progressText.textContent = `${answered} of ${questions.length} answered`;
+      progressBar.setAttribute("aria-valuenow", answered);
+      progressFill.style.width = `${(answered / questions.length) * 100}%`;
+      submitButton.disabled = answered !== questions.length;
+    }
+
+    form.addEventListener("change", updateProgress);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      let totalScore = 0;
+      const wrongAnswers = [];
+
+      questions.forEach(question => {
+        const selected = form.querySelector(`input[name="${question.name}"]:checked`);
+        const chosen = selected.value;
+
+        if (chosen === question.correct) {
+          totalScore++;
+        } else {
+          wrongAnswers.push({
+            text: question.text,
+            chosen: chosen,
+            correct: question.correct
+          });
+        }
+      });
+
+      score.textContent = `You scored ${totalScore}/5`;
+
+      if (wrongAnswers.length === 0) {
+        feedback.innerHTML = '<p class="all-correct">Excellent! Every answer is correct.</p>';
+      } else {
+        const list = document.createElement("ol");
+
+        wrongAnswers.forEach(answer => {
+          const item = document.createElement("li");
+          item.innerHTML = `
+            <div class="wrong-question">${answer.text}</div>
+            <div class="chosen">Your answer: ${answer.chosen}</div>
+            <div class="correct">Correct answer: ${answer.correct}</div>
+          `;
+          list.appendChild(item);
+        });
+
+        feedback.replaceChildren(list);
+      }
+
+      results.style.display = "block";
+      retryButton.style.display = "inline-block";
+      results.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    retryButton.addEventListener("click", function () {
+      form.reset();
+      updateProgress();
+      results.style.display = "none";
+      score.textContent = "";
+      feedback.replaceChildren();
+      retryButton.style.display = "none";
+      document.querySelector('input[name="q1"]').focus();
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

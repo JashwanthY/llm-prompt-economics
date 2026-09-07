@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Check Quiz</title>
+  <style>
+    :root {
+      --color-background: #eef4f8;
+      --color-surface: #ffffff;
+      --color-surface-muted: #f5f8fa;
+      --color-text: #17232d;
+      --color-text-muted: #536471;
+      --color-primary: #075985;
+      --color-primary-dark: #06466a;
+      --color-primary-soft: #e0f2fe;
+      --color-border: #b8c7d1;
+      --color-success: #166534;
+      --color-success-soft: #ecfdf3;
+      --color-danger: #991b1b;
+      --color-danger-soft: #fef2f2;
+      --color-focus: #f59e0b;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --radius: 0.75rem;
+      --shadow: 0 0.75rem 2rem rgba(23, 35, 45, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      min-width: 18rem;
+      background: var(--color-background);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible + label {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.2rem;
+    }
+
+    .quiz-page {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .quiz-header {
+      background: var(--color-primary-dark);
+      color: #ffffff;
+      padding: var(--space-5) var(--space-3);
+    }
+
+    .quiz-header__inner,
+    .quiz-main,
+    .quiz-footer__inner {
+      width: min(100% - 2rem, 52rem);
+      margin: 0 auto;
+    }
+
+    .quiz-header__inner {
+      text-align: center;
+    }
+
+    .quiz-header h1 {
+      margin: 0 0 var(--space-1);
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 1.2;
+    }
+
+    .quiz-header p {
+      margin: 0;
+      color: #dbeafe;
+    }
+
+    .quiz-main {
+      flex: 1;
+      padding: var(--space-5) 0;
+    }
+
+    .quiz-status {
+      align-items: center;
+      background: var(--color-surface);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: var(--radius);
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      padding: var(--space-3);
+    }
+
+    .quiz-status__label {
+      font-weight: 700;
+    }
+
+    .quiz-status__count {
+      color: var(--color-primary-dark);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .quiz-form {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .question-card {
+      background: var(--color-surface);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 0;
+      padding: var(--space-4);
+    }
+
+    .question-card legend {
+      display: block;
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: var(--space-3);
+      padding: 0;
+      width: 100%;
+    }
+
+    .question-card__number {
+      color: var(--color-primary-dark);
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: var(--space-1);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .question-card__options {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+    }
+
+    .question-card__option {
+      position: relative;
+    }
+
+    .question-card__option input {
+      height: 1px;
+      opacity: 0;
+      position: absolute;
+      width: 1px;
+    }
+
+    .question-card__option label {
+      background: var(--color-surface-muted);
+      border: 0.125rem solid var(--color-border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .question-card__option label:hover {
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary);
+    }
+
+    .question-card__option input:checked + label {
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary-dark);
+      box-shadow: inset 0 0 0 0.125rem var(--color-primary-soft);
+      font-weight: 700;
+    }
+
+    .quiz-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      justify-content: flex-end;
+      margin-top: var(--space-1);
+    }
+
+    .quiz-button {
+      border: 0.125rem solid transparent;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      min-height: 2.75rem;
+      padding: var(--space-2) var(--space-4);
+    }
+
+    .quiz-button--primary {
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+
+    .quiz-button--primary:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+
+    .quiz-button--secondary {
+      background: var(--color-surface);
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
+    }
+
+    .quiz-button--secondary:hover {
+      background: var(--color-primary-soft);
+    }
+
+    .quiz-button:disabled {
+      background: #cbd5dc;
+      color: #4b5563;
+      cursor: not-allowed;
+    }
+
+    .quiz-results {
+      background: var(--color-surface);
+      border: 0.125rem solid var(--color-primary);
+      border-radius: var(--radius);
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+    }
+
+    .quiz-results h2 {
+      color: var(--color-primary-dark);
+      margin-top: 0;
+    }
+
+    .quiz-results__score {
+      background: var(--color-primary-soft);
+      border-radius: 0.5rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      padding: var(--space-3);
+    }
+
+    .quiz-results__wrong {
+      display: grid;
+      gap: var(--space-3);
+      margin: 0;
+    }
+
+    .result-item {
+      background: var(--color-danger-soft);
+      border-left: 0.35rem solid var(--color-danger);
+      padding: var(--space-3);
+    }
+
+    .result-item h3 {
+      font-size: 1rem;
+      margin: 0 0 var(--space-2);
+    }
+
+    .result-item p {
+      margin: var(--space-1) 0 0;
+    }
+
+    .result-item__label {
+      font-weight: 700;
+    }
+
+    .quiz-results__perfect {
+      background: var(--color-success-soft);
+      border-left: 0.35rem solid var(--color-success);
+      color: var(--color-success);
+      padding: var(--space-3);
+    }
+
+    .quiz-footer {
+      background: var(--color-primary-dark);
+      color: #dbeafe;
+      padding: var(--space-3);
+      text-align: center;
+    }
+
+    .quiz-footer p {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+
+    @media (min-width: 40rem) {
+      .quiz-header,
+      .quiz-main {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+      }
+
+      .question-card {
+        padding: var(--space-5);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-page">
+    <header class="quiz-header">
+      <div class="quiz-header__inner">
+        <h1>Web Fundamentals Quiz</h1>
+        <p>Test your knowledge of core web development concepts.</p>
+      </div>
+    </header>
+
+    <main class="quiz-main">
+      <section aria-labelledby="quiz-title">
+        <h2 id="quiz-title" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Quiz questions</h2>
+        <div class="quiz-status" aria-live="polite">
+          <span class="quiz-status__label">Progress</span>
+          <span class="quiz-status__count" id="progress-count">0 of 5 answered</span>
+        </div>
+
+        <form class="quiz-form" id="quiz-form">
+          <fieldset class="question-card">
+            <legend><span class="question-card__number">Question 1</span>What does HTML primarily define on a web page?</legend>
+            <div class="question-card__options">
+              <div class="question-card__option"><input type="radio" id="q1-a" name="q1" value="The structure and content"><label for="q1-a">The structure and content</label></div>
+              <div class="question-card__option"><input type="radio" id="q1-b" name="q1" value="The server hardware"><label for="q1-b">The server hardware</label></div>
+              <div class="question-card__option"><input type="radio" id="q1-c" name="q1" value="The internet connection speed"><label for="q1-c">The internet connection speed</label></div>
+              <div class="question-card__option"><input type="radio" id="q1-d" name="q1" value="The database records"><label for="q1-d">The database records</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="question-card">
+            <legend><span class="question-card__number">Question 2</span>Which CSS property changes the text color of an element?</legend>
+            <div class="question-card__options">
+              <div class="question-card__option"><input type="radio" id="q2-a" name="q2" value="background"><label for="q2-a">background</label></div>
+              <div class="question-card__option"><input type="radio" id="q2-b" name="q2" value="color"><label for="q2-b">color</label></div>
+              <div class="question-card__option"><input type="radio" id="q2-c" name="q2" value="font-style"><label for="q2-c">font-style</label></div>
+              <div class="question-card__option"><input type="radio" id="q2-d" name="q2" value="text-decoration"><label for="q2-d">text-decoration</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="question-card">
+            <legend><span class="question-card__number">Question 3</span>Which JavaScript keyword declares a variable that cannot be reassigned?</legend>
+            <div class="question-card__options">
+              <div class="question-card__option"><input type="radio" id="q3-a" name="q3" value="var"><label for="q3-a">var</label></div>
+              <div class="question-card__option"><input type="radio" id="q3-b" name="q3" value="let"><label for="q3-b">let</label></div>
+              <div class="question-card__option"><input type="radio" id="q3-c" name="q3" value="const"><label for="q3-c">const</label></div>
+              <div class="question-card__option"><input type="radio" id="q3-d" name="q3" value="static"><label for="q3-d">static</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="question-card">
+            <legend><span class="question-card__number">Question 4</span>Which HTTP status code means “Not Found”?</legend>
+            <div class="question-card__options">
+              <div class="question-card__option"><input type="radio" id="q4-a" name="q4" value="200"><label for="q4-a">200</label></div>
+              <div class="question-card__option"><input type="radio" id="q4-b" name="q4" value="301"><label for="q4-b">301</label></div>
+              <div class="question-card__option"><input type="radio" id="q4-c" name="q4" value="404"><label for="q4-c">404</label></div>
+              <div class="question-card__option"><input type="radio" id="q4-d" name="q4" value="500"><label for="q4-d">500</label></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="question-card">
+            <legend><span class="question-card__number">Question 5</span>Which HTML element is most appropriate for the main heading of a page?</legend>
+            <div class="question-card__options">
+              <div class="question-card__option"><input type="radio" id="q5-a" name="q5" value="h1"><label for="q5-a">&lt;h1&gt;</label></div>
+              <div class="question-card__option"><input type="radio" id="q5-b" name="q5" value="header"><label for="q5-b">&lt;header&gt;</label></div>
+              <div class="question-card__option"><input type="radio" id="q5-c" name="q5" value="title"><label for="q5-c">&lt;title&gt;</label></div>
+              <div class="question-card__option"><input type="radio" id="q5-d" name="q5" value="strong"><label for="q5-d">&lt;strong&gt;</label></div>
+            </div>
+          </fieldset>
+
+          <div class="quiz-actions">
+            <button class="quiz-button quiz-button--primary" id="submit-button" type="submit" disabled>Submit quiz</button>
+          </div>
+        </form>
+
+        <section class="quiz-results" id="results" aria-labelledby="results-title" aria-live="polite" hidden>
+          <h2 id="results-title">Quiz results</h2>
+          <p class="quiz-results__score" id="score"></p>
+          <div class="quiz-results__wrong" id="wrong-answers"></div>
+          <div class="quiz-results__perfect" id="perfect-message" hidden>Excellent work! You answered every question correctly.</div>
+          <div class="quiz-actions">
+            <button class="quiz-button quiz-button--secondary" id="retry-button" type="button">Retry quiz</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="quiz-footer">
+      <div class="quiz-footer__inner">
+        <p>Select one answer for each question, then submit when you are ready.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 5;
+      const correctAnswers = [
+        "The structure and content",
+        "color",
+        "const",
+        "404",
+        "h1"
+      ];
+
+      const form = document.getElementById("quiz-form");
+      const progressCount = document.getElementById("progress-count");
+      const submitButton = document.getElementById("submit-button");
+      const results = document.getElementById("results");
+      const score = document.getElementById("score");
+      const wrongAnswers = document.getElementById("wrong-answers");
+      const perfectMessage = document.getElementById("perfect-message");
+      const retryButton = document.getElementById("retry-button");
+      const questionCards = [...form.querySelectorAll("fieldset")];
+
+      const getSelections = () => questionCards.map((card) => {
+        const selected = card.querySelector("input:checked");
+        return selected ? selected.value : null;
+      });
+
+      const updateProgress = () => {
+        const selections = getSelections();
+        const answeredCount = selections.filter(Boolean).length;
+        progressCount.textContent = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const getQuestionText = (card) => {
+        const legend = card.querySelector("legend");
+        return legend ? legend.textContent.replace(/^Question\s+\d+\s*/, "").trim() : "Question";
+      };
+
+      const renderResults = (selections) => {
+        const scoreValue = selections.reduce((total, answer, index) => (
+          total + (answer === correctAnswers[index] ? 1 : 0)
+        ), 0);
+
+        score.textContent = `You scored ${scoreValue}/${TOTAL_QUESTIONS}`;
+        wrongAnswers.replaceChildren();
+        perfectMessage.hidden = scoreValue !== TOTAL_QUESTIONS;
+
+        const incorrectItems = selections
+          .map((answer, index) => ({ answer, index }))
+          .filter(({ answer, index }) => answer !== correctAnswers[index]);
+
+        incorrectItems.forEach(({ answer, index }) => {
+          const article = document.createElement("article");
+          article.className = "result-item";
+
+          const heading = document.createElement("h3");
+          heading.textContent = getQuestionText(questionCards[index]);
+
+          const chosen = document.createElement("p");
+          const chosenLabel = document.createElement("span");
+          chosenLabel.className = "result-item__label";
+          chosenLabel.textContent = "Your answer: ";
+          chosen.append(chosenLabel, document.createTextNode(answer));
+
+          const correct = document.createElement("p");
+          const correctLabel = document.createElement("span");
+          correctLabel.className = "result-item__label";
+          correctLabel.textContent = "Correct answer: ";
+          correct.append(correctLabel, document.createTextNode(correctAnswers[index]));
+
+          article.append(heading, chosen, correct);
+          wrongAnswers.append(article);
+        });
+
+        results.hidden = false;
+        results.focus({ preventScroll: true });
+      };
+
+      const resetQuiz = () => {
+        form.reset();
+        results.hidden = true;
+        wrongAnswers.replaceChildren();
+        perfectMessage.hidden = true;
+        score.textContent = "";
+        updateProgress();
+        questionCards[0].querySelector("input").focus();
+      };
+
+      form.addEventListener("change", updateProgress);
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const selections = getSelections();
+        if (selections.every(Boolean)) {
+          renderResults(selections);
+        }
+      });
+
+      retryButton.addEventListener("click", resetQuiz);
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

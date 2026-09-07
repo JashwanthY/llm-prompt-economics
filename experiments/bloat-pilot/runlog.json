@@ -1,0 +1,146 @@
+[
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 1,
+    "chars": 10049,
+    "out_tokens": 2945,
+    "in_tokens": 204,
+    "secs": 24.4
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 2,
+    "chars": 10852,
+    "out_tokens": 3045,
+    "in_tokens": 204,
+    "secs": 22.7
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 3,
+    "chars": 8710,
+    "out_tokens": 2600,
+    "in_tokens": 204,
+    "secs": 21.5
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "A_minimal",
+    "trial": 4,
+    "chars": 11578,
+    "out_tokens": 3182,
+    "in_tokens": 204,
+    "secs": 25.2
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 1,
+    "chars": 12565,
+    "out_tokens": 3559,
+    "in_tokens": 770,
+    "secs": 38.1
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 2,
+    "chars": 12755,
+    "out_tokens": 3458,
+    "in_tokens": 770,
+    "secs": 27.3
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 3,
+    "chars": 13935,
+    "out_tokens": 3885,
+    "in_tokens": 770,
+    "secs": 31.8
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "B_padded",
+    "trial": 4,
+    "chars": 13802,
+    "out_tokens": 4099,
+    "in_tokens": 770,
+    "secs": 34.5
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 1,
+    "chars": 10721,
+    "out_tokens": 2876,
+    "in_tokens": 204,
+    "secs": 17.6
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 2,
+    "chars": 11315,
+    "out_tokens": 2987,
+    "in_tokens": 204,
+    "secs": 17.2
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 3,
+    "chars": 11807,
+    "out_tokens": 3030,
+    "in_tokens": 204,
+    "secs": 17.6
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "A_minimal",
+    "trial": 4,
+    "chars": 11095,
+    "out_tokens": 2977,
+    "in_tokens": 204,
+    "secs": 17.1
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 1,
+    "chars": 17738,
+    "out_tokens": 4494,
+    "in_tokens": 770,
+    "secs": 25.7
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 2,
+    "chars": 17043,
+    "out_tokens": 4271,
+    "in_tokens": 770,
+    "secs": 25.1
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 3,
+    "chars": 17554,
+    "out_tokens": 4388,
+    "in_tokens": 770,
+    "secs": 25.0
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "B_padded",
+    "trial": 4,
+    "chars": 19830,
+    "out_tokens": 5022,
+    "in_tokens": 770,
+    "secs": 29.3
+  }
+]

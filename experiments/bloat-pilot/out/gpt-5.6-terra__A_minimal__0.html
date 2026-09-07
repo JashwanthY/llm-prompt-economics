@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --primary: #2457d6;
+      --primary-dark: #183d9b;
+      --success: #087443;
+      --danger: #b42318;
+      --border: #d0d7e2;
+      --background: #f4f7fb;
+      --text: #172033;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--background);
+    }
+
+    main {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 2rem;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(23, 32, 51, 0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .instructions {
+      margin-top: 0;
+      color: #4c5870;
+    }
+
+    .progress-wrap {
+      margin: 1.5rem 0;
+    }
+
+    #progress-text {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    progress {
+      width: 100%;
+      height: 1rem;
+      accent-color: var(--primary);
+    }
+
+    fieldset {
+      margin: 0 0 1.25rem;
+      padding: 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    legend {
+      padding: 0 0.35rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+      padding: 0.7rem;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      background: #eef3ff;
+    }
+
+    .option:focus-within {
+      outline: 3px solid #8fb0ff;
+      outline-offset: 2px;
+      background: #eef3ff;
+    }
+
+    .option input {
+      margin-top: 0.15rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    button {
+      padding: 0.8rem 1.2rem;
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #submit-button {
+      color: #ffffff;
+      background: var(--primary);
+    }
+
+    #submit-button:hover:not(:disabled),
+    #submit-button:focus-visible:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    #submit-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    #results {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      border-radius: 10px;
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+    }
+
+    #results[hidden] {
+      display: none;
+    }
+
+    #score {
+      margin-top: 0;
+      color: var(--success);
+    }
+
+    .wrong-answer {
+      margin: 1rem 0;
+      padding: 1rem;
+      border-left: 4px solid var(--danger);
+      background: #fff4f3;
+      border-radius: 4px;
+    }
+
+    .wrong-answer h3 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .wrong-answer p {
+      margin: 0.5rem 0 0;
+    }
+
+    #retry-button {
+      margin-top: 0.5rem;
+      color: #ffffff;
+      background: #4c5870;
+    }
+
+    #retry-button:hover,
+    #retry-button:focus-visible {
+      background: #303a4d;
+    }
+
+    @media (max-width: 560px) {
+      main {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>General Knowledge Quiz</h1>
+    <p class="instructions">Choose one answer for each question, then submit your quiz.</p>
+
+    <div class="progress-wrap">
+      <span id="progress-text" aria-live="polite">0 of 5 answered</span>
+      <progress id="progress-bar" value="0" max="5" aria-label="Quiz completion progress"></progress>
+    </div>
+
+    <form id="quiz-form">
+      <fieldset>
+        <legend>1. Which planet is known as the Red Planet?</legend>
+        <label class="option"><input type="radio" name="q1" value="Earth"> Earth</label>
+        <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+        <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+        <label class="option"><input type="radio" name="q1" value="Venus"> Venus</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. What is the capital city of Japan?</legend>
+        <label class="option"><input type="radio" name="q2" value="Kyoto"> Kyoto</label>
+        <label class="option"><input type="radio" name="q2" value="Seoul"> Seoul</label>
+        <label class="option"><input type="radio" name="q2" value="Tokyo"> Tokyo</label>
+        <label class="option"><input type="radio" name="q2" value="Osaka"> Osaka</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. Which gas do plants absorb from the atmosphere?</legend>
+        <label class="option"><input type="radio" name="q3" value="Oxygen"> Oxygen</label>
+        <label class="option"><input type="radio" name="q3" value="Carbon dioxide"> Carbon dioxide</label>
+        <label class="option"><input type="radio" name="q3" value="Nitrogen"> Nitrogen</label>
+        <label class="option"><input type="radio" name="q3" value="Helium"> Helium</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. How many sides does a hexagon have?</legend>
+        <label class="option"><input type="radio" name="q4" value="Five"> Five</label>
+        <label class="option"><input type="radio" name="q4" value="Six"> Six</label>
+        <label class="option"><input type="radio" name="q4" value="Seven"> Seven</label>
+        <label class="option"><input type="radio" name="q4" value="Eight"> Eight</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>5. Who wrote the play Romeo and Juliet?</legend>
+        <label class="option"><input type="radio" name="q5" value="Charles Dickens"> Charles Dickens</label>
+        <label class="option"><input type="radio" name="q5" value="Jane Austen"> Jane Austen</label>
+        <label class="option"><input type="radio" name="q5" value="William Shakespeare"> William Shakespeare</label>
+        <label class="option"><input type="radio" name="q5" value="Mark Twain"> Mark Twain</label>
+      </fieldset>
+
+      <button id="submit-button" type="submit" disabled>Submit Quiz</button>
+    </form>
+
+    <section id="results" hidden aria-live="polite" tabindex="-1">
+      <h2 id="score"></h2>
+      <div id="feedback"></div>
+      <button id="retry-button" type="button">Retry Quiz</button>
+    </section>
+  </main>
+
+  <script>
+    const quizForm = document.getElementById("quiz-form");
+    const submitButton = document.getElementById("submit-button");
+    const progressText = document.getElementById("progress-text");
+    const progressBar = document.getElementById("progress-bar");
+    const results = document.getElementById("results");
+    const score = document.getElementById("score");
+    const feedback = document.getElementById("feedback");
+    const retryButton = document.getElementById("retry-button");
+
+    const questions = [
+      {
+        name: "q1",
+        text: "Which planet is known as the Red Planet?",
+        correct: "Mars"
+      },
+      {
+        name: "q2",
+        text: "What is the capital city of Japan?",
+        correct: "Tokyo"
+      },
+      {
+        name: "q3",
+        text: "Which gas do plants absorb from the atmosphere?",
+        correct: "Carbon dioxide"
+      },
+      {
+        name: "q4",
+        text: "How many sides does a hexagon have?",
+        correct: "Six"
+      },
+      {
+        name: "q5",
+        text: "Who wrote the play Romeo and Juliet?",
+        correct: "William Shakespeare"
+      }
+    ];
+
+    function updateProgress() {
+      const answered = questions.filter(function (question) {
+        return quizForm.querySelector('input[name="' + question.name + '"]:checked');
+      }).length;
+
+      progressText.textContent = answered + " of " + questions.length + " answered";
+      progressBar.value = answered;
+      submitButton.disabled = answered !== questions.length;
+    }
+
+    quizForm.addEventListener("change", updateProgress);
+
+    quizForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      let correctCount = 0;
+      feedback.innerHTML = "";
+
+      questions.forEach(function (question, index) {
+        const selected = quizForm.querySelector('input[name="' + question.name + '"]:checked');
+        const chosenAnswer = selected ? selected.value : "";
+
+        if (chosenAnswer === question.correct) {
+          correctCount++;
+        } else {
+          const wrongAnswer = document.createElement("article");
+          wrongAnswer.className = "wrong-answer";
+
+          const heading = document.createElement("h3");
+          heading.textContent = "Question " + (index + 1) + ": " + question.text;
+
+          const chosen = document.createElement("p");
+          chosen.innerHTML = "<strong>Your answer:</strong> ";
+          chosen.appendChild(document.createTextNode(chosenAnswer));
+
+          const correct = document.createElement("p");
+          correct.innerHTML = "<strong>Correct answer:</strong> ";
+          correct.appendChild(document.createTextNode(question.correct));
+
+          wrongAnswer.appendChild(heading);
+          wrongAnswer.appendChild(chosen);
+          wrongAnswer.appendChild(correct);
+          feedback.appendChild(wrongAnswer);
+        }
+      });
+
+      score.textContent = "You scored " + correctCount + "/5";
+
+      if (correctCount === questions.length) {
+        const perfectMessage = document.createElement("p");
+        perfectMessage.textContent = "Excellent work! You answered every question correctly.";
+        feedback.appendChild(perfectMessage);
+      }
+
+      results.hidden = false;
+      results.focus();
+    });
+
+    retryButton.addEventListener("click", function () {
+      quizForm.reset();
+      feedback.innerHTML = "";
+      results.hidden = true;
+      updateProgress();
+
+      const firstOption = quizForm.querySelector('input[type="radio"]');
+      firstOption.focus();
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

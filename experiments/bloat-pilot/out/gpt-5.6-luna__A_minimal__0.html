@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive Quiz</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --background: #f3f4f6;
+      --card: #ffffff;
+      --wrong: #b91c1c;
+      --wrong-bg: #fef2f2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(700px, 100%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .intro {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+
+    .progress {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 700;
+    }
+
+    fieldset {
+      margin: 0 0 1rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      background: var(--card);
+    }
+
+    legend {
+      width: 100%;
+      padding: 0;
+      font-weight: 700;
+    }
+
+    .question-number {
+      color: var(--primary);
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+      padding: 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .option:hover,
+    .option:has(input:focus-visible) {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    input[type="radio"] {
+      flex: 0 0 auto;
+      width: 1.1rem;
+      height: 1.1rem;
+      margin-top: 0.15rem;
+      accent-color: var(--primary);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+
+    button {
+      padding: 0.75rem 1.2rem;
+      border: 0;
+      border-radius: 0.5rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    #submitButton {
+      background: var(--primary);
+      color: white;
+    }
+
+    #submitButton:not(:disabled):hover {
+      background: var(--primary-dark);
+    }
+
+    #submitButton:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    #retryButton {
+      background: #e5e7eb;
+      color: var(--text);
+    }
+
+    #retryButton:hover {
+      background: #d1d5db;
+    }
+
+    #results {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      background: var(--card);
+      box-shadow: 0 4px 14px rgb(0 0 0 / 8%);
+    }
+
+    #score {
+      margin-top: 0;
+      color: var(--primary-dark);
+    }
+
+    .wrong-answer {
+      margin: 1rem 0 0;
+      padding: 1rem;
+      border-left: 4px solid var(--wrong);
+      border-radius: 0.25rem;
+      background: var(--wrong-bg);
+    }
+
+    .wrong-answer h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .wrong-answer p {
+      margin: 0.3rem 0;
+    }
+
+    .label {
+      font-weight: 700;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>General Knowledge Quiz</h1>
+    <p class="intro">Select one answer for each question.</p>
+
+    <div id="progress" class="progress" aria-live="polite">0 of 5 answered</div>
+
+    <form id="quizForm">
+      <fieldset>
+        <legend><span class="question-number">1.</span> What is the capital of France?</legend>
+        <label class="option"><input type="radio" name="q1" value="Paris"> Paris</label>
+        <label class="option"><input type="radio" name="q1" value="Madrid"> Madrid</label>
+        <label class="option"><input type="radio" name="q1" value="Rome"> Rome</label>
+        <label class="option"><input type="radio" name="q1" value="Berlin"> Berlin</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">2.</span> Which planet is known as the Red Planet?</legend>
+        <label class="option"><input type="radio" name="q2" value="Venus"> Venus</label>
+        <label class="option"><input type="radio" name="q2" value="Mars"> Mars</label>
+        <label class="option"><input type="radio" name="q2" value="Jupiter"> Jupiter</label>
+        <label class="option"><input type="radio" name="q2" value="Mercury"> Mercury</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">3.</span> How many sides does a hexagon have?</legend>
+        <label class="option"><input type="radio" name="q3" value="Five"> Five</label>
+        <label class="option"><input type="radio" name="q3" value="Six"> Six</label>
+        <label class="option"><input type="radio" name="q3" value="Seven"> Seven</label>
+        <label class="option"><input type="radio" name="q3" value="Eight"> Eight</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">4.</span> Which ocean is the largest?</legend>
+        <label class="option"><input type="radio" name="q4" value="Atlantic Ocean"> Atlantic Ocean</label>
+        <label class="option"><input type="radio" name="q4" value="Indian Ocean"> Indian Ocean</label>
+        <label class="option"><input type="radio" name="q4" value="Pacific Ocean"> Pacific Ocean</label>
+        <label class="option"><input type="radio" name="q4" value="Arctic Ocean"> Arctic Ocean</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">5.</span> What gas do plants absorb from the atmosphere?</legend>
+        <label class="option"><input type="radio" name="q5" value="Oxygen"> Oxygen</label>
+        <label class="option"><input type="radio" name="q5" value="Nitrogen"> Nitrogen</label>
+        <label class="option"><input type="radio" name="q5" value="Carbon dioxide"> Carbon dioxide</label>
+        <label class="option"><input type="radio" name="q5" value="Hydrogen"> Hydrogen</label>
+      </fieldset>
+
+      <div class="actions">
+        <button id="submitButton" type="submit" disabled>Submit</button>
+      </div>
+    </form>
+
+    <section id="results" hidden aria-live="polite" tabindex="-1">
+      <h2 id="score"></h2>
+      <div id="wrongAnswers"></div>
+      <div class="actions">
+        <button id="retryButton" type="button">Retry</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("quizForm");
+    const progress = document.getElementById("progress");
+    const submitButton = document.getElementById("submitButton");
+    const results = document.getElementById("results");
+    const score = document.getElementById("score");
+    const wrongAnswers = document.getElementById("wrongAnswers");
+    const retryButton = document.getElementById("retryButton");
+
+    const answers = {
+      q1: "Paris",
+      q2: "Mars",
+      q3: "Six",
+      q4: "Pacific Ocean",
+      q5: "Carbon dioxide"
+    };
+
+    const questionTexts = {
+      q1: "What is the capital of France?",
+      q2: "Which planet is known as the Red Planet?",
+      q3: "How many sides does a hexagon have?",
+      q4: "Which ocean is the largest?",
+      q5: "What gas do plants absorb from the atmosphere?"
+    };
+
+    function updateProgress() {
+      const answered = Object.keys(answers).filter(name =>
+        form.querySelector(`input[name="${name}"]:checked`)
+      ).length;
+
+      progress.textContent = `${answered} of 5 answered`;
+      submitButton.disabled = answered !== 5;
+    }
+
+    form.addEventListener("change", updateProgress);
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      let correctCount = 0;
+      wrongAnswers.innerHTML = "";
+
+      Object.keys(answers).forEach(name => {
+        const selected = form.querySelector(`input[name="${name}"]:checked`).value;
+
+        if (selected === answers[name]) {
+          correctCount++;
+        } else {
+          const item = document.createElement("article");
+          item.className = "wrong-answer";
+          item.innerHTML = `
+            <h3>${questionTexts[name]}</h3>
+            <p><span class="label">Your answer:</span> ${selected}</p>
+            <p><span class="label">Correct answer:</span> ${answers[name]}</p>
+          `;
+          wrongAnswers.appendChild(item);
+        }
+      });
+
+      score.textContent = `You scored ${correctCount}/5`;
+      if (correctCount === 5) {
+        wrongAnswers.innerHTML = "<p>Excellent work — every answer was correct!</p>";
+      }
+
+      results.hidden = false;
+      results.focus();
+    });
+
+    retryButton.addEventListener("click", () => {
+      form.reset();
+      updateProgress();
+      results.hidden = true;
+      wrongAnswers.innerHTML = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      form.querySelector("input").focus();
+    });
+
+    updateProgress();
+  </script>
+</body>
+</html>

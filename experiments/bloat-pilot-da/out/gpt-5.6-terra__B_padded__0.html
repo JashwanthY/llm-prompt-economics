@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>General Knowledge Quiz</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-text: #172033;
+      --color-muted: #4b5870;
+      --color-primary: #064e9b;
+      --color-primary-hover: #043b77;
+      --color-border: #b6c2d3;
+      --color-focus: #c2410c;
+      --color-success: #12633a;
+      --color-error: #a61b1b;
+      --color-error-surface: #fff1f1;
+      --shadow-card: 0 0.25rem 1rem rgba(23, 32, 51, 0.12);
+      --radius: 0.5rem;
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .site-header, .site-footer {
+      background: var(--color-text);
+      color: #ffffff;
+    }
+
+    .site-header__inner, .site-footer__inner, .quiz {
+      width: min(100% - 2rem, 48rem);
+      margin-inline: auto;
+    }
+
+    .site-header__inner { padding-block: var(--space-3); }
+    .site-header__title { margin: 0; font-size: clamp(1.5rem, 5vw, 2rem); }
+    .site-header__intro { margin: var(--space-1) 0 0; }
+
+    .quiz { padding-block: var(--space-4); }
+    .quiz__form, .results {
+      padding: var(--space-3);
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      padding: var(--space-2);
+      border-left: 0.35rem solid var(--color-primary);
+      background: #eaf3ff;
+    }
+
+    .progress__text { margin: 0; font-weight: 700; }
+    .question-list { display: grid; gap: var(--space-3); }
+
+    .question {
+      min-inline-size: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+    }
+
+    .question__legend { padding-inline: 0.25rem; font-weight: 700; }
+    .question__options { display: grid; gap: 0.65rem; margin-top: var(--space-1); }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.65rem;
+      border: 1px solid transparent;
+      border-radius: 0.3rem;
+      cursor: pointer;
+    }
+
+    .option:hover { background: #eef5ff; }
+    .option:has(input:checked) { border-color: var(--color-primary); background: #eaf3ff; }
+    .option__input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin: 0.15rem 0 0; accent-color: var(--color-primary); }
+
+    .option:has(input:focus-visible), .button:focus-visible {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.15rem;
+    }
+
+    .quiz__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+    .button {
+      min-height: 2.75rem;
+      padding: 0.6rem 1rem;
+      border: 0.125rem solid var(--color-primary);
+      border-radius: 0.3rem;
+      background: var(--color-primary);
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:hover:not(:disabled) { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+    .button:disabled { border-color: #718096; background: #718096; color: #ffffff; cursor: not-allowed; }
+    .button--secondary { background: #ffffff; color: var(--color-primary); }
+    .button--secondary:hover:not(:disabled) { background: #eaf3ff; color: var(--color-primary-hover); }
+
+    .results { margin-top: var(--space-3); }
+    .results[hidden] { display: none; }
+    .results__heading { margin: 0; font-size: 1.35rem; }
+    .results__summary { margin: var(--space-1) 0 0; color: var(--color-success); font-size: 1.15rem; font-weight: 700; }
+    .results__feedback { margin-top: var(--space-3); }
+    .results__subheading { margin: 0; font-size: 1.1rem; }
+    .results__list { display: grid; gap: var(--space-2); padding: 0; list-style: none; }
+    .feedback-item { padding: var(--space-2); border-left: 0.35rem solid var(--color-error); background: var(--color-error-surface); }
+    .feedback-item__question, .feedback-item__detail { margin: 0; }
+    .feedback-item__detail { margin-top: 0.35rem; }
+    .feedback-item__label { font-weight: 700; }
+    .results__perfect { margin: var(--space-2) 0 0; color: var(--color-success); font-weight: 700; }
+
+    .site-footer__inner { padding-block: var(--space-2); color: #dce6f5; font-size: 0.9rem; }
+    .site-footer__inner p { margin: 0; }
+
+    @media (min-width: 40rem) {
+      .quiz__form, .results { padding: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <section class="site-header__inner" aria-labelledby="page-title">
+      <h1 class="site-header__title" id="page-title">General Knowledge Quiz</h1>
+      <p class="site-header__intro">Choose one answer for each question, then submit your quiz.</p>
+    </section>
+  </header>
+
+  <main class="quiz">
+    <section aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading">Questions</h2>
+      <form class="quiz__form" id="quiz-form" novalidate>
+        <section class="progress" aria-label="Quiz progress">
+          <p class="progress__text" id="progress-text" aria-live="polite">0 of 5 answered</p>
+        </section>
+
+        <section class="question-list" aria-label="Quiz questions">
+          <fieldset class="question">
+            <legend class="question__legend">1. Which planet is known as the Red Planet?</legend>
+            <section class="question__options">
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Venus"><span>Venus</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Mars"><span>Mars</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Jupiter"><span>Jupiter</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-1" value="Mercury"><span>Mercury</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend">2. What is the largest ocean on Earth?</legend>
+            <section class="question__options">
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Atlantic Ocean"><span>Atlantic Ocean</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Indian Ocean"><span>Indian Ocean</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Pacific Ocean"><span>Pacific Ocean</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-2" value="Arctic Ocean"><span>Arctic Ocean</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend">3. Which element has the chemical symbol O?</legend>
+            <section class="question__options">
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="Gold"><span>Gold</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="Oxygen"><span>Oxygen</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="Osmium"><span>Osmium</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-3" value="Hydrogen"><span>Hydrogen</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend">4. Who wrote the play <em>Romeo and Juliet</em>?</legend>
+            <section class="question__options">
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Jane Austen"><span>Jane Austen</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="William Shakespeare"><span>William Shakespeare</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Charles Dickens"><span>Charles Dickens</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-4" value="Mark Twain"><span>Mark Twain</span></label>
+            </section>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend class="question__legend">5. What is the process by which plants make food using sunlight?</legend>
+            <section class="question__options">
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Respiration"><span>Respiration</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Fermentation"><span>Fermentation</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Photosynthesis"><span>Photosynthesis</span></label>
+              <label class="option"><input class="option__input" type="radio" name="question-5" value="Digestion"><span>Digestion</span></label>
+            </section>
+          </fieldset>
+        </section>
+
+        <section class="quiz__actions" aria-label="Quiz actions">
+          <button class="button" id="submit-button" type="submit" disabled>Submit quiz</button>
+        </section>
+      </form>
+    </section>
+
+    <section class="results" id="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 class="results__heading" id="results-heading">Your results</h2>
+      <p class="results__summary" id="score-text"></p>
+      <section class="results__feedback" id="feedback" aria-labelledby="feedback-heading"></section>
+      <section class="quiz__actions" aria-label="Result actions">
+        <button class="button button--secondary" id="retry-button" type="button">Retry quiz</button>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <section class="site-footer__inner"><p>Complete all questions to submit your answers.</p></section>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const questions = [
+        { name: 'question-1', text: 'Which planet is known as the Red Planet?', answer: 'Mars' },
+        { name: 'question-2', text: 'What is the largest ocean on Earth?', answer: 'Pacific Ocean' },
+        { name: 'question-3', text: 'Which element has the chemical symbol O?', answer: 'Oxygen' },
+        { name: 'question-4', text: 'Who wrote the play Romeo and Juliet?', answer: 'William Shakespeare' },
+        { name: 'question-5', text: 'What is the process by which plants make food using sunlight?', answer: 'Photosynthesis' }
+      ];
+      const totalQuestions = questions.length;
+      const form = document.querySelector('#quiz-form');
+      const progressText = document.querySelector('#progress-text');
+      const submitButton = document.querySelector('#submit-button');
+      const results = document.querySelector('#results');
+      const scoreText = document.querySelector('#score-text');
+      const feedback = document.querySelector('#feedback');
+      const retryButton = document.querySelector('#retry-button');
+
+      const getSelectedValue = (questionName) => {
+        const selectedInput = form.querySelector(`input[name="${questionName}"]:checked`);
+        return selectedInput ? selectedInput.value : null;
+      };
+
+      const updateProgress = () => {
+        const answeredCount = questions.filter(({ name }) => getSelectedValue(name) !== null).length;
+        progressText.textContent = `${answeredCount} of ${totalQuestions} answered`;
+        submitButton.disabled = answeredCount !== totalQuestions;
+      };
+
+      const createFeedbackItem = ({ text, answer }, chosenAnswer) => {
+        const item = document.createElement('li');
+        item.className = 'feedback-item';
+        item.innerHTML = `<p class="feedback-item__question"><span class="feedback-item__label">Question:</span> ${text}</p><p class="feedback-item__detail"><span class="feedback-item__label">Your answer:</span> ${chosenAnswer}</p><p class="feedback-item__detail"><span class="feedback-item__label">Correct answer:</span> ${answer}</p>`;
+        return item;
+      };
+
+      const showResults = () => {
+        const wrongAnswers = questions.filter((question) => getSelectedValue(question.name) !== question.answer);
+        const score = totalQuestions - wrongAnswers.length;
+        scoreText.textContent = `You scored ${score}/${totalQuestions}`;
+        feedback.replaceChildren();
+
+        if (wrongAnswers.length === 0) {
+          const perfectMessage = document.createElement('p');
+          perfectMessage.className = 'results__perfect';
+          perfectMessage.textContent = 'Excellent work — every answer is correct.';
+          feedback.append(perfectMessage);
+        } else {
+          const heading = document.createElement('h3');
+          heading.className = 'results__subheading';
+          heading.id = 'feedback-heading';
+          heading.textContent = 'Review your incorrect answers';
+          const list = document.createElement('ul');
+          list.className = 'results__list';
+          wrongAnswers.forEach((question) => list.append(createFeedbackItem(question, getSelectedValue(question.name))));
+          feedback.append(heading, list);
+        }
+
+        results.hidden = false;
+        results.focus();
+      };
+
+      form.addEventListener('change', updateProgress);
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!submitButton.disabled) showResults();
+      });
+
+      retryButton.addEventListener('click', () => {
+        form.reset();
+        results.hidden = true;
+        feedback.replaceChildren();
+        updateProgress();
+        form.querySelector('input').focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>
