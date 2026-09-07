@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everyday Science Quiz</title>
+  <style>
+    :root {
+      --ink: #1d2939;
+      --muted: #526275;
+      --paper: #ffffff;
+      --canvas: #f3f7f5;
+      --line: #d8e3df;
+      --teal: #086f66;
+      --teal-dark: #04544e;
+      --teal-soft: #e2f3ef;
+      --gold: #b05a00;
+      --gold-soft: #fff3df;
+      --focus: #b64c00;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    .site-header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .92);
+    }
+    .header-inner, main, .site-footer { max-width: 780px; margin: 0 auto; }
+    .header-inner { padding: 1rem 1.25rem; }
+    .brand { margin: 0; color: var(--teal-dark); font-size: 1rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+
+    main { padding: 2.75rem 1.25rem 3rem; }
+    .intro { margin-bottom: 1.75rem; }
+    h1 { max-width: 680px; margin: 0 0 .5rem; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; letter-spacing: -.04em; }
+    .intro p { max-width: 600px; margin: 0; color: var(--muted); font-size: 1.05rem; }
+
+    .progress-panel {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: .8rem;
+      background: var(--paper);
+    }
+    .progress-label { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .55rem; font-size: .93rem; font-weight: 750; }
+    .progress-label span:last-child { color: var(--teal-dark); }
+    progress { width: 100%; height: .7rem; overflow: hidden; border: 0; border-radius: 99px; background: #dbe7e3; }
+    progress::-webkit-progress-bar { background: #dbe7e3; border-radius: 99px; }
+    progress::-webkit-progress-value { background: var(--teal); border-radius: 99px; transition: width .2s ease; }
+    progress::-moz-progress-bar { background: var(--teal); border-radius: 99px; }
+
+    form { display: grid; gap: 1rem; }
+    fieldset { min-inline-size: 0; margin: 0; padding: 1.25rem; border: 1px solid var(--line); border-radius: .8rem; background: var(--paper); }
+    legend { max-width: 100%; padding: 0 .35rem; font-weight: 760; font-size: 1.05rem; }
+    .question-number { display: block; margin-bottom: .22rem; color: var(--teal); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .options { display: grid; gap: .65rem; margin-top: 1rem; }
+    .option { position: relative; display: flex; align-items: center; gap: .72rem; min-height: 2.7rem; padding: .55rem .7rem; border: 1px solid #c7d5d0; border-radius: .55rem; color: #253746; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+    .option:hover { border-color: var(--teal); background: #f4fbf9; }
+    .option:has(input:checked) { border-color: var(--teal); background: var(--teal-soft); }
+    input[type="radio"] { width: 1.15rem; height: 1.15rem; margin: 0; accent-color: var(--teal); flex: 0 0 auto; }
+
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .35rem; }
+    button { min-height: 2.75rem; padding: .62rem 1.05rem; border: 2px solid transparent; border-radius: .5rem; background: var(--teal); color: #fff; font: inherit; font-weight: 760; cursor: pointer; }
+    button:hover:not(:disabled) { background: var(--teal-dark); }
+    button:disabled { background: #9aaca7; color: #f6f8f7; cursor: not-allowed; }
+    .submit-note { margin: 0; color: var(--muted); font-size: .9rem; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+    #results { margin-top: 2rem; padding: 1.35rem; border: 2px solid var(--teal); border-radius: .8rem; background: #fff; }
+    #results[hidden] { display: none; }
+    #results h2 { margin: 0 0 .35rem; font-size: 1.5rem; }
+    #results > p { margin: 0 0 1rem; color: var(--muted); }
+    #feedback-list { display: grid; gap: .8rem; margin: 1rem 0 1.25rem; padding: 0; list-style: none; }
+    .feedback-item { padding: 1rem; border-left: 4px solid var(--gold); border-radius: .35rem; background: var(--gold-soft); }
+    .feedback-item h3 { margin: 0 0 .5rem; font-size: 1rem; }
+    .feedback-item p { margin: .18rem 0; color: #3d3a34; }
+    .feedback-item strong { color: #2a302f; }
+    .all-correct { padding: 1rem; border-left: 4px solid var(--teal); background: var(--teal-soft); color: #164943; }
+    .retry { background: #fff; border-color: var(--teal); color: var(--teal-dark); }
+    .retry:hover { background: var(--teal-soft); }
+
+    .site-footer { padding: 0 1.25rem 2rem; color: var(--muted); font-size: .88rem; }
+    .site-footer p { margin: 0; border-top: 1px solid var(--line); padding-top: 1rem; }
+    @media (max-width: 520px) { main { padding-top: 2rem; } fieldset { padding: 1rem; } .progress-label { align-items: baseline; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner"><p class="brand">Quick Check</p></div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="quiz-title">
+      <h1 id="quiz-title">Everyday science, in five questions.</h1>
+      <p>Choose the best answer for each question. Your progress is saved as you go.</p>
+    </section>
+
+    <section class="progress-panel" aria-labelledby="progress-heading">
+      <div class="progress-label">
+        <span id="progress-heading">Quiz progress</span>
+        <span id="progress-text" aria-live="polite">0 of 5 answered</span>
+      </div>
+      <progress id="progress-bar" value="0" max="5" aria-label="0 of 5 questions answered">0 of 5</progress>
+    </section>
+
+    <form id="quiz-form" novalidate>
+      <fieldset>
+        <legend><span class="question-number">Question 1</span>Which planet is known as the Red Planet?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="q1" value="Venus"> Venus</label>
+          <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+          <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+          <label class="option"><input type="radio" name="q1" value="Mercury"> Mercury</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">Question 2</span>What gas do plants absorb from the air during photosynthesis?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="q2" value="Oxygen"> Oxygen</label>
+          <label class="option"><input type="radio" name="q2" value="Nitrogen"> Nitrogen</label>
+          <label class="option"><input type="radio" name="q2" value="Carbon dioxide"> Carbon dioxide</label>
+          <label class="option"><input type="radio" name="q2" value="Helium"> Helium</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">Question 3</span>At sea level, water boils at which temperature in Celsius?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="q3" value="50°C"> 50°C</label>
+          <label class="option"><input type="radio" name="q3" value="75°C"> 75°C</label>
+          <label class="option"><input type="radio" name="q3" value="100°C"> 100°C</label>
+          <label class="option"><input type="radio" name="q3" value="120°C"> 120°C</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">Question 4</span>Which part of a cell contains most of its genetic material?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="q4" value="Cell wall"> Cell wall</label>
+          <label class="option"><input type="radio" name="q4" value="Nucleus"> Nucleus</label>
+          <label class="option"><input type="radio" name="q4" value="Cytoplasm"> Cytoplasm</label>
+          <label class="option"><input type="radio" name="q4" value="Cell membrane"> Cell membrane</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="question-number">Question 5</span>What force pulls objects toward the centre of Earth?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="q5" value="Magnetism"> Magnetism</label>
+          <label class="option"><input type="radio" name="q5" value="Friction"> Friction</label>
+          <label class="option"><input type="radio" name="q5" value="Gravity"> Gravity</label>
+          <label class="option"><input type="radio" name="q5" value="Electricity"> Electricity</label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button id="submit-button" type="submit" disabled>Submit quiz</button>
+        <p id="submit-note" class="submit-note">Answer all five questions to submit.</p>
+      </div>
+    </form>
+
+    <section id="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 id="results-heading" tabindex="-1">Your results</h2>
+      <p id="score"></p>
+      <ul id="feedback-list"></ul>
+      <button id="retry-button" class="retry" type="button">Retry quiz</button>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p>A short, keyboard-friendly knowledge check.</p></footer>
+
+  <script>
+    (() => {
+      const questions = [
+        { name: 'q1', text: 'Which planet is known as the Red Planet?', correct: 'Mars' },
+        { name: 'q2', text: 'What gas do plants absorb from the air during photosynthesis?', correct: 'Carbon dioxide' },
+        { name: 'q3', text: 'At sea level, water boils at which temperature in Celsius?', correct: '100°C' },
+        { name: 'q4', text: 'Which part of a cell contains most of its genetic material?', correct: 'Nucleus' },
+        { name: 'q5', text: 'What force pulls objects toward the centre of Earth?', correct: 'Gravity' }
+      ];
+      const form = document.getElementById('quiz-form');
+      const progressText = document.getElementById('progress-text');
+      const progressBar = document.getElementById('progress-bar');
+      const submitButton = document.getElementById('submit-button');
+      const submitNote = document.getElementById('submit-note');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const feedbackList = document.getElementById('feedback-list');
+      const retryButton = document.getElementById('retry-button');
+
+      function updateProgress() {
+        const answered = questions.filter(question => form.elements[question.name].value !== '').length;
+        progressText.textContent = `${answered} of ${questions.length} answered`;
+        progressBar.value = answered;
+        progressBar.textContent = `${answered} of ${questions.length}`;
+        progressBar.setAttribute('aria-label', `${answered} of ${questions.length} questions answered`);
+        submitButton.disabled = answered !== questions.length;
+        submitNote.textContent = answered === questions.length ? 'All questions answered — ready to submit.' : 'Answer all five questions to submit.';
+      }
+
+      form.addEventListener('change', updateProgress);
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (submitButton.disabled) return;
+        let total = 0;
+        feedbackList.replaceChildren();
+        questions.forEach((question, index) => {
+          const chosen = form.elements[question.name].value;
+          if (chosen === question.correct) { total++; return; }
+          const item = document.createElement('li');
+          item.className = 'feedback-item';
+          const heading = document.createElement('h3');
+          heading.textContent = `Question ${index + 1}: ${question.text}`;
+          const selected = document.createElement('p');
+          selected.innerHTML = `<strong>Your answer:</strong> ${chosen}`;
+          const correct = document.createElement('p');
+          correct.innerHTML = `<strong>Correct answer:</strong> ${question.correct}`;
+          item.append(heading, selected, correct);
+          feedbackList.append(item);
+        });
+        score.textContent = `You scored ${total}/5`;
+        if (total === questions.length) {
+          const item = document.createElement('li');
+          item.className = 'all-correct';
+          item.textContent = 'Excellent work — every answer is correct.';
+          feedbackList.append(item);
+        }
+        results.hidden = false;
+        document.getElementById('results-heading').focus();
+      });
+
+      retryButton.addEventListener('click', () => {
+        form.reset();
+        feedbackList.replaceChildren();
+        results.hidden = true;
+        updateProgress();
+        document.querySelector('input[name="q1"]').focus();
+      });
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

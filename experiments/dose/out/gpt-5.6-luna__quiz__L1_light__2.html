@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Check Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #526078;
+      --surface: #ffffff;
+      --surface-alt: #f3f6fb;
+      --border: #c6d0df;
+      --accent: #174ea6;
+      --accent-dark: #103675;
+      --accent-soft: #e8f0ff;
+      --success: #176b43;
+      --error: #9d2b27;
+      --shadow: 0 14px 34px rgba(27, 45, 78, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eaf0f8;
+      color: var(--ink);
+      font: 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-shell {
+      width: min(100% - 2rem, 800px);
+      margin: 0 auto;
+      padding: 2rem 0 3rem;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 0.45rem; font-size: clamp(1.8rem, 4vw, 2.5rem); line-height: 1.15; }
+    h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+    .intro { margin-bottom: 0; color: var(--muted); }
+
+    main {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .quiz-content { padding: clamp(1.25rem, 4vw, 2.25rem); }
+
+    .progress-panel {
+      margin-bottom: 1.75rem;
+      padding: 1rem;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 0.7rem;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.55rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 650;
+    }
+
+    progress {
+      display: block;
+      width: 100%;
+      height: 0.8rem;
+      accent-color: var(--accent);
+    }
+
+    fieldset {
+      min-width: 0;
+      margin: 0 0 1.35rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.7rem;
+    }
+
+    legend {
+      max-width: 100%;
+      padding: 0 0.35rem;
+      font-weight: 700;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      margin-top: 0.7rem;
+      padding: 0.72rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .option:hover { background: var(--surface-alt); }
+    .option:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+    .option input { width: 1.1rem; height: 1.1rem; margin: 0.15rem 0 0; accent-color: var(--accent); flex: 0 0 auto; }
+
+    button {
+      border: 0;
+      border-radius: 0.5rem;
+      padding: 0.78rem 1.25rem;
+      color: #fff;
+      background: var(--accent);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) { background: var(--accent-dark); }
+    button:disabled { color: #647083; background: #dce2ea; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible, .option:has(input:focus-visible) {
+      outline: 3px solid #f0a500;
+      outline-offset: 3px;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+    .secondary { color: var(--accent-dark); background: #fff; border: 2px solid var(--accent); }
+    .secondary:hover:not(:disabled) { color: #fff; background: var(--accent-dark); }
+
+    #results {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      border-left: 5px solid var(--success);
+      background: #eef8f2;
+      border-radius: 0.5rem;
+    }
+
+    #results h2 { color: #104d31; margin-bottom: 0.45rem; }
+    .score { margin-bottom: 1rem; font-size: 1.2rem; font-weight: 750; }
+    .review-list { margin: 0; padding-left: 1.25rem; }
+    .review-list li { margin-bottom: 1rem; }
+    .review-list li:last-child { margin-bottom: 0; }
+    .review-label { font-weight: 700; }
+    .no-mistakes { color: #104d31; font-weight: 650; }
+
+    footer { margin-top: 1.25rem; color: var(--muted); text-align: center; font-size: 0.9rem; }
+
+    @media (max-width: 500px) {
+      .page-shell { width: min(100% - 1rem, 800px); padding-top: 1rem; }
+      .quiz-content { padding: 1rem; }
+      fieldset { padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header>
+      <h1>Knowledge Check</h1>
+      <p class="intro">Answer all five questions, then submit your responses.</p>
+    </header>
+
+    <main>
+      <div class="quiz-content">
+        <section aria-labelledby="questions-heading">
+          <div class="progress-panel" aria-live="polite">
+            <div class="progress-label">
+              <span id="progress-text">0 of 5 answered</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <progress id="quiz-progress" value="0" max="5" aria-label="Quiz completion progress">0 of 5 answered</progress>
+          </div>
+
+          <h2 id="questions-heading">Questions</h2>
+          <form id="quiz-form">
+            <fieldset data-question="0">
+              <legend>1. Which language is used to structure the content of a web page?</legend>
+              <label class="option"><input type="radio" name="q0" value="HTML"> <span>HTML</span></label>
+              <label class="option"><input type="radio" name="q0" value="CSS"> <span>CSS</span></label>
+              <label class="option"><input type="radio" name="q0" value="SQL"> <span>SQL</span></label>
+              <label class="option"><input type="radio" name="q0" value="Bash"> <span>Bash</span></label>
+            </fieldset>
+
+            <fieldset data-question="1">
+              <legend>2. What does CSS primarily control?</legend>
+              <label class="option"><input type="radio" name="q1" value="Data storage"> <span>Data storage</span></label>
+              <label class="option"><input type="radio" name="q1" value="Visual presentation"> <span>Visual presentation</span></label>
+              <label class="option"><input type="radio" name="q1" value="Server hardware"> <span>Server hardware</span></label>
+              <label class="option"><input type="radio" name="q1" value="Network routing"> <span>Network routing</span></label>
+            </fieldset>
+
+            <fieldset data-question="2">
+              <legend>3. Which element is most appropriate for a main page heading?</legend>
+              <label class="option"><input type="radio" name="q2" value="h1"> <span>&lt;h1&gt;</span></label>
+              <label class="option"><input type="radio" name="q2" value="p"> <span>&lt;p&gt;</span></label>
+              <label class="option"><input type="radio" name="q2" value="footer"> <span>&lt;footer&gt;</span></label>
+              <label class="option"><input type="radio" name="q2" value="small"> <span>&lt;small&gt;</span></label>
+            </fieldset>
+
+            <fieldset data-question="3">
+              <legend>4. Which attribute provides alternative text for an image?</legend>
+              <label class="option"><input type="radio" name="q3" value="title"> <span>title</span></label>
+              <label class="option"><input type="radio" name="q3" value="alt"> <span>alt</span></label>
+              <label class="option"><input type="radio" name="q3" value="name"> <span>name</span></label>
+              <label class="option"><input type="radio" name="q3" value="caption"> <span>caption</span></label>
+            </fieldset>
+
+            <fieldset data-question="4">
+              <legend>5. Which JavaScript method converts JSON text into a JavaScript value?</legend>
+              <label class="option"><input type="radio" name="q4" value="JSON.parse"> <span>JSON.parse()</span></label>
+              <label class="option"><input type="radio" name="q4" value="JSON.stringify"> <span>JSON.stringify()</span></label>
+              <label class="option"><input type="radio" name="q4" value="JSON.convert"> <span>JSON.convert()</span></label>
+              <label class="option"><input type="radio" name="q4" value="JSON.read"> <span>JSON.read()</span></label>
+            </fieldset>
+
+            <div class="actions">
+              <button id="submit-button" type="submit" disabled>Submit answers</button>
+              <button id="retry-button" class="secondary" type="button" hidden>Retry</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="results" aria-labelledby="results-heading" hidden>
+          <h2 id="results-heading">Results</h2>
+          <p id="score" class="score"></p>
+          <div id="review"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer>Choose one answer for each question.</footer>
+  </div>
+
+  <script>
+    (() => {
+      const form = document.getElementById('quiz-form');
+      const submitButton = document.getElementById('submit-button');
+      const retryButton = document.getElementById('retry-button');
+      const progress = document.getElementById('quiz-progress');
+      const progressText = document.getElementById('progress-text');
+      const progressPercent = document.getElementById('progress-percent');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const review = document.getElementById('review');
+      const answers = ['HTML', 'Visual presentation', 'h1', 'alt', 'JSON.parse'];
+      const questions = Array.from(form.querySelectorAll('fieldset'));
+
+      function updateProgress() {
+        const answered = questions.filter((question) => question.querySelector('input:checked')).length;
+        const percent = Math.round((answered / questions.length) * 100);
+        progress.value = answered;
+        progress.textContent = `${answered} of ${questions.length} answered`;
+        progressText.textContent = `${answered} of ${questions.length} answered`;
+        progressPercent.textContent = `${percent}%`;
+        submitButton.disabled = answered !== questions.length;
+      }
+
+      form.addEventListener('change', updateProgress);
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const selected = questions.map((question) => question.querySelector('input:checked').value);
+        const correctCount = selected.filter((answer, index) => answer === answers[index]).length;
+        score.textContent = `You scored ${correctCount}/5`;
+        review.replaceChildren();
+
+        const wrong = questions.reduce((items, question, index) => {
+          if (selected[index] !== answers[index]) {
+            items.push({ question: question.querySelector('legend').textContent, chosen: selected[index], correct: answers[index] });
+          }
+          return items;
+        }, []);
+
+        if (wrong.length === 0) {
+          const message = document.createElement('p');
+          message.className = 'no-mistakes';
+          message.textContent = 'Excellent work—you answered every question correctly.';
+          review.appendChild(message);
+        } else {
+          const heading = document.createElement('p');
+          heading.textContent = 'Review the questions you missed:';
+          review.appendChild(heading);
+          const list = document.createElement('ol');
+          list.className = 'review-list';
+          wrong.forEach((item) => {
+            const entry = document.createElement('li');
+            const questionText = document.createElement('div');
+            questionText.className = 'review-label';
+            questionText.textContent = item.question;
+            const chosen = document.createElement('div');
+            chosen.textContent = `Your answer: ${item.chosen}`;
+            const correct = document.createElement('div');
+            correct.textContent = `Correct answer: ${item.correct}`;
+            entry.append(questionText, chosen, correct);
+            list.appendChild(entry);
+          });
+          review.appendChild(list);
+        }
+
+        results.hidden = false;
+        retryButton.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      retryButton.addEventListener('click', () => {
+        form.reset();
+        results.hidden = true;
+        retryButton.hidden = true;
+        review.replaceChildren();
+        updateProgress();
+        form.querySelector('input').focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

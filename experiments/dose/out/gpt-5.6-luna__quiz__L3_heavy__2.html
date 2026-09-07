@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal &amp; Sense Quiz</title>
+  <style>
+    :root {
+      --color-ink: #172033;
+      --color-muted: #536078;
+      --color-paper: #f7f8fc;
+      --color-surface: #ffffff;
+      --color-border: #d8deea;
+      --color-border-strong: #aab6cc;
+      --color-accent: #3856d6;
+      --color-accent-dark: #263c9d;
+      --color-accent-soft: #eef1ff;
+      --color-success: #176b4a;
+      --color-success-soft: #eaf7f0;
+      --color-error: #9b2c38;
+      --color-error-soft: #fff0f1;
+      --shadow-card: 0 1rem 2.5rem rgba(31, 43, 77, 0.09);
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --space-6: 3rem;
+      --radius-small: 0.625rem;
+      --radius-large: 1.25rem;
+      --focus-ring: 0 0 0 0.2rem rgba(56, 86, 214, 0.3);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      min-width: 18rem;
+      margin: 0;
+      background: var(--color-paper);
+      color: var(--color-ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input { font: inherit; }
+
+    button:focus-visible,
+    input:focus-visible + .quiz__option-label {
+      outline: 0.2rem solid var(--color-accent);
+      outline-offset: 0.15rem;
+    }
+
+    .site-header {
+      padding: var(--space-6) var(--space-4) var(--space-5);
+      background: var(--color-ink);
+      color: #fff;
+    }
+
+    .site-header__inner,
+    .quiz {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+    }
+
+    .site-header__eyebrow {
+      margin: 0 0 var(--space-1);
+      color: #b9c5ff;
+      font-size: 0.8rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .site-header h1 {
+      max-width: 38rem;
+      margin: 0;
+      font-size: clamp(2rem, 7vw, 3.25rem);
+      line-height: 1.05;
+    }
+
+    .site-header__intro {
+      max-width: 37rem;
+      margin: var(--space-3) 0 0;
+      color: #dce2f0;
+      font-size: 1.05rem;
+    }
+
+    .quiz {
+      padding: var(--space-5) 0 var(--space-6);
+    }
+
+    .quiz__status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      color: var(--color-muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .quiz__progress {
+      height: 0.65rem;
+      overflow: hidden;
+      border-radius: 99rem;
+      background: #dfe4f0;
+    }
+
+    .quiz__progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--color-accent);
+      transition: width 180ms ease-out;
+    }
+
+    .quiz__form {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .question-card {
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-large);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .question-card__number {
+      display: block;
+      margin-bottom: var(--space-1);
+      color: var(--color-accent-dark);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .question-card__prompt {
+      display: block;
+      margin-bottom: var(--space-3);
+      font-size: 1.15rem;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .quiz__options {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .quiz__option {
+      position: relative;
+    }
+
+    .quiz__option-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .quiz__option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      min-height: 3rem;
+      padding: var(--space-2) var(--space-3);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-small);
+      color: var(--color-ink);
+      cursor: pointer;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+
+    .quiz__option-label::before {
+      content: "";
+      flex: 0 0 1.15rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      margin-top: 0.12rem;
+      border: 2px solid var(--color-border-strong);
+      border-radius: 50%;
+      background: var(--color-surface);
+    }
+
+    .quiz__option-label:hover {
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+
+    .quiz__option-input:checked + .quiz__option-label {
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+      font-weight: 650;
+    }
+
+    .quiz__option-input:checked + .quiz__option-label::before {
+      border: 0.35rem solid var(--color-accent);
+    }
+
+    .quiz__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      margin-top: var(--space-1);
+    }
+
+    .button {
+      min-height: 3rem;
+      padding: var(--space-2) var(--space-4);
+      border: 2px solid transparent;
+      border-radius: 99rem;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background-color 140ms ease, transform 140ms ease;
+    }
+
+    .button:hover:not(:disabled) { transform: translateY(-1px); }
+    .button:active:not(:disabled) { transform: translateY(0); }
+
+    .button--primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    .button--primary:hover:not(:disabled) { background: var(--color-accent-dark); }
+
+    .button--secondary {
+      border-color: var(--color-border-strong);
+      background: var(--color-surface);
+      color: var(--color-ink);
+    }
+
+    .button--secondary:hover:not(:disabled) { background: var(--color-accent-soft); }
+
+    .button:disabled {
+      background: #c7cdd9;
+      color: #5c6679;
+      cursor: not-allowed;
+    }
+
+    .quiz__hint {
+      margin: 0;
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    .results {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      border: 2px solid var(--color-success);
+      border-radius: var(--radius-large);
+      background: var(--color-success-soft);
+    }
+
+    .results[hidden] { display: none; }
+
+    .results__title {
+      margin: 0;
+      color: var(--color-success);
+      font-size: 1.55rem;
+    }
+
+    .results__summary {
+      margin: var(--space-1) 0 var(--space-4);
+    }
+
+    .results__heading {
+      margin: 0 0 var(--space-2);
+      font-size: 1.05rem;
+    }
+
+    .results__list {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    .results__item { padding-left: var(--space-1); }
+    .results__question { margin: 0 0 0.25rem; font-weight: 750; }
+    .results__answer { margin: 0; color: var(--color-muted); }
+    .results__answer strong { color: var(--color-ink); }
+    .results__perfect { margin: 0; font-weight: 650; }
+
+    .site-footer {
+      padding: 0 var(--space-4) var(--space-5);
+      color: var(--color-muted);
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 34rem) {
+      .site-header { padding-top: var(--space-5); }
+      .quiz__status { align-items: flex-start; flex-direction: column; gap: var(--space-1); }
+      .quiz__actions { align-items: stretch; flex-direction: column; }
+      .button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <p class="site-header__eyebrow">Quick knowledge check</p>
+      <h1>Signal &amp; Sense</h1>
+      <p class="site-header__intro">Five questions about how we make sense of the world. Choose one answer for each question, then check your score.</p>
+    </div>
+  </header>
+
+  <main class="quiz">
+    <section aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading" class="visually-hidden">Quiz questions</h2>
+      <div class="quiz__status" aria-live="polite">
+        <span id="progress-text">0 of 5 answered</span>
+        <span>All questions required</span>
+      </div>
+      <div class="quiz__progress" role="progressbar" aria-label="Quiz completion" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+        <div id="progress-bar" class="quiz__progress-bar"></div>
+      </div>
+
+      <form id="quiz-form" class="quiz__form" novalidate>
+        <fieldset class="question-card">
+          <legend class="question-card__prompt"><span class="question-card__number">Question 1</span>Which property of light determines its colour?</legend>
+          <div class="quiz__options">
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q1-a" name="question-1" value="Wavelength"><label class="quiz__option-label" for="q1-a">Wavelength</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q1-b" name="question-1" value="Amplitude"><label class="quiz__option-label" for="q1-b">Amplitude</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q1-c" name="question-1" value="Speed"><label class="quiz__option-label" for="q1-c">Speed</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q1-d" name="question-1" value="Direction"><label class="quiz__option-label" for="q1-d">Direction</label></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-card">
+          <legend class="question-card__prompt"><span class="question-card__number">Question 2</span>What is the main purpose of a hypothesis?</legend>
+          <div class="quiz__options">
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q2-a" name="question-2" value="To record final results"><label class="quiz__option-label" for="q2-a">To record final results</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q2-b" name="question-2" value="To offer a testable explanation"><label class="quiz__option-label" for="q2-b">To offer a testable explanation</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q2-c" name="question-2" value="To guarantee an outcome"><label class="quiz__option-label" for="q2-c">To guarantee an outcome</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q2-d" name="question-2" value="To replace observation"><label class="quiz__option-label" for="q2-d">To replace observation</label></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-card">
+          <legend class="question-card__prompt"><span class="question-card__number">Question 3</span>Which practice best helps protect an online account?</legend>
+          <div class="quiz__options">
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q3-a" name="question-3" value="Reusing one password"><label class="quiz__option-label" for="q3-a">Reusing one password everywhere</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q3-b" name="question-3" value="Sharing recovery codes"><label class="quiz__option-label" for="q3-b">Sharing recovery codes with friends</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q3-c" name="question-3" value="Using multifactor authentication"><label class="quiz__option-label" for="q3-c">Using multifactor authentication</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q3-d" name="question-3" value="Ignoring software updates"><label class="quiz__option-label" for="q3-d">Ignoring software updates</label></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-card">
+          <legend class="question-card__prompt"><span class="question-card__number">Question 4</span>What does a map scale communicate?</legend>
+          <div class="quiz__options">
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q4-a" name="question-4" value="The map's age"><label class="quiz__option-label" for="q4-a">The map's age</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q4-b" name="question-4" value="The relationship between map and real distance"><label class="quiz__option-label" for="q4-b">The relationship between map and real distance</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q4-c" name="question-4" value="The weather forecast"><label class="quiz__option-label" for="q4-c">The weather forecast</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q4-d" name="question-4" value="The map's orientation only"><label class="quiz__option-label" for="q4-d">The map's orientation only</label></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-card">
+          <legend class="question-card__prompt"><span class="question-card__number">Question 5</span>Which sentence uses evidence most responsibly?</legend>
+          <div class="quiz__options">
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q5-a" name="question-5" value="One example proves every case"><label class="quiz__option-label" for="q5-a">“One example proves every case.”</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q5-b" name="question-5" value="The result guarantees the cause"><label class="quiz__option-label" for="q5-b">“The result guarantees the cause.”</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q5-c" name="question-5" value="The pattern suggests a possibility"><label class="quiz__option-label" for="q5-c">“The pattern suggests a possibility.”</label></div>
+            <div class="quiz__option"><input class="quiz__option-input" type="radio" id="q5-d" name="question-5" value="The source does not matter"><label class="quiz__option-label" for="q5-d">“The source does not matter.”</label></div>
+          </div>
+        </fieldset>
+
+        <div class="quiz__actions">
+          <button id="submit-button" class="button button--primary" type="submit" disabled aria-disabled="true" title="Answer all five questions to submit">Submit answers</button>
+          <p class="quiz__hint">The submit button unlocks when every question has an answer.</p>
+        </div>
+      </form>
+    </section>
+
+    <section id="results" class="results" aria-labelledby="results-title" aria-live="polite" hidden>
+      <h2 id="results-title" class="results__title">You scored 0/5</h2>
+      <p class="results__summary">Here is a review of the questions you missed.</p>
+      <div id="results-content"></div>
+      <button id="retry-button" class="button button--secondary" type="button">Retry quiz</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">Take your time. Good answers start with good questions.</footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const QUESTIONS = [
+        { text: 'Which property of light determines its colour?', correct: 'Wavelength' },
+        { text: 'What is the main purpose of a hypothesis?', correct: 'To offer a testable explanation' },
+        { text: 'Which practice best helps protect an online account?', correct: 'Using multifactor authentication' },
+        { text: 'What does a map scale communicate?', correct: 'The relationship between map and real distance' },
+        { text: 'Which sentence uses evidence most responsibly?', correct: 'The pattern suggests a possibility' }
+      ];
+      const TOTAL_QUESTIONS = QUESTIONS.length;
+      let selections = Array(TOTAL_QUESTIONS).fill(null);
+
+      const form = document.querySelector('#quiz-form');
+      const submitButton = document.querySelector('#submit-button');
+      const retryButton = document.querySelector('#retry-button');
+      const results = document.querySelector('#results');
+      const resultsTitle = document.querySelector('#results-title');
+      const resultsContent = document.querySelector('#results-content');
+      const progressText = document.querySelector('#progress-text');
+      const progressBar = document.querySelector('#progress-bar');
+      const progressTrack = document.querySelector('.quiz__progress');
+      const inputs = [...document.querySelectorAll('.quiz__option-input')];
+
+      const getAnsweredCount = () => selections.filter(Boolean).length;
+
+      const updateProgress = () => {
+        const answeredCount = getAnsweredCount();
+        const percentage = (answeredCount / TOTAL_QUESTIONS) * 100;
+        progressText.textContent = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+        progressBar.style.width = `${percentage}%`;
+        progressTrack.setAttribute('aria-valuenow', String(answeredCount));
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+        submitButton.setAttribute('aria-disabled', String(submitButton.disabled));
+      };
+
+      const getSelectedValue = (questionIndex) => {
+        const selectedInput = document.querySelector(`input[name="question-${questionIndex + 1}"]:checked`);
+        return selectedInput ? selectedInput.value : null;
+      };
+
+      const createWrongAnswerItem = (question, selectedAnswer) => {
+        const item = document.createElement('li');
+        item.className = 'results__item';
+
+        const questionText = document.createElement('p');
+        questionText.className = 'results__question';
+        questionText.textContent = question.text;
+
+        const answerText = document.createElement('p');
+        answerText.className = 'results__answer';
+        answerText.innerHTML = `<strong>Your answer:</strong> ${selectedAnswer || 'No answer'}<br><strong>Correct answer:</strong> ${question.correct}`;
+
+        item.append(questionText, answerText);
+        return item;
+      };
+
+      const renderResults = () => {
+        const score = QUESTIONS.reduce((total, question, index) => total + (selections[index] === question.correct ? 1 : 0), 0);
+        const wrongQuestions = QUESTIONS
+          .map((question, index) => ({ question, selectedAnswer: selections[index] }))
+          .filter(({ question, selectedAnswer }) => selectedAnswer !== question.correct);
+
+        resultsTitle.textContent = `You scored ${score}/${TOTAL_QUESTIONS}`;
+        resultsContent.replaceChildren();
+
+        if (wrongQuestions.length === 0) {
+          const perfectMessage = document.createElement('p');
+          perfectMessage.className = 'results__perfect';
+          perfectMessage.textContent = 'Perfect score. Every answer is correct!';
+          resultsContent.append(perfectMessage);
+        } else {
+          const heading = document.createElement('h3');
+          heading.className = 'results__heading';
+          heading.textContent = 'Review your missed questions';
+          const list = document.createElement('ol');
+          list.className = 'results__list';
+          wrongQuestions.forEach(({ question, selectedAnswer }) => list.append(createWrongAnswerItem(question, selectedAnswer)));
+          resultsContent.append(heading, list);
+        }
+
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      const handleSelection = (event) => {
+        const questionIndex = Number(event.target.name.replace('question-', '')) - 1;
+        if (Number.isInteger(questionIndex) && questionIndex >= 0 && questionIndex < TOTAL_QUESTIONS) {
+          selections[questionIndex] = getSelectedValue(questionIndex);
+          updateProgress();
+        }
+      };
+
+      const resetQuiz = () => {
+        selections = Array(TOTAL_QUESTIONS).fill(null);
+        form.reset();
+        results.hidden = true;
+        resultsContent.replaceChildren();
+        updateProgress();
+        form.querySelector('input')?.focus();
+      };
+
+      inputs.forEach((input) => input.addEventListener('change', handleSelection));
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (getAnsweredCount() === TOTAL_QUESTIONS) renderResults();
+      });
+      retryButton.addEventListener('click', resetQuiz);
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

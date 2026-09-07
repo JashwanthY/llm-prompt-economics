@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A five-question interactive general knowledge quiz.">
+  <title>Quick Knowledge Quiz</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-ink: #172033;
+      --color-muted: #4b5870;
+      --color-primary: #124e8c;
+      --color-primary-dark: #0b3969;
+      --color-primary-pale: #e7f1fc;
+      --color-border: #aebbd0;
+      --color-success: #176b43;
+      --color-success-pale: #e8f6ee;
+      --color-error: #a32828;
+      --color-error-pale: #fdeeee;
+      --color-focus: #e06c00;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --radius: 0.5rem;
+      --shadow: 0 0.5rem 1.5rem rgb(23 32 51 / 12%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .quiz-shell {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+      padding: var(--space-5) 0;
+    }
+
+    .quiz-header, .quiz-card, .quiz-results, .quiz-footer {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .quiz-header { padding: var(--space-5); margin-bottom: var(--space-4); }
+    .quiz-header__title { margin: 0; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.15; }
+    .quiz-header__intro { margin: var(--space-2) 0 0; color: var(--color-muted); }
+
+    .quiz-progress { margin: var(--space-4) 0 0; }
+    .quiz-progress__text { display: block; font-weight: 700; }
+    .quiz-progress__track {
+      display: block;
+      width: 100%;
+      height: 0.75rem;
+      margin-top: var(--space-1);
+      overflow: hidden;
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: #d9e1ec;
+    }
+    .quiz-progress__track::-webkit-progress-bar { background: #d9e1ec; }
+    .quiz-progress__track::-webkit-progress-value { background: var(--color-primary); transition: width 160ms ease; }
+    .quiz-progress__track::-moz-progress-bar { background: var(--color-primary); transition: width 160ms ease; }
+
+    .quiz-card { padding: var(--space-5); }
+    .quiz-card__notice { margin: 0 0 var(--space-4); color: var(--color-muted); }
+    .question-list { display: grid; gap: var(--space-4); }
+    .question { margin: 0; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius); }
+    .question__legend { padding: 0 var(--space-1); font-weight: 700; }
+    .question__number { color: var(--color-primary); }
+    .question__options { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-2);
+      border: 1px solid transparent;
+      border-radius: 0.35rem;
+      cursor: pointer;
+    }
+    .option:hover { background: var(--color-primary-pale); }
+    .option:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-pale); }
+    .option__input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin: 0.18rem 0 0; accent-color: var(--color-primary); }
+    .option__input:focus-visible { outline: 0.2rem solid var(--color-focus); outline-offset: 0.2rem; }
+
+    .quiz-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-5); }
+    .button {
+      min-height: 2.75rem;
+      padding: 0.6rem 1.1rem;
+      border: 2px solid var(--color-primary);
+      border-radius: 0.35rem;
+      background: var(--color-primary);
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .button:hover { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .button:disabled { border-color: #7b8799; background: #7b8799; cursor: not-allowed; }
+    .button:focus-visible, .option:focus-within { outline: 0.2rem solid var(--color-focus); outline-offset: 0.2rem; }
+    .quiz-actions__hint { margin: 0; color: var(--color-muted); }
+
+    .quiz-results { margin-top: var(--space-4); padding: var(--space-5); border-left: 0.4rem solid var(--color-success); }
+    .quiz-results[hidden] { display: none; }
+    .quiz-results__title { margin: 0; font-size: 1.5rem; }
+    .quiz-results__score { margin: var(--space-2) 0 0; font-size: 1.15rem; font-weight: 700; }
+    .quiz-results__summary { margin: var(--space-2) 0 0; }
+    .quiz-results__heading { margin: var(--space-4) 0 var(--space-2); font-size: 1.15rem; }
+    .quiz-results__list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+    .result-item { padding: var(--space-3); border: 1px solid #d99292; border-radius: 0.35rem; background: var(--color-error-pale); }
+    .result-item__question { margin: 0 0 var(--space-1); font-weight: 700; }
+    .result-item__answer { margin: var(--space-1) 0 0; }
+    .result-item__chosen { color: var(--color-error); font-weight: 700; }
+    .result-item__correct { color: var(--color-success); font-weight: 700; }
+    .quiz-results__retry { margin-top: var(--space-4); }
+    .quiz-footer { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); color: var(--color-muted); font-size: 0.9rem; text-align: center; }
+
+    @media (max-width: 34rem) {
+      .quiz-shell { width: min(100% - 1rem, 48rem); padding: var(--space-3) 0; }
+      .quiz-header, .quiz-card, .quiz-results { padding: var(--space-4); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="quiz-shell">
+    <header class="quiz-header">
+      <h1 class="quiz-header__title">Quick Knowledge Quiz</h1>
+      <p class="quiz-header__intro">Choose one answer for each question, then submit your quiz.</p>
+      <section class="quiz-progress" aria-labelledby="progress-label">
+        <span class="quiz-progress__text" id="progress-label">Answered: <span id="answered-count">0</span> of 5</span>
+        <progress class="quiz-progress__track" id="progress-bar" value="0" max="5" aria-describedby="progress-label">0 of 5 answered</progress>
+      </section>
+    </header>
+
+    <section class="quiz-card" aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading">Questions</h2>
+      <p class="quiz-card__notice">All five questions must be answered before you can submit.</p>
+      <form id="quiz-form" novalidate>
+        <section class="question-list" id="question-list" aria-label="Quiz questions"></section>
+        <section class="quiz-actions" aria-label="Quiz actions">
+          <button class="button" id="submit-button" type="submit" disabled aria-describedby="submit-hint">Submit quiz</button>
+          <p class="quiz-actions__hint" id="submit-hint">Answer all 5 questions to enable submission.</p>
+        </section>
+      </form>
+    </section>
+
+    <section class="quiz-results" id="quiz-results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 class="quiz-results__title" id="results-heading">Quiz results</h2>
+      <p class="quiz-results__score" id="score-text"></p>
+      <p class="quiz-results__summary" id="results-summary"></p>
+      <section id="incorrect-section" hidden>
+        <h3 class="quiz-results__heading">Review incorrect answers</h3>
+        <ul class="quiz-results__list" id="incorrect-list"></ul>
+      </section>
+      <button class="button quiz-results__retry" id="retry-button" type="button">Retry quiz</button>
+    </section>
+
+    <footer class="quiz-footer">Use Tab to move between controls and arrow keys to choose an option within a question.</footer>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const QUESTIONS = [
+        { question: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Mercury'], correctIndex: 1 },
+        { question: 'What is the largest ocean on Earth?', options: ['Atlantic Ocean', 'Indian Ocean', 'Pacific Ocean', 'Arctic Ocean'], correctIndex: 2 },
+        { question: 'Which gas do plants primarily absorb from the atmosphere?', options: ['Oxygen', 'Nitrogen', 'Carbon dioxide', 'Helium'], correctIndex: 2 },
+        { question: 'Who wrote the play Romeo and Juliet?', options: ['Jane Austen', 'William Shakespeare', 'Charles Dickens', 'Maya Angelou'], correctIndex: 1 },
+        { question: 'What is the value of 9 × 7?', options: ['54', '56', '63', '72'], correctIndex: 2 }
+      ];
+
+      const TOTAL_QUESTIONS = QUESTIONS.length;
+      const questionList = document.getElementById('question-list');
+      const quizForm = document.getElementById('quiz-form');
+      const answeredCount = document.getElementById('answered-count');
+      const progressBar = document.getElementById('progress-bar');
+      const submitButton = document.getElementById('submit-button');
+      const submitHint = document.getElementById('submit-hint');
+      const results = document.getElementById('quiz-results');
+      const scoreText = document.getElementById('score-text');
+      const resultsSummary = document.getElementById('results-summary');
+      const incorrectSection = document.getElementById('incorrect-section');
+      const incorrectList = document.getElementById('incorrect-list');
+      const retryButton = document.getElementById('retry-button');
+
+      let answers = Array(TOTAL_QUESTIONS).fill(null);
+
+      const createQuestions = () => {
+        if (!questionList) return;
+        questionList.replaceChildren(...QUESTIONS.map((item, questionIndex) => {
+          const fieldset = document.createElement('fieldset');
+          fieldset.className = 'question';
+          const legend = document.createElement('legend');
+          legend.className = 'question__legend';
+          legend.innerHTML = `<span class="question__number">Question ${questionIndex + 1}.</span> ${item.question}`;
+          fieldset.append(legend);
+
+          const options = document.createElement('section');
+          options.className = 'question__options';
+          options.setAttribute('aria-label', `Answer choices for question ${questionIndex + 1}`);
+          item.options.forEach((optionText, optionIndex) => {
+            const optionId = `question-${questionIndex}-option-${optionIndex}`;
+            const label = document.createElement('label');
+            label.className = 'option';
+            label.htmlFor = optionId;
+            label.innerHTML = `<input class="option__input" id="${optionId}" type="radio" name="question-${questionIndex}" value="${optionIndex}"><span>${optionText}</span>`;
+            options.append(label);
+          });
+          fieldset.append(options);
+          return fieldset;
+        }));
+      };
+
+      const getAnsweredTotal = () => answers.filter((answer) => answer !== null).length;
+
+      const updateProgress = () => {
+        const totalAnswered = getAnsweredTotal();
+        answeredCount.textContent = String(totalAnswered);
+        progressBar.value = totalAnswered;
+        progressBar.textContent = `${totalAnswered} of ${TOTAL_QUESTIONS} answered`;
+        const isComplete = totalAnswered === TOTAL_QUESTIONS;
+        submitButton.disabled = !isComplete;
+        submitHint.textContent = isComplete
+          ? 'All questions answered. You can now submit your quiz.'
+          : `Answer ${TOTAL_QUESTIONS - totalAnswered} more question${TOTAL_QUESTIONS - totalAnswered === 1 ? '' : 's'} to enable submission.`;
+      };
+
+      const recordAnswer = (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.type !== 'radio') return;
+        const questionIndex = Number(target.name.replace('question-', ''));
+        const optionIndex = Number(target.value);
+        if (!Number.isInteger(questionIndex) || !Number.isInteger(optionIndex) || !QUESTIONS[questionIndex]) return;
+        answers[questionIndex] = optionIndex;
+        updateProgress();
+      };
+
+      const renderResults = () => {
+        const incorrectAnswers = QUESTIONS.map((item, questionIndex) => ({ item, questionIndex, selectedIndex: answers[questionIndex] }))
+          .filter(({ item, selectedIndex }) => selectedIndex !== item.correctIndex);
+        const score = TOTAL_QUESTIONS - incorrectAnswers.length;
+        scoreText.textContent = `You scored ${score}/${TOTAL_QUESTIONS}`;
+        resultsSummary.textContent = incorrectAnswers.length === 0
+          ? 'Excellent work — every answer is correct.'
+          : `You have ${incorrectAnswers.length} incorrect answer${incorrectAnswers.length === 1 ? '' : 's'} to review.`;
+        incorrectList.replaceChildren(...incorrectAnswers.map(({ item, questionIndex, selectedIndex }) => {
+          const listItem = document.createElement('li');
+          listItem.className = 'result-item';
+          const chosenAnswer = item.options[selectedIndex] ?? 'No answer selected';
+          listItem.innerHTML = `<p class="result-item__question">Question ${questionIndex + 1}: ${item.question}</p><p class="result-item__answer">Your answer: <span class="result-item__chosen">${chosenAnswer}</span></p><p class="result-item__answer">Correct answer: <span class="result-item__correct">${item.options[item.correctIndex]}</span></p>`;
+          return listItem;
+        }));
+        incorrectSection.hidden = incorrectAnswers.length === 0;
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      const submitQuiz = (event) => {
+        event.preventDefault();
+        if (getAnsweredTotal() !== TOTAL_QUESTIONS) {
+          updateProgress();
+          return;
+        }
+        renderResults();
+      };
+
+      const retryQuiz = () => {
+        answers = Array(TOTAL_QUESTIONS).fill(null);
+        quizForm.reset();
+        results.hidden = true;
+        incorrectList.replaceChildren();
+        updateProgress();
+        const firstOption = questionList.querySelector('input');
+        if (firstOption) firstOption.focus();
+      };
+
+      if (!questionList || !quizForm || !submitButton || !retryButton) return;
+      createQuestions();
+      updateProgress();
+      questionList.addEventListener('change', recordAnswer);
+      quizForm.addEventListener('submit', submitQuiz);
+      retryButton.addEventListener('click', retryQuiz);
+    })();
+  </script>
+</body>
+</html>

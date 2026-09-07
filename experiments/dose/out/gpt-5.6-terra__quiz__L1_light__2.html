@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earth Science Check-in Quiz</title>
+  <style>
+    :root {
+      --ink: #17233a;
+      --muted: #526075;
+      --page: #f4f7fb;
+      --surface: #ffffff;
+      --line: #c7d1df;
+      --blue: #075f9f;
+      --blue-dark: #034a7c;
+      --blue-pale: #e6f3fc;
+      --success: #176b48;
+      --success-pale: #e8f6ee;
+      --error: #a63131;
+      --error-pale: #fff0f0;
+      --focus: #f5a400;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    main { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.25rem; }
+
+    header { margin-bottom: 1.5rem; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.75rem, 5vw, 2.35rem); line-height: 1.15; margin-bottom: .6rem; }
+    h2 { font-size: 1.35rem; line-height: 1.25; }
+    h3 { font-size: 1.05rem; margin-bottom: .35rem; }
+    .intro { color: var(--muted); max-width: 42rem; }
+
+    .progress-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+    .progress-panel p { margin-bottom: .55rem; font-weight: 700; }
+    progress { width: 100%; height: 1rem; accent-color: var(--blue); }
+
+    form { display: grid; gap: 1rem; }
+    fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 1.15rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+    }
+    legend { padding: 0 .35rem; font-weight: 750; color: var(--ink); }
+    .choice-list { display: grid; gap: .55rem; margin-top: .55rem; }
+    .choice {
+      display: flex;
+      align-items: flex-start;
+      gap: .65rem;
+      padding: .65rem .75rem;
+      border: 1px solid var(--line);
+      border-radius: .45rem;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .choice:hover { background: #f7fafc; border-color: #8ba5bf; }
+    .choice:has(input:checked) { background: var(--blue-pale); border-color: var(--blue); }
+    input[type="radio"] { margin: .27rem 0 0; width: 1rem; height: 1rem; accent-color: var(--blue); flex: 0 0 auto; }
+    input:disabled + span { color: var(--muted); }
+    .choice:has(input:disabled) { cursor: default; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .25rem; }
+    button {
+      border: 2px solid var(--blue);
+      border-radius: .45rem;
+      padding: .65rem 1rem;
+      background: var(--blue);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: var(--blue-dark); border-color: var(--blue-dark); }
+    button:disabled { background: #8191a4; border-color: #8191a4; color: #fff; cursor: not-allowed; }
+    button.secondary { background: var(--surface); color: var(--blue-dark); }
+    button.secondary:hover { background: var(--blue-pale); border-color: var(--blue-dark); }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .choice:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+    #results {
+      margin-top: 2rem;
+      padding: 1.2rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+    }
+    #results[hidden] { display: none; }
+    .score { font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; }
+    .all-correct { background: var(--success-pale); border-left: .35rem solid var(--success); padding: .85rem 1rem; }
+    .mistake {
+      background: var(--error-pale);
+      border-left: .35rem solid var(--error);
+      padding: .9rem 1rem;
+      margin-top: .85rem;
+    }
+    .mistake p { margin-bottom: .35rem; }
+    .mistake p:last-child { margin-bottom: 0; }
+    footer { color: var(--muted); font-size: .9rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Earth Science Check-in</h1>
+      <p class="intro">Choose one answer for each question. Your progress is saved while you work.</p>
+    </header>
+
+    <section class="progress-panel" aria-labelledby="progress-heading">
+      <h2 id="progress-heading">Your progress</h2>
+      <p id="progress-text" role="status" aria-live="polite">0 of 5 questions answered</p>
+      <progress id="progress-bar" value="0" max="5">0 of 5</progress>
+    </section>
+
+    <section aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading">Questions</h2>
+      <form id="quiz-form" novalidate>
+        <fieldset>
+          <legend>1. Which layer of Earth is liquid and made mostly of iron and nickel?</legend>
+          <section class="choice-list" aria-label="Answer choices">
+            <label class="choice"><input type="radio" name="q1" value="Crust"><span>Crust</span></label>
+            <label class="choice"><input type="radio" name="q1" value="Mantle"><span>Mantle</span></label>
+            <label class="choice"><input type="radio" name="q1" value="Outer core"><span>Outer core</span></label>
+            <label class="choice"><input type="radio" name="q1" value="Inner core"><span>Inner core</span></label>
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend>2. What process changes liquid water into water vapor?</legend>
+          <section class="choice-list" aria-label="Answer choices">
+            <label class="choice"><input type="radio" name="q2" value="Condensation"><span>Condensation</span></label>
+            <label class="choice"><input type="radio" name="q2" value="Evaporation"><span>Evaporation</span></label>
+            <label class="choice"><input type="radio" name="q2" value="Precipitation"><span>Precipitation</span></label>
+            <label class="choice"><input type="radio" name="q2" value="Infiltration"><span>Infiltration</span></label>
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend>3. Which gas makes up the largest portion of Earth's atmosphere?</legend>
+          <section class="choice-list" aria-label="Answer choices">
+            <label class="choice"><input type="radio" name="q3" value="Oxygen"><span>Oxygen</span></label>
+            <label class="choice"><input type="radio" name="q3" value="Carbon dioxide"><span>Carbon dioxide</span></label>
+            <label class="choice"><input type="radio" name="q3" value="Nitrogen"><span>Nitrogen</span></label>
+            <label class="choice"><input type="radio" name="q3" value="Argon"><span>Argon</span></label>
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend>4. What type of rock forms when magma or lava cools and solidifies?</legend>
+          <section class="choice-list" aria-label="Answer choices">
+            <label class="choice"><input type="radio" name="q4" value="Sedimentary"><span>Sedimentary</span></label>
+            <label class="choice"><input type="radio" name="q4" value="Metamorphic"><span>Metamorphic</span></label>
+            <label class="choice"><input type="radio" name="q4" value="Igneous"><span>Igneous</span></label>
+            <label class="choice"><input type="radio" name="q4" value="Fossil"><span>Fossil</span></label>
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend>5. Which instrument measures the strength of an earthquake?</legend>
+          <section class="choice-list" aria-label="Answer choices">
+            <label class="choice"><input type="radio" name="q5" value="Barometer"><span>Barometer</span></label>
+            <label class="choice"><input type="radio" name="q5" value="Thermometer"><span>Thermometer</span></label>
+            <label class="choice"><input type="radio" name="q5" value="Anemometer"><span>Anemometer</span></label>
+            <label class="choice"><input type="radio" name="q5" value="Seismograph"><span>Seismograph</span></label>
+          </section>
+        </fieldset>
+        <section class="actions" aria-label="Quiz actions">
+          <button id="submit-button" type="submit" disabled>Submit answers</button>
+        </section>
+      </form>
+    </section>
+
+    <section id="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 id="results-heading">Your results</h2>
+      <p id="score" class="score"></p>
+      <section id="feedback" aria-label="Answer feedback"></section>
+      <section class="actions" aria-label="Result actions">
+        <button id="retry-button" class="secondary" type="button">Retry quiz</button>
+      </section>
+    </section>
+
+    <footer><p>Earth Science Check-in · Five questions</p></footer>
+  </main>
+
+  <script>
+    (() => {
+      const questions = [
+        { name: 'q1', text: 'Which layer of Earth is liquid and made mostly of iron and nickel?', correct: 'Outer core' },
+        { name: 'q2', text: 'What process changes liquid water into water vapor?', correct: 'Evaporation' },
+        { name: 'q3', text: "Which gas makes up the largest portion of Earth's atmosphere?", correct: 'Nitrogen' },
+        { name: 'q4', text: 'What type of rock forms when magma or lava cools and solidifies?', correct: 'Igneous' },
+        { name: 'q5', text: 'Which instrument measures the strength of an earthquake?', correct: 'Seismograph' }
+      ];
+      const form = document.querySelector('#quiz-form');
+      const inputs = [...form.querySelectorAll('input[type="radio"]')];
+      const progressText = document.querySelector('#progress-text');
+      const progressBar = document.querySelector('#progress-bar');
+      const submitButton = document.querySelector('#submit-button');
+      const results = document.querySelector('#results');
+      const score = document.querySelector('#score');
+      const feedback = document.querySelector('#feedback');
+      const retryButton = document.querySelector('#retry-button');
+
+      function selectedAnswer(name) {
+        return form.querySelector(`input[name="${name}"]:checked`)?.value;
+      }
+
+      function updateProgress() {
+        const answered = questions.filter(question => selectedAnswer(question.name)).length;
+        progressText.textContent = `${answered} of ${questions.length} questions answered`;
+        progressBar.value = answered;
+        progressBar.textContent = `${answered} of ${questions.length}`;
+        submitButton.disabled = answered !== questions.length;
+      }
+
+      inputs.forEach(input => input.addEventListener('change', updateProgress));
+
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (submitButton.disabled) return;
+        const incorrect = questions.filter(question => selectedAnswer(question.name) !== question.correct);
+        const totalCorrect = questions.length - incorrect.length;
+        score.textContent = `You scored ${totalCorrect}/${questions.length}`;
+        feedback.replaceChildren();
+
+        if (incorrect.length === 0) {
+          const message = document.createElement('p');
+          message.className = 'all-correct';
+          message.textContent = 'Excellent work—you answered every question correctly.';
+          feedback.append(message);
+        } else {
+          incorrect.forEach(question => {
+            const item = document.createElement('article');
+            item.className = 'mistake';
+            const heading = document.createElement('h3');
+            heading.textContent = question.text;
+            const chosen = document.createElement('p');
+            chosen.innerHTML = `<strong>Your answer:</strong> ${selectedAnswer(question.name)}`;
+            const correct = document.createElement('p');
+            correct.innerHTML = `<strong>Correct answer:</strong> ${question.correct}`;
+            item.append(heading, chosen, correct);
+            feedback.append(item);
+          });
+        }
+
+        inputs.forEach(input => { input.disabled = true; });
+        submitButton.disabled = true;
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('#results-heading').focus({ preventScroll: true });
+      });
+
+      retryButton.addEventListener('click', () => {
+        form.reset();
+        inputs.forEach(input => { input.disabled = false; });
+        feedback.replaceChildren();
+        results.hidden = true;
+        updateProgress();
+        const firstOption = form.querySelector('input[type="radio"]');
+        firstOption.focus();
+      });
+    })();
+  </script>
+</body>
+</html>

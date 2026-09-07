@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An accessible, five-question science quiz.">
+  <title>Curious Earth Quiz</title>
+  <style>
+    :root {
+      --ink: #172b3a;
+      --muted: #526575;
+      --paper: #ffffff;
+      --canvas: #edf5f2;
+      --teal: #087b71;
+      --teal-dark: #045c55;
+      --teal-pale: #d9f0eb;
+      --gold: #b85f05;
+      --gold-pale: #fff0d8;
+      --line: #c7d8d4;
+      --danger: #a52b2b;
+      --radius: 0.9rem;
+      --shadow: 0 0.65rem 1.75rem rgba(23, 43, 58, 0.10);
+      --space-1: 0.5rem;
+      --space-2: 0.9rem;
+      --space-3: 1.4rem;
+      --space-4: 2.25rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    button, input { font: inherit; }
+
+    .site-header {
+      background: var(--ink);
+      color: #fff;
+      padding: var(--space-4) var(--space-3);
+    }
+
+    .site-header__inner, .page-content, .site-footer__inner {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 var(--space-1);
+      color: #aee4d9;
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 0.35rem; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; }
+    h2 { font-size: 1.45rem; line-height: 1.2; }
+    h3 { font-size: 1.05rem; line-height: 1.35; }
+
+    .site-header__intro { max-width: 38rem; margin: 0; color: #d7e7e4; }
+    .page-content { padding: var(--space-4) 0 3rem; }
+
+    .progress {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-1) var(--space-2);
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+    }
+
+    .progress__label { margin: 0; font-weight: 700; }
+    .progress__count { margin: 0; color: var(--teal-dark); font-weight: 800; }
+    .progress__track { grid-column: 1 / -1; height: 0.62rem; overflow: hidden; border-radius: 99rem; background: #deebe8; }
+    .progress__bar { width: 0; height: 100%; border-radius: inherit; background: var(--teal); transition: width 180ms ease; }
+
+    .quiz-form { display: grid; gap: var(--space-3); }
+    .question-card { margin: 0; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+    .question-card__legend { width: 100%; padding: 0; font-weight: 750; }
+    .question-card__number { display: block; margin-bottom: 0.25rem; color: var(--teal-dark); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
+    .question-card__options { display: grid; gap: 0.65rem; margin-top: var(--space-2); }
+
+    .option { position: relative; display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.75rem 0.85rem; border: 1px solid var(--line); border-radius: 0.65rem; cursor: pointer; transition: background 150ms ease, border-color 150ms ease; }
+    .option:hover { border-color: var(--teal); background: #f1faf8; }
+    .option:has(input:checked) { border-color: var(--teal); background: var(--teal-pale); }
+    .option__input { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; margin: 0.18rem 0 0; accent-color: var(--teal); }
+    .option__text { line-height: 1.45; }
+
+    .form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+    .button { min-height: 2.8rem; padding: 0.65rem 1.1rem; border: 2px solid transparent; border-radius: 0.6rem; background: var(--teal); color: #fff; cursor: pointer; font-weight: 800; }
+    .button:hover { background: var(--teal-dark); }
+    .button:disabled { background: #9aacab; color: #f7fbfa; cursor: not-allowed; }
+    .button--secondary { border-color: var(--teal); background: var(--paper); color: var(--teal-dark); }
+    .button--secondary:hover { background: var(--teal-pale); }
+    .button:focus-visible, .option:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+    .results { margin-top: var(--space-4); padding: var(--space-3); border: 1px solid #e3bf8a; border-radius: var(--radius); background: var(--gold-pale); }
+    .results[hidden], .button[hidden] { display: none; }
+    .results__score { margin-bottom: var(--space-2); font-size: 1.2rem; font-weight: 800; }
+    .results__message { margin-bottom: var(--space-3); }
+    .review-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+    .review-item { padding: var(--space-2); border-left: 0.3rem solid var(--danger); border-radius: 0 0.45rem 0.45rem 0; background: #fffaf2; }
+    .review-item__question { margin-bottom: 0.35rem; font-weight: 800; }
+    .review-item__detail { margin: 0.2rem 0; }
+    .review-item__label { font-weight: 750; }
+    .site-footer { padding: var(--space-3); border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+    .site-footer__inner { text-align: center; }
+
+    @media (max-width: 32rem) {
+      .site-header { padding-top: 2rem; padding-bottom: 2rem; }
+      .question-card { padding: var(--space-2); }
+      .progress { padding: var(--space-2); }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .progress__bar, .option { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <section class="site-header__inner" aria-labelledby="page-title">
+      <p class="eyebrow">Five-minute challenge</p>
+      <h1 id="page-title">Curious Earth</h1>
+      <p class="site-header__intro">Test your knowledge of the natural world. Choose one answer for every question, then check your results.</p>
+    </section>
+  </header>
+
+  <main class="page-content">
+    <section aria-label="Quiz">
+      <section class="progress" aria-label="Quiz progress">
+        <p class="progress__label">Your progress</p>
+        <p class="progress__count" id="progress-count" aria-live="polite">0 of 5 answered</p>
+        <div class="progress__track" aria-hidden="true"><div class="progress__bar" id="progress-bar"></div></div>
+      </section>
+
+      <form class="quiz-form" id="quiz-form" novalidate>
+        <section id="questions-container" aria-label="Quiz questions"></section>
+        <section class="form-actions" aria-label="Quiz actions">
+          <button class="button" id="submit-button" type="submit" disabled>Check my answers</button>
+          <button class="button button--secondary" id="retry-button" type="button" hidden>Try again</button>
+        </section>
+      </form>
+
+      <section class="results" id="results" aria-labelledby="results-title" aria-live="polite" hidden>
+        <h2 id="results-title" tabindex="-1">Your results</h2>
+        <p class="results__score" id="score"></p>
+        <p class="results__message" id="results-message"></p>
+        <section id="review-section" aria-labelledby="review-title" hidden>
+          <h3 id="review-title">Review missed questions</h3>
+          <ul class="review-list" id="review-list"></ul>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer"><p class="site-footer__inner">Take your time—your progress is saved until you submit.</p></footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const QUESTIONS = [
+        { question: 'Which gas do plants primarily absorb from the atmosphere during photosynthesis?', options: ['Oxygen', 'Carbon dioxide', 'Nitrogen', 'Helium'], correctIndex: 1 },
+        { question: 'What is the largest ocean on Earth?', options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'], correctIndex: 3 },
+        { question: 'Which part of a plant usually absorbs water from the soil?', options: ['Roots', 'Leaves', 'Flowers', 'Seeds'], correctIndex: 0 },
+        { question: 'What is the name for water falling from clouds as rain, snow, sleet, or hail?', options: ['Evaporation', 'Condensation', 'Precipitation', 'Collection'], correctIndex: 2 },
+        { question: 'Which renewable energy source uses moving air to generate electricity?', options: ['Solar power', 'Wind power', 'Geothermal power', 'Hydropower'], correctIndex: 1 }
+      ];
+
+      const quizForm = document.querySelector('#quiz-form');
+      const questionsContainer = document.querySelector('#questions-container');
+      const progressCount = document.querySelector('#progress-count');
+      const progressBar = document.querySelector('#progress-bar');
+      const submitButton = document.querySelector('#submit-button');
+      const retryButton = document.querySelector('#retry-button');
+      const results = document.querySelector('#results');
+      const resultsTitle = document.querySelector('#results-title');
+      const score = document.querySelector('#score');
+      const resultsMessage = document.querySelector('#results-message');
+      const reviewSection = document.querySelector('#review-section');
+      const reviewList = document.querySelector('#review-list');
+      const totalQuestions = QUESTIONS.length;
+
+      function renderQuestions() {
+        questionsContainer.replaceChildren(...QUESTIONS.map((item, questionIndex) => {
+          const fieldset = document.createElement('fieldset');
+          fieldset.className = 'question-card';
+          const legend = document.createElement('legend');
+          legend.className = 'question-card__legend';
+          legend.innerHTML = `<span class="question-card__number">Question ${questionIndex + 1}</span>${item.question}`;
+          const options = document.createElement('section');
+          options.className = 'question-card__options';
+          options.setAttribute('aria-label', `Answer choices for question ${questionIndex + 1}`);
+
+          item.options.forEach((optionText, optionIndex) => {
+            const optionId = `question-${questionIndex}-option-${optionIndex}`;
+            const label = document.createElement('label');
+            label.className = 'option';
+            label.htmlFor = optionId;
+            const input = document.createElement('input');
+            input.className = 'option__input';
+            input.type = 'radio';
+            input.id = optionId;
+            input.name = `question-${questionIndex}`;
+            input.value = String(optionIndex);
+            const text = document.createElement('span');
+            text.className = 'option__text';
+            text.textContent = optionText;
+            label.append(input, text);
+            options.append(label);
+          });
+          fieldset.append(legend, options);
+          return fieldset;
+        }));
+      }
+
+      function getAnsweredCount() {
+        return QUESTIONS.filter((_, index) => quizForm.querySelector(`input[name="question-${index}"]:checked`)).length;
+      }
+
+      function updateProgress() {
+        const answeredCount = getAnsweredCount();
+        const percentage = (answeredCount / totalQuestions) * 100;
+        progressCount.textContent = `${answeredCount} of ${totalQuestions} answered`;
+        progressBar.style.width = `${percentage}%`;
+        submitButton.disabled = answeredCount !== totalQuestions;
+      }
+
+      function createReviewItem(question, selectedIndex) {
+        const item = document.createElement('li');
+        item.className = 'review-item';
+        item.innerHTML = `<p class="review-item__question">${question.question}</p><p class="review-item__detail"><span class="review-item__label">Your answer:</span> ${question.options[selectedIndex]}</p><p class="review-item__detail"><span class="review-item__label">Correct answer:</span> ${question.options[question.correctIndex]}</p>`;
+        return item;
+      }
+
+      function showResults() {
+        const incorrectAnswers = [];
+        const correctCount = QUESTIONS.reduce((total, question, index) => {
+          const selectedInput = quizForm.querySelector(`input[name="question-${index}"]:checked`);
+          const selectedIndex = Number(selectedInput.value);
+          if (selectedIndex !== question.correctIndex) incorrectAnswers.push({ question, selectedIndex });
+          return total + (selectedIndex === question.correctIndex ? 1 : 0);
+        }, 0);
+
+        score.textContent = `You scored ${correctCount}/${totalQuestions}`;
+        resultsMessage.textContent = correctCount === totalQuestions ? 'Excellent work—you answered every question correctly.' : 'Here is what to review before you try again.';
+        reviewList.replaceChildren(...incorrectAnswers.map(({ question, selectedIndex }) => createReviewItem(question, selectedIndex)));
+        reviewSection.hidden = incorrectAnswers.length === 0;
+        results.hidden = false;
+        retryButton.hidden = false;
+        resultsTitle.focus();
+      }
+
+      function resetQuiz() {
+        quizForm.reset();
+        results.hidden = true;
+        retryButton.hidden = true;
+        reviewList.replaceChildren();
+        updateProgress();
+        const firstOption = quizForm.querySelector('input[type="radio"]');
+        if (firstOption) firstOption.focus();
+      }
+
+      quizForm.addEventListener('change', updateProgress);
+      quizForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (getAnsweredCount() === totalQuestions) showResults();
+      });
+      retryButton.addEventListener('click', resetQuiz);
+
+      renderQuestions();
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

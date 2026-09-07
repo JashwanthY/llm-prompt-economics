@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A short interactive science knowledge quiz.">
+  <title>Five Question Science Quiz</title>
+  <style>
+    :root {
+      --color-ink: #14213d;
+      --color-muted: #4b5568;
+      --color-paper: #ffffff;
+      --color-ground: #f3f6fb;
+      --color-primary: #155eef;
+      --color-primary-dark: #0e46b7;
+      --color-border: #c8d1e0;
+      --color-success: #087443;
+      --color-success-ground: #e8f7ee;
+      --color-error: #b42318;
+      --color-error-ground: #fff1f0;
+      --shadow: 0 0.75rem 2.5rem rgb(20 33 61 / 10%);
+      --radius: 0.75rem;
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--color-ground);
+      color: var(--color-ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .page-header {
+      padding: 2.5rem var(--space-2) 3.5rem;
+      background: var(--color-ink);
+      color: var(--color-paper);
+    }
+
+    .page-header__inner, .quiz-shell, .page-footer__inner {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 var(--space-1);
+      color: #bfdbfe;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 { margin-bottom: var(--space-1); font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
+    h2 { font-size: 1.35rem; line-height: 1.25; }
+    h3 { font-size: 1.1rem; }
+
+    .page-header__summary { max-width: 37rem; margin-bottom: 0; color: #dbe7ff; }
+
+    .quiz-shell { margin-top: -1.75rem; margin-bottom: var(--space-4); }
+
+    .quiz-card {
+      padding: clamp(1.25rem, 4vw, 2rem);
+      background: var(--color-paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .progress-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-1) var(--space-2);
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .progress-panel__label { margin: 0; font-weight: 700; }
+    .progress-panel__count { margin: 0; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+    .progress-panel__track { grid-column: 1 / -1; height: 0.55rem; overflow: hidden; background: #dce5f2; border-radius: 99px; }
+    .progress-panel__bar { width: 0; height: 100%; background: var(--color-primary); border-radius: inherit; transition: width 180ms ease; }
+
+    .question-list { display: grid; gap: var(--space-3); }
+
+    .question {
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 0.6rem;
+    }
+
+    .question__legend { padding: 0 var(--space-1); font-weight: 700; }
+    .question__number { color: var(--color-primary-dark); }
+    .question__options { display: grid; gap: 0.65rem; margin-top: var(--space-1); }
+
+    .option { position: relative; display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.7rem; border: 1px solid transparent; border-radius: 0.45rem; cursor: pointer; }
+    .option:hover { background: #f2f6ff; }
+    .option:has(input:checked) { background: #edf3ff; border-color: #7aa5f8; }
+    .option__input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin: 0.18rem 0 0; accent-color: var(--color-primary); }
+
+    .action-area { margin-top: var(--space-3); }
+    .action-area__hint { margin: 0 0 var(--space-2); color: var(--color-muted); font-size: 0.9rem; }
+
+    .button {
+      min-height: 2.75rem;
+      padding: 0.65rem 1.1rem;
+      border: 2px solid var(--color-primary);
+      border-radius: 0.45rem;
+      background: var(--color-primary);
+      color: var(--color-paper);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .button:hover { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .button:disabled { border-color: #9eabbf; background: #9eabbf; cursor: not-allowed; }
+    .button--secondary { background: var(--color-paper); color: var(--color-primary-dark); }
+    .button--secondary:hover { background: #edf3ff; }
+
+    :focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+
+    .results { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 2px solid var(--color-ink); }
+    .results[hidden] { display: none; }
+    .results__score { padding: var(--space-2); border-radius: 0.5rem; background: var(--color-success-ground); color: #075c35; font-size: 1.15rem; font-weight: 700; }
+    .results__intro { color: var(--color-muted); }
+    .results__list { display: grid; gap: var(--space-2); padding: 0; list-style: none; }
+    .result-item { padding: var(--space-2); border-left: 0.3rem solid var(--color-error); border-radius: 0 0.4rem 0.4rem 0; background: var(--color-error-ground); }
+    .result-item__question { margin-bottom: var(--space-1); font-weight: 700; }
+    .result-item__detail { margin: 0.2rem 0; }
+    .result-item__chosen { color: #7a271a; }
+    .result-item__correct { color: #075c35; }
+
+    .page-footer { padding: var(--space-3) var(--space-2); color: var(--color-muted); font-size: 0.9rem; text-align: center; }
+    .page-footer__inner { margin-bottom: 0; }
+
+    @media (max-width: 30rem) {
+      .page-header { padding-top: var(--space-4); }
+      .quiz-card { padding: var(--space-2); }
+      .question { padding: 0.75rem; }
+      .option { padding: 0.6rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto; transition-duration: 0.01ms; animation-duration: 0.01ms; }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <section class="page-header__inner" aria-labelledby="page-title">
+      <p class="eyebrow">Knowledge check</p>
+      <h1 id="page-title">Five Question Science Quiz</h1>
+      <p class="page-header__summary">Choose one answer for each question, then submit your quiz to see your score and review any missed answers.</p>
+    </section>
+  </header>
+
+  <main class="quiz-shell">
+    <section class="quiz-card" aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading">Your questions</h2>
+      <section class="progress-panel" aria-label="Quiz progress">
+        <p class="progress-panel__label">Progress</p>
+        <p id="progress-count" class="progress-panel__count" aria-live="polite">0 of 5 answered</p>
+        <div class="progress-panel__track" role="progressbar" aria-labelledby="progress-count" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+          <div id="progress-bar" class="progress-panel__bar"></div>
+        </div>
+      </section>
+
+      <form id="quiz-form" novalidate>
+        <section id="question-list" class="question-list" aria-label="Quiz questions"></section>
+        <section class="action-area" aria-label="Quiz actions">
+          <p id="submit-hint" class="action-area__hint">Answer every question to enable submission.</p>
+          <button id="submit-button" class="button" type="submit" disabled aria-describedby="submit-hint">Submit quiz</button>
+        </section>
+      </form>
+
+      <section id="results" class="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+        <h2 id="results-heading">Results</h2>
+        <p id="score" class="results__score"></p>
+        <p id="results-intro" class="results__intro"></p>
+        <ul id="incorrect-answers" class="results__list"></ul>
+        <button id="retry-button" class="button button--secondary" type="button">Retry quiz</button>
+      </section>
+    </section>
+  </main>
+
+  <footer class="page-footer"><p class="page-footer__inner">Take your time—your progress is saved while you answer.</p></footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const QUESTIONS = [
+        { text: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Mercury'], correctIndex: 1 },
+        { text: 'What is the chemical symbol for water?', options: ['O2', 'CO2', 'H2O', 'NaCl'], correctIndex: 2 },
+        { text: 'Which force pulls objects toward Earth?', options: ['Magnetism', 'Gravity', 'Friction', 'Electricity'], correctIndex: 1 },
+        { text: 'What gas do plants primarily absorb during photosynthesis?', options: ['Oxygen', 'Nitrogen', 'Hydrogen', 'Carbon dioxide'], correctIndex: 3 },
+        { text: 'Which part of a cell contains genetic material?', options: ['Cell wall', 'Nucleus', 'Membrane', 'Cytoplasm'], correctIndex: 1 }
+      ];
+
+      const TOTAL_QUESTIONS = QUESTIONS.length;
+      const quizForm = document.getElementById('quiz-form');
+      const questionList = document.getElementById('question-list');
+      const progressCount = document.getElementById('progress-count');
+      const progressTrack = document.querySelector('.progress-panel__track');
+      const progressBar = document.getElementById('progress-bar');
+      const submitButton = document.getElementById('submit-button');
+      const submitHint = document.getElementById('submit-hint');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const resultsIntro = document.getElementById('results-intro');
+      const incorrectAnswers = document.getElementById('incorrect-answers');
+      const retryButton = document.getElementById('retry-button');
+      let answers = Array(TOTAL_QUESTIONS).fill(null);
+
+      function createQuestion(question, questionIndex) {
+        const fieldset = document.createElement('fieldset');
+        fieldset.className = 'question';
+        const legend = document.createElement('legend');
+        legend.className = 'question__legend';
+        legend.innerHTML = `<span class="question__number">Question ${questionIndex + 1}.</span> ${question.text}`;
+        const options = document.createElement('section');
+        options.className = 'question__options';
+        options.setAttribute('aria-label', `Answers for question ${questionIndex + 1}`);
+
+        question.options.forEach((optionText, optionIndex) => {
+          const optionId = `question-${questionIndex}-option-${optionIndex}`;
+          const label = document.createElement('label');
+          label.className = 'option';
+          label.htmlFor = optionId;
+          const input = document.createElement('input');
+          input.className = 'option__input';
+          input.id = optionId;
+          input.type = 'radio';
+          input.name = `question-${questionIndex}`;
+          input.value = String(optionIndex);
+          const text = document.createElement('span');
+          text.textContent = optionText;
+          label.append(input, text);
+          options.append(label);
+        });
+        fieldset.append(legend, options);
+        return fieldset;
+      }
+
+      function renderQuestions() {
+        if (!questionList) return;
+        const fragment = document.createDocumentFragment();
+        QUESTIONS.forEach((question, index) => fragment.append(createQuestion(question, index)));
+        questionList.replaceChildren(fragment);
+      }
+
+      function answeredCount() {
+        return answers.filter(answer => answer !== null).length;
+      }
+
+      function updateProgress() {
+        const completed = answeredCount();
+        const isComplete = completed === TOTAL_QUESTIONS;
+        const progressText = `${completed} of ${TOTAL_QUESTIONS} answered`;
+        progressCount.textContent = progressText;
+        progressTrack.setAttribute('aria-valuenow', String(completed));
+        progressBar.style.width = `${(completed / TOTAL_QUESTIONS) * 100}%`;
+        submitButton.disabled = !isComplete;
+        submitHint.textContent = isComplete
+          ? 'All questions answered. You can now submit your quiz.'
+          : `Answer ${TOTAL_QUESTIONS - completed} more question${TOTAL_QUESTIONS - completed === 1 ? '' : 's'} to enable submission.`;
+      }
+
+      function selectedAnswer(questionIndex) {
+        const value = answers[questionIndex];
+        return Number.isInteger(value) ? QUESTIONS[questionIndex].options[value] : 'No answer selected';
+      }
+
+      function showResults() {
+        const incorrect = QUESTIONS.map((question, index) => ({ question, index }))
+          .filter(({ question, index }) => answers[index] !== question.correctIndex);
+        const correctCount = TOTAL_QUESTIONS - incorrect.length;
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        resultsIntro.textContent = incorrect.length === 0
+          ? 'Excellent work—you answered every question correctly.'
+          : 'Review the questions below to see the correct answers.';
+
+        const fragment = document.createDocumentFragment();
+        incorrect.forEach(({ question, index }) => {
+          const item = document.createElement('li');
+          item.className = 'result-item';
+          const questionText = document.createElement('p');
+          questionText.className = 'result-item__question';
+          questionText.textContent = `Question ${index + 1}: ${question.text}`;
+          const chosen = document.createElement('p');
+          chosen.className = 'result-item__detail result-item__chosen';
+          chosen.innerHTML = '<strong>Your answer:</strong> ';
+          chosen.append(document.createTextNode(selectedAnswer(index)));
+          const correct = document.createElement('p');
+          correct.className = 'result-item__detail result-item__correct';
+          correct.innerHTML = '<strong>Correct answer:</strong> ';
+          correct.append(document.createTextNode(question.options[question.correctIndex]));
+          item.append(questionText, chosen, correct);
+          fragment.append(item);
+        });
+        incorrectAnswers.replaceChildren(fragment);
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        score.focus?.();
+      }
+
+      function handleAnswerChange(event) {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement) || input.type !== 'radio') return;
+        const questionIndex = Number(input.name.replace('question-', ''));
+        const answerIndex = Number(input.value);
+        if (!Number.isInteger(questionIndex) || !Number.isInteger(answerIndex) || !QUESTIONS[questionIndex]?.options[answerIndex]) return;
+        answers[questionIndex] = answerIndex;
+        updateProgress();
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+        if (answeredCount() !== TOTAL_QUESTIONS) {
+          updateProgress();
+          return;
+        }
+        showResults();
+      }
+
+      function retryQuiz() {
+        answers = Array(TOTAL_QUESTIONS).fill(null);
+        quizForm.reset();
+        results.hidden = true;
+        incorrectAnswers.replaceChildren();
+        updateProgress();
+        const firstOption = questionList.querySelector('input');
+        if (firstOption) firstOption.focus();
+      }
+
+      if (!quizForm || !questionList || !retryButton) return;
+      renderQuestions();
+      updateProgress();
+      quizForm.addEventListener('change', handleAnswerChange);
+      quizForm.addEventListener('submit', handleSubmit);
+      retryButton.addEventListener('click', retryQuiz);
+    })();
+  </script>
+</body>
+</html>

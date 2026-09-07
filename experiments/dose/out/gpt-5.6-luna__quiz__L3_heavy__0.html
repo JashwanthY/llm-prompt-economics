@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Foundations Quiz</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-ink: #172033;
+      --color-muted: #506078;
+      --color-border: #c9d3e3;
+      --color-primary: #174ea6;
+      --color-primary-dark: #103b80;
+      --color-primary-soft: #e8f0ff;
+      --color-success: #176b45;
+      --color-error: #a12626;
+      --color-error-soft: #fff0f0;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --space-6: 3rem;
+      --radius-small: 0.5rem;
+      --radius-large: 1rem;
+      --shadow: 0 0.75rem 2rem rgba(23, 32, 51, 0.1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 100%;
+    }
+
+    body {
+      min-width: 18rem;
+      margin: 0;
+      color: var(--color-ink);
+      background: var(--color-page);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible + label {
+      outline: 0.2rem solid #f59e0b;
+      outline-offset: 0.2rem;
+    }
+
+    .quiz-page {
+      width: min(100% - 2rem, 48rem);
+      margin: 0 auto;
+      padding: var(--space-5) 0;
+    }
+
+    .quiz-header {
+      margin-bottom: var(--space-4);
+      text-align: center;
+    }
+
+    .quiz-header__eyebrow {
+      margin: 0 0 var(--space-1);
+      color: var(--color-primary);
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .quiz-header__title {
+      margin: 0;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      line-height: 1.15;
+    }
+
+    .quiz-header__description {
+      max-width: 38rem;
+      margin: var(--space-2) auto 0;
+      color: var(--color-muted);
+    }
+
+    .quiz-card,
+    .results-card {
+      padding: clamp(1rem, 4vw, 2rem);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-large);
+      box-shadow: var(--shadow);
+    }
+
+    .quiz-progress {
+      margin-bottom: var(--space-5);
+    }
+
+    .quiz-progress__label {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-2);
+      margin-bottom: var(--space-1);
+      color: var(--color-muted);
+      font-size: 0.9375rem;
+      font-weight: 700;
+    }
+
+    .quiz-progress__track {
+      height: 0.75rem;
+      overflow: hidden;
+      background: #e1e7f0;
+      border-radius: 999px;
+    }
+
+    .quiz-progress__value {
+      width: 0;
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: inherit;
+      transition: width 180ms ease-out;
+    }
+
+    .question {
+      margin: 0 0 var(--space-5);
+      padding: 0;
+      border: 0;
+    }
+
+    .question__legend {
+      display: block;
+      margin-bottom: var(--space-3);
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    .question__number {
+      color: var(--color-primary);
+    }
+
+    .question__options {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .question__option {
+      position: relative;
+    }
+
+    .question__input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .question__label {
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      color: var(--color-ink);
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      transition: background-color 120ms ease-out, border-color 120ms ease-out;
+    }
+
+    .question__label:hover {
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary);
+    }
+
+    .question__input:checked + .question__label {
+      color: var(--color-primary-dark);
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary);
+      box-shadow: inset 0 0 0 1px var(--color-primary);
+    }
+
+    .quiz-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+      padding-top: var(--space-2);
+    }
+
+    .button {
+      min-height: 2.75rem;
+      padding: var(--space-2) var(--space-4);
+      color: #ffffff;
+      background: var(--color-primary);
+      border: 2px solid var(--color-primary);
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .button:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
+    }
+
+    .button:disabled {
+      color: #667085;
+      background: #e5e9f0;
+      border-color: #cfd6e2;
+      cursor: not-allowed;
+    }
+
+    .button--secondary {
+      color: var(--color-primary-dark);
+      background: transparent;
+    }
+
+    .button--secondary:hover:not(:disabled) {
+      color: var(--color-primary-dark);
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary-dark);
+    }
+
+    .quiz-hint {
+      margin: var(--space-2) 0 0;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+
+    .results-card {
+      margin-top: var(--space-4);
+      border-left: 0.4rem solid var(--color-primary);
+    }
+
+    .results-card[hidden] {
+      display: none;
+    }
+
+    .results-card__title {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .results-card__summary {
+      margin: var(--space-1) 0 var(--space-4);
+      color: var(--color-success);
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    .results-card__message {
+      margin: 0 0 var(--space-3);
+      color: var(--color-muted);
+    }
+
+    .results-list {
+      display: grid;
+      gap: var(--space-3);
+      margin: 0 0 var(--space-4);
+      padding: 0;
+      list-style: none;
+    }
+
+    .results-list__item {
+      padding: var(--space-3);
+      background: var(--color-error-soft);
+      border: 1px solid #e6a7a7;
+      border-radius: var(--radius-small);
+    }
+
+    .results-list__question {
+      margin: 0 0 var(--space-2);
+      font-weight: 700;
+    }
+
+    .results-list__answer {
+      margin: 0.25rem 0 0;
+    }
+
+    .results-list__label {
+      font-weight: 700;
+    }
+
+    .quiz-footer {
+      margin-top: var(--space-4);
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="quiz-page">
+    <header class="quiz-header">
+      <p class="quiz-header__eyebrow">Knowledge check</p>
+      <h1 class="quiz-header__title">Web Foundations Quiz</h1>
+      <p class="quiz-header__description">Test your understanding of core web development concepts.</p>
+    </header>
+
+    <section class="quiz-card" aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading" class="visually-hidden">Five-question quiz</h2>
+      <div class="quiz-progress" aria-label="Quiz progress">
+        <div class="quiz-progress__label">
+          <span>Progress</span>
+          <span id="progress-text" aria-live="polite">0 of 5 answered</span>
+        </div>
+        <div class="quiz-progress__track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-valuetext="0 of 5 questions answered" id="progress-bar">
+          <div class="quiz-progress__value" id="progress-value"></div>
+        </div>
+      </div>
+
+      <form id="quiz-form" novalidate>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">1.</span> Which language provides the structure of a web page?</legend>
+          <ul class="question__options">
+            <li class="question__option"><input class="question__input" type="radio" id="q1-a" name="q1" value="HTML"><label class="question__label" for="q1-a">HTML</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q1-b" name="q1" value="CSS"><label class="question__label" for="q1-b">CSS</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q1-c" name="q1" value="JavaScript"><label class="question__label" for="q1-c">JavaScript</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q1-d" name="q1" value="SQL"><label class="question__label" for="q1-d">SQL</label></li>
+          </ul>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">2.</span> Which CSS property changes the text color?</legend>
+          <ul class="question__options">
+            <li class="question__option"><input class="question__input" type="radio" id="q2-a" name="q2" value="font-style"><label class="question__label" for="q2-a">font-style</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q2-b" name="q2" value="color"><label class="question__label" for="q2-b">color</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q2-c" name="q2" value="background"><label class="question__label" for="q2-c">background</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q2-d" name="q2" value="text-decoration"><label class="question__label" for="q2-d">text-decoration</label></li>
+          </ul>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">3.</span> Which JavaScript keyword declares a variable that cannot be reassigned?</legend>
+          <ul class="question__options">
+            <li class="question__option"><input class="question__input" type="radio" id="q3-a" name="q3" value="let"><label class="question__label" for="q3-a">let</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q3-b" name="q3" value="var"><label class="question__label" for="q3-b">var</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q3-c" name="q3" value="const"><label class="question__label" for="q3-c">const</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q3-d" name="q3" value="static"><label class="question__label" for="q3-d">static</label></li>
+          </ul>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">4.</span> Which HTML element creates a link to another page?</legend>
+          <ul class="question__options">
+            <li class="question__option"><input class="question__input" type="radio" id="q4-a" name="q4" value="&lt;link&gt;"><label class="question__label" for="q4-a">&lt;link&gt;</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q4-b" name="q4" value="&lt;nav&gt;"><label class="question__label" for="q4-b">&lt;nav&gt;</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q4-c" name="q4" value="&lt;a&gt;"><label class="question__label" for="q4-c">&lt;a&gt;</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q4-d" name="q4" value="&lt;href&gt;"><label class="question__label" for="q4-d">&lt;href&gt;</label></li>
+          </ul>
+        </fieldset>
+
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">5.</span> What does responsive design help a website do?</legend>
+          <ul class="question__options">
+            <li class="question__option"><input class="question__input" type="radio" id="q5-a" name="q5" value="Load only on desktops"><label class="question__label" for="q5-a">Load only on desktops</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q5-b" name="q5" value="Adapt to different screen sizes"><label class="question__label" for="q5-b">Adapt to different screen sizes</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q5-c" name="q5" value="Remove all images"><label class="question__label" for="q5-c">Remove all images</label></li>
+            <li class="question__option"><input class="question__input" type="radio" id="q5-d" name="q5" value="Prevent user interaction"><label class="question__label" for="q5-d">Prevent user interaction</label></li>
+          </ul>
+        </fieldset>
+
+        <div class="quiz-actions">
+          <button class="button" id="submit-button" type="submit" disabled aria-describedby="submit-hint">Submit answers</button>
+          <p class="quiz-hint" id="submit-hint">Answer all five questions to enable submission.</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="results-card" id="results" aria-labelledby="results-title" aria-live="polite" hidden>
+      <h2 class="results-card__title" id="results-title">Quiz results</h2>
+      <p class="results-card__summary" id="score"></p>
+      <p class="results-card__message" id="results-message"></p>
+      <ul class="results-list" id="wrong-answers"></ul>
+      <button class="button button--secondary" id="retry-button" type="button">Retry quiz</button>
+    </section>
+
+    <footer class="quiz-footer">
+      <p>Choose one answer for each question.</p>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const TOTAL_QUESTIONS = 5;
+      const answerKey = ['HTML', 'color', 'const', '<a>', 'Adapt to different screen sizes'];
+      const questionText = [
+        'Which language provides the structure of a web page?',
+        'Which CSS property changes the text color?',
+        'Which JavaScript keyword declares a variable that cannot be reassigned?',
+        'Which HTML element creates a link to another page?',
+        'What does responsive design help a website do?'
+      ];
+
+      const form = document.querySelector('#quiz-form');
+      const submitButton = document.querySelector('#submit-button');
+      const retryButton = document.querySelector('#retry-button');
+      const progressText = document.querySelector('#progress-text');
+      const progressBar = document.querySelector('#progress-bar');
+      const progressValue = document.querySelector('#progress-value');
+      const results = document.querySelector('#results');
+      const score = document.querySelector('#score');
+      const resultsMessage = document.querySelector('#results-message');
+      const wrongAnswers = document.querySelector('#wrong-answers');
+      const answerInputs = [...document.querySelectorAll('.question__input')];
+
+      const getSelectedAnswers = () => answerKey.map((_, index) => {
+        const selectedInput = form.querySelector(`input[name="q${index + 1}"]:checked`);
+        return selectedInput ? selectedInput.value : null;
+      });
+
+      const updateProgress = () => {
+        const selectedAnswers = getSelectedAnswers();
+        const answeredCount = selectedAnswers.filter(Boolean).length;
+        const percentage = (answeredCount / TOTAL_QUESTIONS) * 100;
+
+        progressText.textContent = `${answeredCount} of ${TOTAL_QUESTIONS} answered`;
+        progressBar.setAttribute('aria-valuenow', String(answeredCount));
+        progressBar.setAttribute('aria-valuetext', `${answeredCount} of ${TOTAL_QUESTIONS} questions answered`);
+        progressValue.style.width = `${percentage}%`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const createWrongAnswerItem = (question, selectedAnswer, correctAnswer) => {
+        const item = document.createElement('li');
+        item.className = 'results-list__item';
+        item.innerHTML = `
+          <p class="results-list__question">${question}</p>
+          <p class="results-list__answer"><span class="results-list__label">Your answer:</span> ${selectedAnswer || 'No answer'}</p>
+          <p class="results-list__answer"><span class="results-list__label">Correct answer:</span> ${correctAnswer}</p>
+        `;
+        return item;
+      };
+
+      const showResults = () => {
+        const selectedAnswers = getSelectedAnswers();
+        const correctCount = selectedAnswers.filter((answer, index) => answer === answerKey[index]).length;
+        const incorrectIndexes = answerKey
+          .map((answer, index) => answer === selectedAnswers[index] ? -1 : index)
+          .filter(index => index >= 0);
+
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        resultsMessage.textContent = incorrectIndexes.length === 0
+          ? 'Excellent work—you answered every question correctly.'
+          : 'Review the questions below and compare your answer with the correct option.';
+        wrongAnswers.replaceChildren(...incorrectIndexes.map(index => createWrongAnswerItem(
+          questionText[index],
+          selectedAnswers[index],
+          answerKey[index]
+        )));
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      const resetQuiz = () => {
+        form.reset();
+        results.hidden = true;
+        wrongAnswers.replaceChildren();
+        updateProgress();
+        form.querySelector('input')?.focus();
+      };
+
+      answerInputs.forEach(input => input.addEventListener('change', updateProgress));
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!submitButton.disabled) {
+          showResults();
+        }
+      });
+      retryButton.addEventListener('click', resetQuiz);
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

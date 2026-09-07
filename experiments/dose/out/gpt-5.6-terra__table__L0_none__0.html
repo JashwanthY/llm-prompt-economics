@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Directory</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7fb; color: #172033; font-family: Arial, sans-serif; }
+    main { max-width: 1100px; margin: 42px auto; padding: 0 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .subtitle { margin: 0 0 24px; color: #59657a; }
+    .card { background: #fff; border: 1px solid #dce3ef; border-radius: 10px; box-shadow: 0 4px 18px rgba(23, 32, 51, .06); overflow: hidden; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 18px; border-bottom: 1px solid #e6ebf3; }
+    input[type="text"] { flex: 1 1 260px; min-width: 180px; padding: 10px 12px; border: 1px solid #bec9d9; border-radius: 6px; font: inherit; }
+    input[type="text"]:focus { outline: 2px solid #7aa8eb; border-color: #4e85d5; }
+    label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 14px; }
+    button { padding: 9px 13px; border: 1px solid #346fc1; border-radius: 6px; background: #3979d0; color: #fff; font: inherit; cursor: pointer; }
+    button:hover:not(:disabled) { background: #2868bc; }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    #exportButton { margin-left: auto; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th, td { padding: 13px 18px; text-align: left; border-bottom: 1px solid #e8edf4; }
+    th { background: #f8faff; color: #3b4961; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+    th button { display: inline-flex; align-items: center; gap: 6px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; font-size: inherit; font-weight: bold; text-transform: inherit; letter-spacing: inherit; }
+    th button:hover { background: transparent; color: #1763b8; }
+    .sort-indicator { color: #1763b8; font-size: 15px; }
+    tbody tr:hover { background: #f7faff; }
+    .status { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: bold; }
+    .active { background: #dff5e6; color: #16723a; }
+    .inactive { background: #f1e4e5; color: #9a3542; }
+    .empty { text-align: center; color: #68758a; padding: 32px; }
+    .footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; }
+    #rowCount { color: #526077; font-size: 14px; }
+    .pagination { display: flex; align-items: center; gap: 10px; }
+    #pageIndicator { min-width: 88px; text-align: center; font-size: 14px; }
+    @media (max-width: 560px) { main { margin: 24px auto; padding: 0 12px; } #exportButton { margin-left: 0; } .footer { justify-content: center; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Employee Directory</h1>
+    <p class="subtitle">Search, sort, and export the employee roster.</p>
+    <section class="card" aria-label="Employee data table">
+      <div class="controls">
+        <input id="searchInput" type="text" placeholder="Filter by name or department" aria-label="Filter by name or department">
+        <label><input id="activeOnly" type="checkbox"> Active only</label>
+        <button id="exportButton" type="button">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><button type="button" data-column="name">Name <span class="sort-indicator"></span></button></th>
+              <th><button type="button" data-column="department">Department <span class="sort-indicator"></span></button></th>
+              <th><button type="button" data-column="salary">Salary <span class="sort-indicator"></span></button></th>
+              <th><button type="button" data-column="startDate">Start Date <span class="sort-indicator"></span></button></th>
+              <th><button type="button" data-column="active">Active <span class="sort-indicator"></span></button></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="footer">
+        <div id="rowCount" aria-live="polite"></div>
+        <div class="pagination">
+          <button id="previousButton" type="button">Previous</button>
+          <span id="pageIndicator" aria-live="polite"></span>
+          <button id="nextButton" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const employees = [
+      { name: 'Ava Patel', department: 'Engineering', salary: 118000, startDate: '2019-04-15', active: true },
+      { name: 'Marcus Chen', department: 'Sales', salary: 92000, startDate: '2021-08-02', active: true },
+      { name: 'Elena Rodriguez', department: 'Design', salary: 105000, startDate: '2018-11-19', active: false },
+      { name: 'Daniel Kim', department: 'Support', salary: 68000, startDate: '2022-01-10', active: true },
+      { name: 'Priya Shah', department: 'Engineering', salary: 132000, startDate: '2017-06-26', active: true },
+      { name: 'Owen Brooks', department: 'Sales', salary: 87000, startDate: '2020-09-14', active: false },
+      { name: 'Grace Liu', department: 'Design', salary: 99000, startDate: '2021-03-08', active: true },
+      { name: 'Noah Williams', department: 'Support', salary: 72000, startDate: '2019-12-02', active: true },
+      { name: 'Sofia Martinez', department: 'Engineering', salary: 124000, startDate: '2020-05-18', active: true },
+      { name: 'Ethan Johnson', department: 'Sales', salary: 95000, startDate: '2018-07-09', active: false },
+      { name: 'Mia Thompson', department: 'Support', salary: 70000, startDate: '2023-02-13', active: true },
+      { name: 'Lucas Anderson', department: 'Design', salary: 112000, startDate: '2016-10-24', active: true },
+      { name: 'Harper Davis', department: 'Engineering', salary: 109000, startDate: '2022-06-06', active: true },
+      { name: 'Leo Wilson', department: 'Sales', salary: 84000, startDate: '2021-11-29', active: true },
+      { name: 'Isabella Moore', department: 'Support', salary: 75000, startDate: '2019-01-21', active: false },
+      { name: 'James Taylor', department: 'Design', salary: 101000, startDate: '2020-08-17', active: true },
+      { name: 'Amelia Brown', department: 'Engineering', salary: 140000, startDate: '2015-03-30', active: true },
+      { name: 'Benjamin Clark', department: 'Sales', salary: 89000, startDate: '2022-10-03', active: true },
+      { name: 'Charlotte Hall', department: 'Support', salary: 73000, startDate: '2021-05-24', active: true },
+      { name: 'Henry Lewis', department: 'Design', salary: 107000, startDate: '2018-02-12', active: false },
+      { name: 'Olivia Walker', department: 'Engineering', salary: 126000, startDate: '2020-01-06', active: true },
+      { name: 'Theodore Young', department: 'Sales', salary: 97000, startDate: '2017-09-11', active: true },
+      { name: 'Evelyn King', department: 'Support', salary: 76000, startDate: '2023-07-17', active: true },
+      { name: 'Jack Wright', department: 'Design', salary: 115000, startDate: '2016-04-04', active: true }
+    ];
+
+    const pageSize = 10;
+    let currentPage = 1;
+    let sortColumn = 'name';
+    let sortDirection = 'asc';
+
+    const searchInput = document.getElementById('searchInput');
+    const activeOnly = document.getElementById('activeOnly');
+    const tableBody = document.getElementById('tableBody');
+    const rowCount = document.getElementById('rowCount');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const previousButton = document.getElementById('previousButton');
+    const nextButton = document.getElementById('nextButton');
+
+    function getFilteredRows() {
+      const query = searchInput.value.trim().toLowerCase();
+      return employees.filter(employee => {
+        const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+        return matchesText && (!activeOnly.checked || employee.active);
+      }).sort((a, b) => {
+        let aValue = a[sortColumn];
+        let bValue = b[sortColumn];
+        if (typeof aValue === 'string') {
+          return aValue.localeCompare(bValue) * (sortDirection === 'asc' ? 1 : -1);
+        }
+        return (aValue - bValue) * (sortDirection === 'asc' ? 1 : -1);
+      });
+    }
+
+    function formatDate(isoDate) {
+      return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(isoDate + 'T00:00:00Z'));
+    }
+
+    function render() {
+      const rows = getFilteredRows();
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * pageSize;
+      const pageRows = rows.slice(start, start + pageSize);
+
+      tableBody.innerHTML = pageRows.length ? pageRows.map(employee => `
+        <tr>
+          <td>${employee.name}</td>
+          <td>${employee.department}</td>
+          <td>${employee.salary.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}</td>
+          <td>${formatDate(employee.startDate)}</td>
+          <td><span class="status ${employee.active ? 'active' : 'inactive'}">${employee.active ? 'Active' : 'Inactive'}</span></td>
+        </tr>`).join('') : '<tr><td class="empty" colspan="5">No employees match your filters.</td></tr>';
+
+      const first = rows.length ? start + 1 : 0;
+      const last = rows.length ? Math.min(start + pageSize, rows.length) : 0;
+      rowCount.textContent = `Showing ${first}-${last} of ${rows.length}`;
+      pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+      previousButton.disabled = currentPage === 1;
+      nextButton.disabled = currentPage === totalPages;
+
+      document.querySelectorAll('th button[data-column]').forEach(button => {
+        const indicator = button.querySelector('.sort-indicator');
+        indicator.textContent = button.dataset.column === sortColumn ? (sortDirection === 'asc' ? '▲' : '▼') : '';
+        button.setAttribute('aria-sort', button.dataset.column === sortColumn ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+      });
+    }
+
+    function resetAndRender() {
+      currentPage = 1;
+      render();
+    }
+
+    document.querySelectorAll('th button[data-column]').forEach(button => {
+      button.addEventListener('click', () => {
+        const column = button.dataset.column;
+        if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        else { sortColumn = column; sortDirection = 'asc'; }
+        render();
+      });
+    });
+
+    searchInput.addEventListener('input', resetAndRender);
+    activeOnly.addEventListener('change', resetAndRender);
+    previousButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
+    nextButton.addEventListener('click', () => { const pages = Math.ceil(getFilteredRows().length / pageSize); if (currentPage < pages) { currentPage++; render(); } });
+
+    document.getElementById('exportButton').addEventListener('click', () => {
+      const escapeCsv = value => {
+        const text = String(value);
+        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      };
+      const csv = [
+        ['Name', 'Department', 'Salary', 'Start Date', 'Active'],
+        ...getFilteredRows().map(e => [e.name, e.department, e.salary, e.startDate, e.active])
+      ].map(row => row.map(escapeCsv).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'filtered-employees.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>

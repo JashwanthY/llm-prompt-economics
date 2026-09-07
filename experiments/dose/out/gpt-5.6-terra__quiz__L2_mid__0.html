@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earth Science Quick Quiz</title>
+  <style>
+    :root {
+      --color-ink: #182431;
+      --color-muted: #536273;
+      --color-paper: #f7f8f5;
+      --color-surface: #ffffff;
+      --color-line: #cbd4dc;
+      --color-primary: #075e72;
+      --color-primary-dark: #034959;
+      --color-primary-light: #d9f0f3;
+      --color-success: #176b45;
+      --color-success-light: #e4f4ea;
+      --color-warning: #7a3f00;
+      --color-warning-light: #fff1df;
+      --radius: 0.75rem;
+      --shadow: 0 0.5rem 1.5rem rgb(24 36 49 / 0.09);
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+      --space-5: 3rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 20rem;
+      color: var(--color-ink);
+      background: linear-gradient(135deg, #edf7f5 0%, var(--color-paper) 48%, #eef2f8 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    button, input { font: inherit; }
+
+    .page-shell {
+      width: min(100% - 2rem, 52rem);
+      margin: 0 auto;
+      padding: var(--space-4) 0;
+    }
+
+    .quiz-header { margin-bottom: var(--space-3); }
+
+    .quiz-kicker {
+      margin: 0 0 var(--space-1);
+      color: var(--color-primary-dark);
+      font-size: 0.875rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: var(--space-1);
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+    }
+
+    h2 { font-size: 1.4rem; }
+    h3 { font-size: 1.1rem; }
+
+    .quiz-intro {
+      max-width: 42rem;
+      margin-bottom: 0;
+      color: var(--color-muted);
+      font-size: 1.0625rem;
+    }
+
+    .progress-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-1) var(--space-2);
+      align-items: center;
+      padding: var(--space-2) var(--space-3);
+      margin-bottom: var(--space-3);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .progress-panel__label { font-weight: 700; }
+    .progress-panel__count { color: var(--color-primary-dark); font-weight: 800; }
+
+    .progress-panel__bar {
+      grid-column: 1 / -1;
+      width: 100%;
+      height: 0.625rem;
+      overflow: hidden;
+      border-radius: 99rem;
+      background: #dce4e8;
+    }
+
+    .progress-panel__fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--color-primary);
+      transition: width 180ms ease;
+    }
+
+    .quiz-form {
+      padding: var(--space-3);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .question {
+      padding: 0;
+      margin: 0 0 var(--space-3);
+      border: 0;
+    }
+
+    .question:not(:first-child) { padding-top: var(--space-3); border-top: 1px solid var(--color-line); }
+    .question:last-of-type { margin-bottom: var(--space-2); }
+
+    .question__legend {
+      padding: 0;
+      margin-bottom: var(--space-2);
+      font-weight: 750;
+    }
+
+    .question__number { color: var(--color-primary-dark); }
+
+    .option-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .option {
+      position: relative;
+      display: flex;
+      gap: 0.625rem;
+      align-items: flex-start;
+      min-height: 3.25rem;
+      padding: 0.75rem;
+      border: 1px solid var(--color-line);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .option:hover { border-color: var(--color-primary); background: #f4fbfc; }
+    .option:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-light); box-shadow: inset 0 0 0 1px var(--color-primary); }
+    .option:has(input:focus-visible) { outline: 0.2rem solid #e87912; outline-offset: 0.16rem; }
+
+    .option__input {
+      width: 1.15rem;
+      height: 1.15rem;
+      flex: 0 0 auto;
+      margin: 0.14rem 0 0;
+      accent-color: var(--color-primary);
+    }
+
+    .form-actions { display: flex; justify-content: flex-end; padding-top: var(--space-2); }
+
+    .button {
+      padding: 0.75rem 1.25rem;
+      border: 2px solid transparent;
+      border-radius: 0.5rem;
+      font-weight: 750;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+
+    .button--primary { color: #fff; background: var(--color-primary); }
+    .button--primary:hover:not(:disabled) { background: var(--color-primary-dark); }
+    .button--secondary { color: var(--color-primary-dark); border-color: var(--color-primary); background: var(--color-surface); }
+    .button--secondary:hover { background: var(--color-primary-light); }
+    .button:disabled { color: #697783; background: #dce4e8; cursor: not-allowed; }
+    .button:focus-visible { outline: 0.22rem solid #e87912; outline-offset: 0.2rem; }
+    .button:active:not(:disabled) { transform: translateY(1px); }
+
+    .results {
+      margin-top: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow);
+    }
+
+    .results[hidden] { display: none; }
+    .results__score { margin-bottom: var(--space-2); font-size: 1.25rem; font-weight: 800; }
+    .results__message { margin-bottom: var(--space-3); color: var(--color-muted); }
+    .results__list { display: grid; gap: var(--space-2); padding: 0; margin: 0 0 var(--space-3); list-style: none; }
+
+    .result-card {
+      padding: var(--space-2);
+      border: 1px solid #e4bd87;
+      border-radius: 0.5rem;
+      background: var(--color-warning-light);
+    }
+
+    .result-card__question { margin-bottom: 0.5rem; font-weight: 750; }
+    .result-card__detail { margin: 0.25rem 0 0; }
+    .result-card__chosen { color: var(--color-warning); }
+    .result-card__correct { color: var(--color-success); }
+    .results__perfect { padding: var(--space-2); border-radius: 0.5rem; background: var(--color-success-light); color: #0d4b2e; font-weight: 700; }
+
+    .page-footer { padding: var(--space-3) 0 0; color: var(--color-muted); font-size: 0.875rem; text-align: center; }
+
+    @media (max-width: 38rem) {
+      .page-shell { width: min(100% - 1rem, 52rem); padding: var(--space-2) 0; }
+      .quiz-form, .results { padding: var(--space-2); }
+      .option-list { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto; transition-duration: 0.01ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="quiz-header">
+      <p class="quiz-kicker">Five-minute challenge</p>
+      <h1>Earth science quick quiz</h1>
+      <p class="quiz-intro">Choose one answer for each question. Your score and any corrections will appear when you submit.</p>
+    </header>
+
+    <section class="progress-panel" aria-label="Quiz progress">
+      <span class="progress-panel__label">Questions answered</span>
+      <output id="progressCount" class="progress-panel__count" for="quizForm">0 of 5</output>
+      <div class="progress-panel__bar" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="progressCount">
+        <div id="progressFill" class="progress-panel__fill"></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="quizHeading">
+      <h2 id="quizHeading" class="visually-hidden">Quiz questions</h2>
+      <form id="quizForm" class="quiz-form" novalidate>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">1.</span> Which layer of Earth is liquid and mostly made of iron and nickel?</legend>
+          <div class="option-list">
+            <label class="option"><input class="option__input" type="radio" name="q1" value="Crust"><span>Crust</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q1" value="Mantle"><span>Mantle</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q1" value="Outer core"><span>Outer core</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q1" value="Inner core"><span>Inner core</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">2.</span> What is the main cause of ocean tides on Earth?</legend>
+          <div class="option-list">
+            <label class="option"><input class="option__input" type="radio" name="q2" value="Earth's rotation"><span>Earth's rotation</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q2" value="The Moon's gravity"><span>The Moon's gravity</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q2" value="Ocean temperature"><span>Ocean temperature</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q2" value="Underwater volcanoes"><span>Underwater volcanoes</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">3.</span> Which process turns water vapor into liquid water droplets?</legend>
+          <div class="option-list">
+            <label class="option"><input class="option__input" type="radio" name="q3" value="Evaporation"><span>Evaporation</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q3" value="Condensation"><span>Condensation</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q3" value="Precipitation"><span>Precipitation</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q3" value="Infiltration"><span>Infiltration</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">4.</span> What kind of rock forms when molten rock cools and solidifies?</legend>
+          <div class="option-list">
+            <label class="option"><input class="option__input" type="radio" name="q4" value="Sedimentary"><span>Sedimentary</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q4" value="Metamorphic"><span>Metamorphic</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q4" value="Igneous"><span>Igneous</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q4" value="Fossil"><span>Fossil</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend class="question__legend"><span class="question__number">5.</span> Which instrument measures the strength of an earthquake?</legend>
+          <div class="option-list">
+            <label class="option"><input class="option__input" type="radio" name="q5" value="Barometer"><span>Barometer</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q5" value="Thermometer"><span>Thermometer</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q5" value="Anemometer"><span>Anemometer</span></label>
+            <label class="option"><input class="option__input" type="radio" name="q5" value="Seismograph"><span>Seismograph</span></label>
+          </div>
+        </fieldset>
+        <div class="form-actions"><button id="submitButton" class="button button--primary" type="submit" disabled>Submit quiz</button></div>
+      </form>
+    </section>
+
+    <section id="results" class="results" aria-labelledby="resultsHeading" aria-live="polite" hidden tabindex="-1">
+      <h2 id="resultsHeading">Your results</h2>
+      <p id="score" class="results__score"></p>
+      <p id="resultsMessage" class="results__message"></p>
+      <ul id="feedbackList" class="results__list"></ul>
+      <button id="retryButton" class="button button--secondary" type="button">Retry quiz</button>
+    </section>
+  </main>
+  <footer class="page-footer">Earth science quick quiz</footer>
+
+  <style>.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }</style>
+  <script>
+    (() => {
+      'use strict';
+
+      const TOTAL_QUESTIONS = 5;
+      const questions = [
+        { name: 'q1', text: 'Which layer of Earth is liquid and mostly made of iron and nickel?', correct: 'Outer core' },
+        { name: 'q2', text: 'What is the main cause of ocean tides on Earth?', correct: "The Moon's gravity" },
+        { name: 'q3', text: 'Which process turns water vapor into liquid water droplets?', correct: 'Condensation' },
+        { name: 'q4', text: 'What kind of rock forms when molten rock cools and solidifies?', correct: 'Igneous' },
+        { name: 'q5', text: 'Which instrument measures the strength of an earthquake?', correct: 'Seismograph' }
+      ];
+      const quizForm = document.querySelector('#quizForm');
+      const optionInputs = Array.from(document.querySelectorAll('.option__input'));
+      const progressCount = document.querySelector('#progressCount');
+      const progressBar = document.querySelector('.progress-panel__bar');
+      const progressFill = document.querySelector('#progressFill');
+      const submitButton = document.querySelector('#submitButton');
+      const results = document.querySelector('#results');
+      const score = document.querySelector('#score');
+      const resultsMessage = document.querySelector('#resultsMessage');
+      const feedbackList = document.querySelector('#feedbackList');
+      const retryButton = document.querySelector('#retryButton');
+
+      const getAnswer = (name) => quizForm.querySelector(`input[name="${name}"]:checked`)?.value ?? null;
+
+      const updateProgress = () => {
+        const answeredCount = questions.filter(({ name }) => getAnswer(name) !== null).length;
+        const percentage = (answeredCount / TOTAL_QUESTIONS) * 100;
+        progressCount.textContent = `${answeredCount} of ${TOTAL_QUESTIONS}`;
+        progressBar.setAttribute('aria-valuenow', String(answeredCount));
+        progressFill.style.width = `${percentage}%`;
+        submitButton.disabled = answeredCount !== TOTAL_QUESTIONS;
+      };
+
+      const createFeedback = (question, selectedAnswer) => {
+        const item = document.createElement('li');
+        item.className = 'result-card';
+        item.innerHTML = `<h3 class="result-card__question">${question.text}</h3><p class="result-card__detail result-card__chosen"><strong>Your answer:</strong> ${selectedAnswer}</p><p class="result-card__detail result-card__correct"><strong>Correct answer:</strong> ${question.correct}</p>`;
+        return item;
+      };
+
+      const showResults = () => {
+        const incorrectAnswers = questions.filter((question) => getAnswer(question.name) !== question.correct);
+        const correctCount = TOTAL_QUESTIONS - incorrectAnswers.length;
+        score.textContent = `You scored ${correctCount}/${TOTAL_QUESTIONS}`;
+        feedbackList.replaceChildren();
+
+        if (incorrectAnswers.length === 0) {
+          resultsMessage.textContent = 'Excellent work — every answer is correct.';
+          const perfectMessage = document.createElement('li');
+          perfectMessage.className = 'results__perfect';
+          perfectMessage.textContent = 'Perfect score! There are no corrections to review.';
+          feedbackList.append(perfectMessage);
+        } else {
+          resultsMessage.textContent = 'Review the questions below to see the correct answers.';
+          incorrectAnswers.forEach((question) => feedbackList.append(createFeedback(question, getAnswer(question.name))));
+        }
+
+        results.hidden = false;
+        results.focus();
+      };
+
+      const resetQuiz = () => {
+        quizForm.reset();
+        feedbackList.replaceChildren();
+        results.hidden = true;
+        updateProgress();
+        optionInputs[0].focus();
+      };
+
+      optionInputs.forEach((input) => input.addEventListener('change', updateProgress));
+      quizForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!submitButton.disabled) showResults();
+      });
+      retryButton.addEventListener('click', resetQuiz);
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

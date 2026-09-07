@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quick Knowledge Check</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #526078;
+      --paper: #ffffff;
+      --canvas: #f3f7fb;
+      --line: #cad5e2;
+      --accent: #185abc;
+      --accent-dark: #0e3f89;
+      --accent-soft: #eaf2ff;
+      --success: #176b45;
+      --error: #a32d2d;
+      --shadow: 0 12px 36px rgba(23, 32, 51, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    .page-shell {
+      width: min(100% - 2rem, 760px);
+      margin: 0 auto;
+      padding: 3rem 0 4rem;
+    }
+    .hero { margin-bottom: 1.5rem; }
+    .eyebrow {
+      margin: 0 0 .5rem;
+      color: var(--accent-dark);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1, h2 { line-height: 1.2; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.03em; }
+    h2 { margin: 0; font-size: 1.25rem; }
+    .intro { margin: .8rem 0 0; color: var(--muted); max-width: 58ch; }
+    .quiz-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 4vw, 2.25rem);
+    }
+    .progress-area {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .progress-label { font-weight: 750; }
+    .progress-count { color: var(--muted); font-size: .95rem; white-space: nowrap; }
+    .progress-track {
+      height: .65rem;
+      margin-top: .65rem;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #e3e9f1;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width .2s ease;
+    }
+    .question { margin: 0; padding: 1.5rem 0; border: 0; border-top: 1px solid var(--line); }
+    .question legend { width: 100%; padding: 0; margin-bottom: 1rem; font-weight: 750; font-size: 1.08rem; }
+    .question-number { color: var(--accent-dark); margin-right: .35rem; }
+    .options { display: grid; gap: .7rem; }
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      padding: .85rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .option:hover { border-color: var(--accent); background: #f7faff; }
+    .option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .option input { width: 1.1rem; height: 1.1rem; margin: .15rem 0 0; accent-color: var(--accent); flex: 0 0 auto; }
+    .option-text { flex: 1; }
+    :focus-visible { outline: 3px solid #f0a400; outline-offset: 3px; }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; padding-top: 1.25rem; }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: .75rem 1.15rem;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .primary { background: var(--accent); color: #fff; }
+    .primary:hover:not(:disabled) { background: var(--accent-dark); }
+    button:disabled { background: #b9c3d0; color: #445064; cursor: not-allowed; }
+    .secondary { background: #e7edf5; color: var(--ink); }
+    .secondary:hover { background: #d8e2ef; }
+    .results {
+      margin-top: 1.25rem;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-left: .35rem solid var(--accent);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+    .results h2 { margin-bottom: .35rem; }
+    .score { margin: 0 0 1rem; font-size: 1.15rem; font-weight: 750; }
+    .wrong-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 1rem; }
+    .wrong-item { padding-top: 1rem; border-top: 1px solid var(--line); }
+    .wrong-item:first-child { padding-top: 0; border-top: 0; }
+    .wrong-item p { margin: .3rem 0 0; }
+    .chosen { color: var(--error); }
+    .correct { color: var(--success); }
+    .results[hidden] { display: none; }
+    .site-footer { margin-top: 1.25rem; color: var(--muted); font-size: .88rem; text-align: center; }
+    @media (max-width: 520px) {
+      .page-shell { width: min(100% - 1rem, 760px); padding-top: 1.5rem; }
+      .quiz-card { border-radius: 12px; }
+      .progress-area { align-items: flex-start; flex-direction: column; gap: .15rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">Five-question quiz</p>
+      <h1>Quick Knowledge Check</h1>
+      <p class="intro">Choose one answer for each question. Your score and any corrections will appear when you submit.</p>
+    </header>
+
+    <section class="quiz-card" aria-labelledby="quiz-heading">
+      <h2 id="quiz-heading" class="visually-hidden" style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;">Quiz questions</h2>
+      <div class="progress-area" aria-live="polite">
+        <div class="progress-label">Your progress</div>
+        <div class="progress-count"><span id="answered-count">0</span> of 5 answered</div>
+      </div>
+      <div class="progress-track" role="progressbar" aria-label="Quiz completion" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <form id="quiz-form">
+        <fieldset class="question">
+          <legend><span class="question-number">1.</span> Which planet is known as the Red Planet?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q1" value="Venus"><span class="option-text">Venus</span></label>
+            <label class="option"><input type="radio" name="q1" value="Mars"><span class="option-text">Mars</span></label>
+            <label class="option"><input type="radio" name="q1" value="Jupiter"><span class="option-text">Jupiter</span></label>
+            <label class="option"><input type="radio" name="q1" value="Mercury"><span class="option-text">Mercury</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend><span class="question-number">2.</span> What is the process by which plants make food using sunlight?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q2" value="Respiration"><span class="option-text">Respiration</span></label>
+            <label class="option"><input type="radio" name="q2" value="Fermentation"><span class="option-text">Fermentation</span></label>
+            <label class="option"><input type="radio" name="q2" value="Photosynthesis"><span class="option-text">Photosynthesis</span></label>
+            <label class="option"><input type="radio" name="q2" value="Digestion"><span class="option-text">Digestion</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend><span class="question-number">3.</span> Which ocean is the largest on Earth?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q3" value="Atlantic Ocean"><span class="option-text">Atlantic Ocean</span></label>
+            <label class="option"><input type="radio" name="q3" value="Indian Ocean"><span class="option-text">Indian Ocean</span></label>
+            <label class="option"><input type="radio" name="q3" value="Arctic Ocean"><span class="option-text">Arctic Ocean</span></label>
+            <label class="option"><input type="radio" name="q3" value="Pacific Ocean"><span class="option-text">Pacific Ocean</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend><span class="question-number">4.</span> How many sides does a hexagon have?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q4" value="Five"><span class="option-text">Five</span></label>
+            <label class="option"><input type="radio" name="q4" value="Six"><span class="option-text">Six</span></label>
+            <label class="option"><input type="radio" name="q4" value="Seven"><span class="option-text">Seven</span></label>
+            <label class="option"><input type="radio" name="q4" value="Eight"><span class="option-text">Eight</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="question">
+          <legend><span class="question-number">5.</span> Which instrument is used to measure temperature?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q5" value="Barometer"><span class="option-text">Barometer</span></label>
+            <label class="option"><input type="radio" name="q5" value="Thermometer"><span class="option-text">Thermometer</span></label>
+            <label class="option"><input type="radio" name="q5" value="Compass"><span class="option-text">Compass</span></label>
+            <label class="option"><input type="radio" name="q5" value="Anemometer"><span class="option-text">Anemometer</span></label>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <button class="primary" id="submit-button" type="submit" disabled>Submit answers</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="results" id="results" aria-labelledby="results-heading" aria-live="polite" hidden>
+      <h2 id="results-heading">Results</h2>
+      <p class="score" id="score"></p>
+      <ul class="wrong-list" id="wrong-list"></ul>
+      <div class="actions">
+        <button class="secondary" id="retry-button" type="button">Retry quiz</button>
+      </div>
+    </section>
+
+    <footer class="site-footer">Take your time and learn from every answer.</footer>
+  </main>
+
+  <script>
+    (() => {
+      const form = document.getElementById('quiz-form');
+      const submitButton = document.getElementById('submit-button');
+      const retryButton = document.getElementById('retry-button');
+      const results = document.getElementById('results');
+      const score = document.getElementById('score');
+      const wrongList = document.getElementById('wrong-list');
+      const answeredCount = document.getElementById('answered-count');
+      const progressBar = document.getElementById('progress-bar');
+      const progressTrack = document.querySelector('.progress-track');
+      const questions = [
+        { text: 'Which planet is known as the Red Planet?', answer: 'Mars' },
+        { text: 'What is the process by which plants make food using sunlight?', answer: 'Photosynthesis' },
+        { text: 'Which ocean is the largest on Earth?', answer: 'Pacific Ocean' },
+        { text: 'How many sides does a hexagon have?', answer: 'Six' },
+        { text: 'Which instrument is used to measure temperature?', answer: 'Thermometer' }
+      ];
+
+      function updateProgress() {
+        const answered = questions.filter((_, index) => form.querySelector(`input[name="q${index + 1}"]:checked`)).length;
+        answeredCount.textContent = answered;
+        progressBar.style.width = `${answered * 20}%`;
+        progressTrack.setAttribute('aria-valuenow', answered);
+        submitButton.disabled = answered !== questions.length;
+      }
+
+      form.addEventListener('change', updateProgress);
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        let totalCorrect = 0;
+        const incorrect = [];
+        questions.forEach((question, index) => {
+          const selected = form.querySelector(`input[name="q${index + 1}"]:checked`).value;
+          if (selected === question.answer) totalCorrect++;
+          else incorrect.push({ ...question, selected });
+        });
+        score.textContent = `You scored ${totalCorrect}/5`;
+        wrongList.innerHTML = '';
+        if (incorrect.length === 0) {
+          const item = document.createElement('li');
+          item.className = 'wrong-item';
+          item.textContent = 'Excellent work — every answer is correct!';
+          wrongList.appendChild(item);
+        } else {
+          incorrect.forEach((item, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'wrong-item';
+            listItem.innerHTML = `<strong>Question ${questions.indexOf(item) + 1}: ${item.text}</strong><p class="chosen">Your answer: ${item.selected}</p><p class="correct">Correct answer: ${item.answer}</p>`;
+            wrongList.appendChild(listItem);
+          });
+        }
+        results.hidden = false;
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      retryButton.addEventListener('click', () => {
+        form.reset();
+        results.hidden = true;
+        wrongList.innerHTML = '';
+        updateProgress();
+        form.querySelector('input').focus();
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

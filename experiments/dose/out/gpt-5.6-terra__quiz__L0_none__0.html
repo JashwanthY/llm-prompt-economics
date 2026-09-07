@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>General Knowledge Quiz</title>
+  <style>
+    :root { --ink: #172033; --muted: #5f6b82; --accent: #325dd6; --accent-soft: #eaf0ff; --surface: #ffffff; --page: #f3f6fb; --border: #d9e1ee; --danger: #a52635; --success: #176b47; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; padding: 32px 18px; background: var(--page); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: clamp(22px, 5vw, 40px); box-shadow: 0 12px 30px rgba(34, 52, 86, .08); }
+    h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 4vw, 2.35rem); }
+    .intro { margin: 0; color: var(--muted); }
+    .progress-wrap { margin: 27px 0 30px; }
+    .progress-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-weight: 650; }
+    progress { width: 100%; height: 12px; accent-color: var(--accent); }
+    fieldset { margin: 0 0 25px; padding: 0; border: 0; }
+    legend { padding: 0; margin-bottom: 11px; font-size: 1.08rem; font-weight: 700; }
+    .options { display: grid; gap: 9px; }
+    .option { display: flex; align-items: flex-start; gap: 11px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: background .15s, border-color .15s; }
+    .option:hover { background: #f7f9fe; border-color: #aebfe8; }
+    .option:focus-within { outline: 3px solid rgba(50, 93, 214, .28); outline-offset: 2px; }
+    input[type="radio"] { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); flex: 0 0 auto; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+    button { border: 0; border-radius: 9px; padding: 11px 19px; color: white; background: var(--accent); font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover:not(:disabled) { background: #274cb2; }
+    button:focus-visible { outline: 3px solid #111; outline-offset: 3px; }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    #retry { background: #526077; }
+    #retry:hover { background: #3e4a5e; }
+    #results { margin-top: 28px; padding: 22px; background: #f7f9ff; border: 1px solid #cbd8f6; border-radius: 12px; }
+    #results[hidden] { display: none; }
+    #score { margin: 0 0 14px; color: var(--success); font-size: 1.35rem; }
+    #feedback { margin: 0; padding-left: 22px; }
+    #feedback li { margin: 14px 0; padding: 13px; border-left: 4px solid var(--danger); background: #fff; }
+    #feedback strong { display: block; }
+    .answer { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card" aria-labelledby="quiz-title">
+      <h1 id="quiz-title">General Knowledge Quiz</h1>
+      <p class="intro">Choose one answer for every question, then submit your quiz.</p>
+
+      <div class="progress-wrap" aria-live="polite">
+        <div class="progress-label"><span>Progress</span><span id="progressText">0 of 5 answered</span></div>
+        <progress id="progressBar" value="0" max="5">0 of 5</progress>
+      </div>
+
+      <form id="quizForm">
+        <fieldset>
+          <legend>1. Which planet is known as the Red Planet?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q1" value="Venus"> Venus</label>
+            <label class="option"><input type="radio" name="q1" value="Mars"> Mars</label>
+            <label class="option"><input type="radio" name="q1" value="Jupiter"> Jupiter</label>
+            <label class="option"><input type="radio" name="q1" value="Mercury"> Mercury</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>2. What is the largest ocean on Earth?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q2" value="Atlantic Ocean"> Atlantic Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Indian Ocean"> Indian Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Pacific Ocean"> Pacific Ocean</label>
+            <label class="option"><input type="radio" name="q2" value="Arctic Ocean"> Arctic Ocean</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>3. Who wrote <em>Romeo and Juliet</em>?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q3" value="Jane Austen"> Jane Austen</label>
+            <label class="option"><input type="radio" name="q3" value="William Shakespeare"> William Shakespeare</label>
+            <label class="option"><input type="radio" name="q3" value="Charles Dickens"> Charles Dickens</label>
+            <label class="option"><input type="radio" name="q3" value="Mark Twain"> Mark Twain</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>4. What is the chemical symbol for gold?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q4" value="Ag"> Ag</label>
+            <label class="option"><input type="radio" name="q4" value="Gd"> Gd</label>
+            <label class="option"><input type="radio" name="q4" value="Au"> Au</label>
+            <label class="option"><input type="radio" name="q4" value="Go"> Go</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>5. Which process do plants use to convert sunlight into energy?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="q5" value="Respiration"> Respiration</label>
+            <label class="option"><input type="radio" name="q5" value="Photosynthesis"> Photosynthesis</label>
+            <label class="option"><input type="radio" name="q5" value="Fermentation"> Fermentation</label>
+            <label class="option"><input type="radio" name="q5" value="Digestion"> Digestion</label>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <button id="submit" type="submit" disabled>Submit Quiz</button>
+          <button id="retry" type="button">Retry</button>
+        </div>
+      </form>
+
+      <section id="results" hidden aria-live="polite" aria-labelledby="score">
+        <h2 id="score"></h2>
+        <ul id="feedback"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const answers = {
+      q1: 'Mars',
+      q2: 'Pacific Ocean',
+      q3: 'William Shakespeare',
+      q4: 'Au',
+      q5: 'Photosynthesis'
+    };
+    const form = document.getElementById('quizForm');
+    const submit = document.getElementById('submit');
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
+    const results = document.getElementById('results');
+    const score = document.getElementById('score');
+    const feedback = document.getElementById('feedback');
+
+    function updateProgress() {
+      const completed = Object.keys(answers).filter(name => form.elements[name].value).length;
+      progressText.textContent = `${completed} of 5 answered`;
+      progressBar.value = completed;
+      progressBar.textContent = `${completed} of 5`;
+      submit.disabled = completed !== 5;
+    }
+
+    form.addEventListener('change', updateProgress);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      let total = 0;
+      const mistakes = [];
+      Object.entries(answers).forEach(([name, correct], index) => {
+        const selected = form.elements[name].value;
+        if (selected === correct) total++;
+        else {
+          const question = form.elements[name].closest('fieldset').querySelector('legend').textContent;
+          mistakes.push({ question, selected, correct, index });
+        }
+      });
+      score.textContent = `You scored ${total}/5`;
+      feedback.innerHTML = mistakes.length
+        ? mistakes.map(item => `<li><strong>${item.question}</strong><span class="answer">Your answer: ${item.selected}<br>Correct answer: ${item.correct}</span></li>`).join('')
+        : '<li><strong>Perfect score!</strong><span class="answer">You answered every question correctly.</span></li>';
+      results.hidden = false;
+      results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    document.getElementById('retry').addEventListener('click', () => {
+      form.reset();
+      results.hidden = true;
+      feedback.replaceChildren();
+      updateProgress();
+      document.querySelector('input[name="q1"]').focus();
+    });
+  </script>
+</body>
+</html>
