@@ -90,12 +90,32 @@ claim(sum(sum(x[k] for x in ms) == 0
       "three rules never broken at any dose")
 
 runs = {d: json.load(open(ROOT / d / "runlog.json"))
-        for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard")}
+        for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol")}
 total = sum(len(v) for v in runs.values())
-claim(total == 120, f"120 runs total ({total})")
+claim(total == 132, f"132 runs total ({total})")
 spend = sum(r.get("in_tokens", 0) for v in runs.values() for r in v) / 1e6 * 1.25 \
       + sum(r.get("out_tokens", 0) for v in runs.values() for r in v) / 1e6 * 10
-claim(abs(spend - 9.04) < 0.02, f"total spend $9.04 (${spend:.2f})")
+claim(abs(spend - 9.56) < 0.02, f"total spend $9.56 (${spend:.2f})")
+
+# positive control: criterion met, and for the predicted reason
+pc = [json.loads(l) for l in open(ROOT / "poscontrol/grades.jsonl")]
+pby = collections.defaultdict(list)
+for d in pc:
+    pby[d["arm"]].append(d)
+score = lambda arm: st.mean(d["passed"] / d["total"] for d in pby[arm])
+for arm, want in (("full", 1.000), ("minus_tiers", 0.916), ("minus_coupon", 0.912),
+                  ("minus_tax", 0.738)):
+    claim(abs(score(arm) - want) < 0.0015, f"poscontrol {arm} = {want:.1%} ({score(arm):.1%})")
+claim(score("minus_tax") < 0.80, "positive-control criterion met (an arm below 80%)")
+# 14 DISTINCT tax checks and 14 distinct total checks exist; three of the four
+# runs failed all of them, so occurrences are 42 each. The claim is about which
+# KINDS failed, so count distinct names, not occurrences.
+failed_names = {x for d in pby["minus_tax"] for x in d["failed"]}
+kinds = collections.Counter(x.split()[-1] for x in failed_names)
+claim(set(kinds) == {"tax", "total"} and kinds["tax"] == 14 and kinds["total"] == 14,
+      f"minus_tax failed ONLY tax and total checks, all 14 of each ({dict(kinds)})")
+runs_failing = sum(1 for d in pby["minus_tax"] if d["failed"])
+claim(runs_failing == 3, f"minus_tax failed in 3 of 4 runs ({runs_failing})")
 
 # hard-task calibration: no task inside the pre-registered band
 import subprocess

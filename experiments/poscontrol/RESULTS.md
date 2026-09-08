@@ -22,7 +22,7 @@ wrong reason is no better than one that cannot move at all.
 
 | arm | predicted | observed |
 |---|---|---|
-| minus_tax | every tax and total check fails; subtotal and shipping unaffected | **only** tax (14) and total (14) checks failed |
+| minus_tax | every tax and total check fails; subtotal and shipping unaffected | **only** tax and total checks failed: all 14 of each, in 3 of 4 runs |
 | minus_coupon | the SAVE10 scenarios fail | SAVE10 non-stacking and SAVE10-beats-smaller-tier, 4/4 runs |
 | minus_tiers | discount/tax/total fail across tier scenarios | exactly those, on the tier scenarios |
 
