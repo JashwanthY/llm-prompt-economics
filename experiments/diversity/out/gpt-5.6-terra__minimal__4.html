@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Willow &amp; Pine — Shop Analytics</title>
+  <style>
+    :root { --ink:#17212b; --muted:#687582; --line:#e5e9ed; --paper:#fff; --canvas:#f5f7f8; --green:#187a62; --green-soft:#e7f5f0; --coral:#df6655; --blue:#4479c7; --navy:#263849; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .shell { max-width:1360px; margin:auto; padding:30px; }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:750; font-size:18px; letter-spacing:-.02em; }
+    .mark { width:34px; height:34px; display:grid; place-items:center; background:var(--green); color:#fff; border-radius:10px; font-size:18px; }
+    .period { color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-weight:600; }
+    h1 { margin:0 0 4px; font-size:27px; letter-spacing:-.04em; }
+    .sub { color:var(--muted); margin:0 0 22px; }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:19px; box-shadow:0 1px 2px #17212b08; }
+    .label { color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+    .metric { font-size:30px; font-weight:760; letter-spacing:-.045em; margin:8px 0 7px; }
+    .delta { color:var(--green); font-size:13px; font-weight:650; }
+    .delta.down { color:var(--coral); }
+    .detail { color:var(--muted); font-size:13px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(300px,.8fr); gap:16px; }
+    .panel { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:20px; box-shadow:0 1px 2px #17212b08; }
+    .panel h2 { font-size:16px; letter-spacing:-.02em; margin:0; }
+    .panel-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .legend { color:var(--muted); font-size:12px; display:flex; align-items:center; gap:6px; }
+    .legend i { display:inline-block; width:9px; height:9px; border-radius:99px; background:var(--blue); }
+    .chart-wrap { height:265px; position:relative; }
+    canvas { width:100%; height:100%; display:block; }
+    .chart-foot { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:5px; }
+    .side { display:grid; gap:16px; }
+    .products { list-style:none; padding:0; margin:0; }
+    .products li { display:grid; grid-template-columns:28px 1fr auto; gap:10px; align-items:center; padding:11px 0; border-top:1px solid var(--line); }
+    .products li:first-child { border-top:0; padding-top:0; }
+    .rank { color:var(--muted); font-weight:700; }
+    .product-name { font-weight:650; }
+    .units { color:var(--muted); font-size:12px; }
+    .activity { grid-column:1 / -1; }
+    .activity-list { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(4,1fr); }
+    .event { min-height:105px; padding:5px 18px 4px; border-left:1px solid var(--line); }
+    .event:first-child { border-left:0; padding-left:0; }
+    .event:nth-child(n+5) { border-top:1px solid var(--line); padding-top:15px; margin-top:9px; }
+    .event:nth-child(5) { border-left:0; padding-left:0; }
+    .event-head { display:flex; gap:8px; align-items:center; margin-bottom:7px; }
+    .dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--green); }
+    .refund .dot { background:var(--coral); } .review .dot { background:#df9e31; }
+    .event-type { font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.035em; }
+    .event p { margin:0; font-size:13px; color:#44515d; }
+    .time { color:var(--muted); font-size:12px; margin-top:6px; }
+    @media (max-width:850px) { .cards,.grid { grid-template-columns:1fr; } .activity-list { grid-template-columns:repeat(2,1fr); } .event:nth-child(odd) { border-left:0; padding-left:0; } .event:nth-child(n+3) { border-top:1px solid var(--line); padding-top:15px; margin-top:9px; } }
+    @media (max-width:520px) { .shell { padding:18px; } header { align-items:flex-start; } .period { font-size:12px; } .activity-list { grid-template-columns:1fr; } .event { border-left:0; padding-left:0; border-top:1px solid var(--line); padding-top:15px; margin-top:9px; } .event:first-child { border-top:0; padding-top:0; margin-top:0; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header><div class="brand"><span class="mark">✦</span> Willow &amp; Pine</div><div class="period">June 1–30, 2025 ▾</div></header>
+    <h1>Store overview</h1><p class="sub">Here’s how your shop is performing this month.</p>
+    <section class="cards" aria-label="Key metrics">
+      <article class="card"><div class="label">Total revenue</div><div class="metric">$24,860.42</div><div class="delta">↑ 12.8% <span class="detail">vs. $22,041.87 last month</span></div></article>
+      <article class="card"><div class="label">Orders this week</div><div class="metric">184</div><div class="delta">↑ 9.5% <span class="detail">vs. last week</span></div></article>
+      <article class="card"><div class="label">Average order value</div><div class="metric">$68.49</div><div class="delta down">↓ 2.1% <span class="detail">vs. last month</span></div></article>
+    </section>
+    <section class="grid">
+      <article class="panel">
+        <div class="panel-top"><h2>Revenue over time</h2><span class="legend"><i></i> Daily revenue</span></div>
+        <div class="chart-wrap"><canvas id="chart" aria-label="Line chart showing daily revenue for June 2025" role="img"></canvas></div>
+        <div class="chart-foot"><span>Jun 1</span><span>Jun 8</span><span>Jun 15</span><span>Jun 22</span><span>Jun 30</span></div>
+      </article>
+      <aside class="side">
+        <article class="panel"><div class="panel-top"><h2>Best-selling products</h2><span class="detail">This month</span></div><ol class="products">
+          <li><span class="rank">01</span><span class="product-name">Linen Market Tote</span><span class="units">248 units</span></li>
+          <li><span class="rank">02</span><span class="product-name">Stoneware Mug Set</span><span class="units">201 units</span></li>
+          <li><span class="rank">03</span><span class="product-name">Cedar Soy Candle</span><span class="units">184 units</span></li>
+          <li><span class="rank">04</span><span class="product-name">Waffle Throw Blanket</span><span class="units">139 units</span></li>
+          <li><span class="rank">05</span><span class="product-name">Brass Taper Holder</span><span class="units">116 units</span></li>
+        </ol></article>
+      </aside>
+      <article class="panel activity"><div class="panel-top"><h2>Recent activity</h2><span class="detail">Latest 8 events</span></div><ol class="activity-list">
+        <li class="event"><div class="event-head"><span class="dot"></span><span class="event-type">Order</span></div><p><strong>#WP-1842</strong> placed by Maya Chen — $86.00</p><div class="time">12 min ago</div></li>
+        <li class="event review"><div class="event-head"><span class="dot"></span><span class="event-type">Review</span></div><p>Elena Ruiz left a 5-star review for Cedar Soy Candle</p><div class="time">34 min ago</div></li>
+        <li class="event"><div class="event-head"><span class="dot"></span><span class="event-type">Order</span></div><p><strong>#WP-1841</strong> placed by Noah Williams — $142.50</p><div class="time">1 hr ago</div></li>
+        <li class="event refund"><div class="event-head"><span class="dot"></span><span class="event-type">Refund</span></div><p>$38.00 refunded for order <strong>#WP-1817</strong></p><div class="time">2 hrs ago</div></li>
+        <li class="event"><div class="event-head"><span class="dot"></span><span class="event-type">Order</span></div><p><strong>#WP-1840</strong> placed by James Okafor — $74.00</p><div class="time">3 hrs ago</div></li>
+        <li class="event review"><div class="event-head"><span class="dot"></span><span class="event-type">Review</span></div><p>Priya Shah left a 4-star review for Linen Market Tote</p><div class="time">4 hrs ago</div></li>
+        <li class="event"><div class="event-head"><span class="dot"></span><span class="event-type">Order</span></div><p><strong>#WP-1839</strong> placed by Claire Morgan — $112.00</p><div class="time">5 hrs ago</div></li>
+        <li class="event refund"><div class="event-head"><span class="dot"></span><span class="event-type">Refund</span></div><p>$24.00 refunded for order <strong>#WP-1809</strong></p><div class="time">6 hrs ago</div></li>
+      </ol></article>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const data = [510,625,590,720,685,810,760,845,790,915,880,760,950,1035,890,1100,980,925,1180,1085,1250,1195,1080,1320,1210,1390,1280,1460,1365,1580];
+      const canvas = document.getElementById('chart'), ctx = canvas.getContext('2d');
+      function draw() {
+        const rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+        const w = rect.width, h = rect.height, pad = {l:8,r:8,t:16,b:10}, max = 1800, min = 300;
+        const x = i => pad.l + i * (w-pad.l-pad.r)/(data.length-1);
+        const y = v => pad.t + (max-v)*(h-pad.t-pad.b)/(max-min);
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'; ctx.textAlign='right'; ctx.fillStyle='#8a96a1'; ctx.strokeStyle='#e8edf0'; ctx.lineWidth=1;
+        [600,1000,1400,1800].forEach(v => { const yy=y(v); ctx.beginPath(); ctx.moveTo(pad.l,yy); ctx.lineTo(w-pad.r,yy); ctx.stroke(); ctx.fillText('$'+(v/1000).toFixed(1)+'k',w-3,yy-5); });
+        const area=ctx.createLinearGradient(0,pad.t,0,h); area.addColorStop(0,'rgba(68,121,199,.22)'); area.addColorStop(1,'rgba(68,121,199,0)');
+        ctx.beginPath(); data.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.lineTo(x(data.length-1),h-pad.b); ctx.lineTo(x(0),h-pad.b); ctx.closePath(); ctx.fillStyle=area; ctx.fill();
+        ctx.beginPath(); data.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.strokeStyle='#4479c7'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+        const lx=x(data.length-1), ly=y(data[data.length-1]); ctx.beginPath(); ctx.arc(lx,ly,4.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#4479c7'; ctx.lineWidth=2.5; ctx.stroke();
+      }
+      draw(); addEventListener('resize', draw);
+    })();
+  </script>
+</body>
+</html>

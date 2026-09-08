@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juniper & Co. — Shop Analytics</title>
+<style>
+  :root { --ink:#19251f; --muted:#708078; --line:#e5eae5; --paper:#fbfcfa; --card:#fff; --mint:#d9f2df; --green:#23784a; --orange:#d86d35; --blue:#3c719b; --shadow:0 8px 24px rgba(27,48,36,.06); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .shell { max-width:1440px; margin:auto; padding:32px 42px 46px; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:34px; }
+  .brand { display:flex; align-items:center; gap:11px; font-weight:750; font-size:17px; letter-spacing:-.03em; }
+  .mark { display:grid; place-items:center; width:32px; height:32px; border-radius:10px; background:var(--green); color:#fff; font-family:Georgia,serif; font-size:20px; }
+  .period { border:1px solid var(--line); background:#fff; padding:9px 12px; border-radius:9px; color:#435148; font-weight:600; }
+  .eyebrow { color:var(--green); text-transform:uppercase; letter-spacing:.12em; font-size:11px; font-weight:750; margin:0 0 4px; }
+  h1 { margin:0; letter-spacing:-.045em; font-size:32px; line-height:1.15; }
+  .sub { color:var(--muted); margin:8px 0 24px; }
+  .stats { display:grid; grid-template-columns:1.35fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+  .stat { padding:20px; min-height:137px; }
+  .label { margin:0 0 12px; color:var(--muted); font-size:12px; font-weight:700; }
+  .value { font-size:30px; line-height:1; letter-spacing:-.05em; font-weight:760; }
+  .delta { display:inline-flex; align-items:center; margin-top:14px; padding:4px 8px; background:#e9f7ed; border-radius:99px; color:var(--green); font-size:12px; font-weight:700; }
+  .comparison { margin:7px 0 0; color:var(--muted); font-size:12px; }
+  .mini { margin-top:17px; height:7px; border-radius:5px; overflow:hidden; background:#edf1ed; }.mini i { display:block; height:100%; border-radius:5px; background:var(--green); }
+  .grid { display:grid; grid-template-columns:minmax(0,1.68fr) minmax(330px,1fr); gap:16px; }
+  .chart-card { padding:22px 22px 14px; min-height:390px; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  h2 { margin:0; font-size:16px; letter-spacing:-.025em; } .head p { margin:3px 0 0; color:var(--muted); font-size:12px; }
+  .legend { color:var(--muted); font-size:12px; white-space:nowrap; } .dot { display:inline-block; width:8px; height:8px; margin-right:5px; border-radius:50%; background:var(--green); }
+  svg { width:100%; height:292px; margin-top:18px; overflow:visible; } .gridline { stroke:#e8eee9; stroke-width:1; } .axis { fill:#849089; font-size:11px; } .area { fill:url(#fill); } .line { fill:none; stroke:var(--green); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; } .point { fill:#fff; stroke:var(--green); stroke-width:3; }
+  .side { display:grid; gap:16px; }
+  .products, .activity { padding:21px; }
+  .products h2, .activity h2 { margin-bottom:14px; }
+  .product { display:grid; grid-template-columns:30px 1fr auto; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--line); }.product:first-of-type { border-top:0; }
+  .rank { color:var(--muted); font-size:12px; font-weight:700; }.product strong { font-size:13px; }.product span { color:var(--muted); font-size:12px; }.units { color:var(--green)!important; font-weight:750; white-space:nowrap; }
+  .activity { margin-top:0; }.events { display:grid; gap:0; }.event { display:grid; grid-template-columns:29px 1fr auto; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--line); }.ico { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; font-weight:800; font-size:14px; }.order { background:#e6f5e9; color:var(--green); }.refund { background:#fff0e9; color:var(--orange); }.review { background:#eaf2f7; color:var(--blue); }.event b { display:block; font-size:12px; }.event small { color:var(--muted); font-size:11px; }.time { color:#95a099; font-size:11px; white-space:nowrap; }
+  @media (max-width:850px) { .shell{padding:24px 18px;} .stats,.grid{grid-template-columns:1fr;} .chart-card{min-height:350px;} header{margin-bottom:25px;} }
+  @media (max-width:480px) { h1{font-size:26px;} .stats{gap:10px;} .period{font-size:12px;} }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header><div class="brand"><span class="mark">J</span> Juniper &amp; Co.</div><div class="period">May 1–31, 2025 ▾</div></header>
+  <p class="eyebrow">Store overview</p><h1>Good morning, Maya.</h1><p class="sub">Here’s how your shop is performing this month.</p>
+  <section class="stats" aria-label="Key performance indicators">
+    <article class="card stat"><p class="label">Total revenue</p><div class="value">$24,680.42</div><span class="delta">↑ 12.8%</span><p class="comparison">vs. $21,876.14 last month</p></article>
+    <article class="card stat"><p class="label">Orders this week</p><div class="value">186</div><span class="delta">↑ 8.1%</span><p class="comparison">14 more than last week</p></article>
+    <article class="card stat"><p class="label">Average order value</p><div class="value">$68.94</div><div class="mini" aria-label="72 percent of monthly target"><i style="width:72%"></i></div><p class="comparison">72% of May target</p></article>
+  </section>
+  <section class="grid">
+    <article class="card chart-card">
+      <div class="head"><div><h2>Revenue over time</h2><p>Daily gross revenue, last 30 days</p></div><div class="legend"><span class="dot"></span>Revenue</div></div>
+      <svg viewBox="0 0 760 292" role="img" aria-label="Revenue line chart rising across the last 30 days">
+        <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5db77b" stop-opacity=".28"/><stop offset="1" stop-color="#5db77b" stop-opacity="0"/></linearGradient></defs>
+        <line class="gridline" x1="48" y1="30" x2="735" y2="30"/><line class="gridline" x1="48" y1="88" x2="735" y2="88"/><line class="gridline" x1="48" y1="146" x2="735" y2="146"/><line class="gridline" x1="48" y1="204" x2="735" y2="204"/>
+        <text class="axis" x="0" y="34">$1.4k</text><text class="axis" x="0" y="92">$1.0k</text><text class="axis" x="0" y="150">$600</text><text class="axis" x="0" y="208">$200</text>
+        <path class="area" d="M48 190 L72 179 L96 184 L120 160 L144 171 L168 145 L192 156 L216 133 L240 148 L264 126 L288 139 L312 112 L336 121 L360 102 L384 119 L408 93 L432 104 L456 82 L480 95 L504 70 L528 85 L552 61 L576 73 L600 53 L624 69 L648 43 L672 56 L696 35 L720 48 L735 39 L735 222 L48 222 Z"/>
+        <path class="line" d="M48 190 L72 179 L96 184 L120 160 L144 171 L168 145 L192 156 L216 133 L240 148 L264 126 L288 139 L312 112 L336 121 L360 102 L384 119 L408 93 L432 104 L456 82 L480 95 L504 70 L528 85 L552 61 L576 73 L600 53 L624 69 L648 43 L672 56 L696 35 L720 48 L735 39"/>
+        <circle class="point" cx="735" cy="39" r="5"/>
+        <text class="axis" x="48" y="250">May 2</text><text class="axis" x="207" y="250">May 9</text><text class="axis" x="369" y="250">May 16</text><text class="axis" x="529" y="250">May 23</text><text class="axis" x="690" y="250">May 30</text>
+      </svg>
+    </article>
+    <div class="side">
+      <article class="card products"><h2>Best-selling products</h2>
+        <div class="product"><span class="rank">01</span><div><strong>Ribbed Everyday Tee</strong><br><span>Apparel</span></div><span class="units">342 sold</span></div>
+        <div class="product"><span class="rank">02</span><div><strong>Canvas Market Tote</strong><br><span>Accessories</span></div><span class="units">289 sold</span></div>
+        <div class="product"><span class="rank">03</span><div><strong>Cloud Knit Cardigan</strong><br><span>Apparel</span></div><span class="units">214 sold</span></div>
+        <div class="product"><span class="rank">04</span><div><strong>Stoneware Mug Set</strong><br><span>Homeware</span></div><span class="units">196 sold</span></div>
+        <div class="product"><span class="rank">05</span><div><strong>Botanical Candle</strong><br><span>Homeware</span></div><span class="units">173 sold</span></div>
+      </article>
+      <article class="card activity"><h2>Recent activity</h2><div class="events">
+        <div class="event"><span class="ico order">+</span><div><b>Order #10482 placed</b><small>Olivia Mercer · $84.00</small></div><span class="time">2m</span></div>
+        <div class="event"><span class="ico review">★</span><div><b>New 5-star review</b><small>“Beautifully made and fast delivery.”</small></div><span class="time">18m</span></div>
+        <div class="event"><span class="ico order">+</span><div><b>Order #10481 placed</b><small>Samir Patel · $126.50</small></div><span class="time">42m</span></div>
+        <div class="event"><span class="ico refund">−</span><div><b>Refund issued</b><small>Order #10463 · $38.00</small></div><span class="time">1h</span></div>
+        <div class="event"><span class="ico order">+</span><div><b>Order #10480 placed</b><small>Nora Williams · $59.00</small></div><span class="time">2h</span></div>
+        <div class="event"><span class="ico review">★</span><div><b>New 4-star review</b><small>Canvas Market Tote</small></div><span class="time">3h</span></div>
+        <div class="event"><span class="ico order">+</span><div><b>Order #10479 placed</b><small>Daniel Kim · $72.00</small></div><span class="time">4h</span></div>
+        <div class="event"><span class="ico order">+</span><div><b>Order #10478 placed</b><small>Ella Brooks · $104.00</small></div><span class="time">5h</span></div>
+      </div></article>
+    </div>
+  </section>
+</main>
+</body>
+</html>

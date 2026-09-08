@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Analytics Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --border: #dfe4ea;
+      --text: #202b3c;
+      --muted: #667085;
+      --navy: #17365d;
+      --blue: #2f6fb3;
+      --blue-soft: #eaf2fb;
+      --green: #23844b;
+      --green-soft: #eaf7ef;
+      --red: #b54747;
+      --red-soft: #fceeee;
+      --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font: 14px/1.45 Arial, Helvetica, sans-serif;
+    }
+    .app { min-height: 100vh; }
+    .topbar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      color: #fff;
+      background: var(--navy);
+    }
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: .1px; }
+    .topbar-right { display: flex; align-items: center; gap: 20px; font-size: 13px; }
+    .store-label { color: #d8e3f0; }
+    .user { display: flex; align-items: center; gap: 9px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center; background: #d9e4f0; color: var(--navy);
+      font-weight: 700; font-size: 12px;
+    }
+    .layout { display: flex; min-height: calc(100vh - 64px); }
+    .sidebar {
+      width: 224px; flex: 0 0 224px; padding: 24px 14px;
+      background: #fff; border-right: 1px solid var(--border);
+    }
+    .nav-section { margin: 0 10px 9px; color: #8993a3; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+    .nav { list-style: none; padding: 0; margin: 0 0 27px; }
+    .nav li { margin: 3px 0; }
+    .nav a {
+      display: flex; align-items: center; gap: 11px; padding: 10px 11px;
+      border-radius: 4px; color: #4c596b; text-decoration: none;
+    }
+    .nav a.active { color: var(--navy); background: var(--blue-soft); font-weight: 700; }
+    .nav-icon { width: 17px; text-align: center; color: #738197; font-size: 15px; }
+    .nav a.active .nav-icon { color: var(--blue); }
+    main { width: 100%; max-width: 1440px; padding: 30px 34px 42px; margin: 0 auto; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    h1 { margin: 0 0 4px; font-size: 25px; line-height: 1.2; color: #182538; }
+    .subtitle { color: var(--muted); }
+    .date-control {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      color: #465467; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+      box-shadow: var(--shadow); font-size: 13px;
+    }
+    .calendar { color: var(--blue); font-size: 15px; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 22px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; box-shadow: var(--shadow); }
+    .metric { min-height: 133px; padding: 20px 21px; }
+    .metric-label { color: var(--muted); font-size: 13px; margin-bottom: 9px; }
+    .metric-value { color: #182538; font-size: 29px; line-height: 1; font-weight: 700; }
+    .metric-footer { display: flex; align-items: center; gap: 8px; margin-top: 15px; font-size: 12px; }
+    .change { font-weight: 700; }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .period { color: var(--muted); }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, .85fr); gap: 22px; align-items: start; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .panel-title { margin: 0; color: #263448; font-size: 16px; }
+    .panel-meta { color: var(--muted); font-size: 12px; }
+    .chart-wrap { padding: 18px 20px 15px; }
+    #revenueChart { display: block; width: 100%; height: 284px; }
+    .chart-legend { display: flex; align-items: center; gap: 7px; margin: 6px 0 0 47px; color: var(--muted); font-size: 12px; }
+    .legend-line { width: 17px; height: 3px; background: var(--blue); border-radius: 2px; }
+    .table-wrap { padding: 0 20px 9px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 4px; border-bottom: 1px solid #edf0f3; text-align: left; }
+    th { color: #788394; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    td { color: #344054; }
+    td:last-child, th:last-child { text-align: right; }
+    .rank { width: 32px; color: #8993a3; }
+    .product { font-weight: 600; color: #27364a; }
+    .units { color: #27364a; font-weight: 700; }
+    .activity { margin-top: 22px; }
+    .activity-list { list-style: none; margin: 0; padding: 3px 20px 5px; }
+    .activity-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid #edf0f3; }
+    .activity-item:last-child { border-bottom: 0; }
+    .event-icon { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; border-radius: 50%; font-weight: 700; font-size: 13px; }
+    .event-order { background: var(--blue-soft); color: var(--blue); }
+    .event-refund { background: var(--red-soft); color: var(--red); }
+    .event-review { background: #f3f1fb; color: #6656a6; }
+    .event-content { min-width: 0; flex: 1; }
+    .event-line { color: #344054; font-size: 13px; }
+    .event-line strong { color: #202b3c; }
+    .event-time { display: block; margin-top: 3px; color: #8993a3; font-size: 11px; }
+    @media (max-width: 1050px) {
+      .sidebar { width: 190px; flex-basis: 190px; }
+      main { padding-left: 24px; padding-right: 24px; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .topbar { padding: 0 17px; }
+      .store-label { display: none; }
+      .sidebar { display: none; }
+      main { padding: 22px 16px 30px; }
+      .page-heading { display: block; }
+      .date-control { margin-top: 16px; width: fit-content; }
+      .metrics { grid-template-columns: 1fr; gap: 12px; }
+      .metric { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">Northstar Goods</div>
+      <div class="topbar-right">
+        <span class="store-label">Online store</span>
+        <div class="user"><span class="avatar">JM</span><span>Jordan Miller</span></div>
+      </div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="nav-section">Overview</div>
+        <ul class="nav">
+          <li><a href="#" class="active"><span class="nav-icon">▦</span>Dashboard</a></li>
+          <li><a href="#"><span class="nav-icon">▣</span>Orders</a></li>
+          <li><a href="#"><span class="nav-icon">◫</span>Products</a></li>
+          <li><a href="#"><span class="nav-icon">▤</span>Customers</a></li>
+        </ul>
+        <div class="nav-section">Management</div>
+        <ul class="nav">
+          <li><a href="#"><span class="nav-icon">◒</span>Reports</a></li>
+          <li><a href="#"><span class="nav-icon">⚙</span>Settings</a></li>
+        </ul>
+      </aside>
+      <main>
+        <div class="page-heading">
+          <div>
+            <h1>Dashboard</h1>
+            <div class="subtitle">A summary of your store performance</div>
+          </div>
+          <div class="date-control"><span class="calendar">▣</span><span>May 1–31, 2025</span><span>⌄</span></div>
+        </div>
+
+        <section class="metrics" aria-label="Key performance indicators">
+          <article class="card metric">
+            <div class="metric-label">Total revenue</div>
+            <div class="metric-value">$48,296.40</div>
+            <div class="metric-footer"><span class="change positive">↑ 12.8%</span><span class="period">vs. last month</span></div>
+          </article>
+          <article class="card metric">
+            <div class="metric-label">Orders this week</div>
+            <div class="metric-value">186</div>
+            <div class="metric-footer"><span class="change positive">↑ 8.1%</span><span class="period">vs. last week</span></div>
+          </article>
+          <article class="card metric">
+            <div class="metric-label">Average order value</div>
+            <div class="metric-value">$74.18</div>
+            <div class="metric-footer"><span class="change positive">↑ 4.6%</span><span class="period">vs. last month</span></div>
+          </article>
+        </section>
+
+        <div class="content-grid">
+          <section class="card">
+            <div class="panel-header"><h2 class="panel-title">Revenue over time</h2><span class="panel-meta">Last 30 days</span></div>
+            <div class="chart-wrap">
+              <canvas id="revenueChart" aria-label="Line chart showing revenue over the last 30 days" role="img"></canvas>
+              <div class="chart-legend"><span class="legend-line"></span><span>Daily revenue</span></div>
+            </div>
+          </section>
+          <section class="card">
+            <div class="panel-header"><h2 class="panel-title">Best-selling products</h2><span class="panel-meta">Units sold</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="rank">#</th><th>Product</th><th>Units</th></tr></thead>
+                <tbody>
+                  <tr><td class="rank">1</td><td class="product">Everyday Canvas Tote</td><td class="units">412</td></tr>
+                  <tr><td class="rank">2</td><td class="product">Ceramic Travel Mug</td><td class="units">327</td></tr>
+                  <tr><td class="rank">3</td><td class="product">Linen Market Shirt</td><td class="units">284</td></tr>
+                  <tr><td class="rank">4</td><td class="product">Oak Desk Organizer</td><td class="units">219</td></tr>
+                  <tr><td class="rank">5</td><td class="product">Wool Blend Throw</td><td class="units">176</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <section class="card activity">
+          <div class="panel-header"><h2 class="panel-title">Recent activity</h2><span class="panel-meta">Latest updates</span></div>
+          <ul class="activity-list">
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-content"><div class="event-line"><strong>New order #NS-2481</strong> from Avery Chen <strong>$86.00</strong></div><span class="event-time">Today, 10:42 AM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-review">★</span><div class="event-content"><div class="event-line"><strong>New 5-star review</strong> for Everyday Canvas Tote</div><span class="event-time">Today, 9:18 AM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-content"><div class="event-line"><strong>New order #NS-2480</strong> from Mateo Rivera <strong>$142.50</strong></div><span class="event-time">Today, 8:56 AM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-refund">↩</span><div class="event-content"><div class="event-line"><strong>Refund issued</strong> for order #NS-2471 <strong>−$39.00</strong></div><span class="event-time">Yesterday, 4:27 PM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-content"><div class="event-line"><strong>New order #NS-2479</strong> from Priya Shah <strong>$68.25</strong></div><span class="event-time">Yesterday, 2:04 PM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-review">★</span><div class="event-content"><div class="event-line"><strong>New 4-star review</strong> for Ceramic Travel Mug</div><span class="event-time">Yesterday, 11:33 AM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-content"><div class="event-line"><strong>New order #NS-2478</strong> from Lucas Martin <strong>$211.00</strong></div><span class="event-time">May 29, 6:45 PM</span></div></li>
+            <li class="activity-item"><span class="event-icon event-refund">↩</span><div class="event-content"><div class="event-line"><strong>Refund issued</strong> for order #NS-2462 <strong>−$24.50</strong></div><span class="event-time">May 29, 3:12 PM</span></div></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const canvas = document.getElementById('revenueChart');
+      const ctx = canvas.getContext('2d');
+      const data = [1120, 1380, 1260, 1495, 1580, 1710, 1450, 1325, 1610, 1755, 1680, 1835, 1940, 1760, 1885, 2010, 2145, 1975, 2240, 2180, 2315, 2460, 2285, 2520, 2680, 2575, 2810, 2640, 2925, 3060];
+      const labels = ['May 2', 'May 7', 'May 12', 'May 17', 'May 22', 'May 27', 'May 31'];
+      function draw() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const w = rect.width, h = rect.height;
+        const left = 48, right = 12, top = 15, bottom = 34;
+        const plotW = w - left - right, plotH = h - top - bottom;
+        const max = 3500, grid = [0, 1000, 2000, 3000];
+        ctx.clearRect(0, 0, w, h);
+        ctx.font = '11px Arial, sans-serif';
+        ctx.textBaseline = 'middle';
+        grid.forEach(function (value) {
+          const y = top + plotH - (value / max) * plotH;
+          ctx.strokeStyle = '#e9edf2'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(left, y + .5); ctx.lineTo(w - right, y + .5); ctx.stroke();
+          ctx.fillStyle = '#8993a3'; ctx.textAlign = 'right'; ctx.fillText(value === 0 ? '$0' : '$' + (value / 1000) + 'k', left - 10, y);
+        });
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        labels.forEach(function (label, i) {
+          const x = left + (i / (labels.length - 1)) * plotW;
+          ctx.fillStyle = '#8993a3'; ctx.fillText(label, x, h - 22);
+        });
+        const points = data.map(function (value, i) {
+          return { x: left + (i / (data.length - 1)) * plotW, y: top + plotH - (value / max) * plotH };
+        });
+        ctx.beginPath(); ctx.moveTo(points[0].x, top + plotH);
+        points.forEach(function (p) { ctx.lineTo(p.x, p.y); });
+        ctx.lineTo(points[points.length - 1].x, top + plotH); ctx.closePath();
+        ctx.fillStyle = 'rgba(47, 111, 179, .10)'; ctx.fill();
+        ctx.beginPath(); points.forEach(function (p, i) { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+        ctx.strokeStyle = '#2f6fb3'; ctx.lineWidth = 2.25; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+        points.forEach(function (p) { ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#2f6fb3'; ctx.lineWidth = 1.5; ctx.stroke(); });
+      }
+      window.addEventListener('resize', draw);
+      draw();
+    }());
+  </script>
+</body>
+</html>

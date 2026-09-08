@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Northstar Shop — Analytics</title>
+  <style>
+    :root {
+      --color-ink: #172033;
+      --color-muted: #64708a;
+      --color-subtle: #8c98ae;
+      --color-line: #e8edf4;
+      --color-panel: #ffffff;
+      --color-background: #f5f7fb;
+      --color-brand: #4d48d8;
+      --color-brand-dark: #3935ab;
+      --color-brand-soft: #eeedff;
+      --color-green: #147a55;
+      --color-green-soft: #e5f7ef;
+      --color-orange: #a85b05;
+      --color-orange-soft: #fff2df;
+      --color-red: #b3314b;
+      --color-red-soft: #ffebef;
+      --shadow-panel: 0 8px 24px rgba(27, 40, 75, 0.05);
+      --radius-panel: 1rem;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: 100%; }
+    body {
+      margin: 0;
+      background: var(--color-background);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid #ffb545; outline-offset: 3px; }
+
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 15.75rem 1fr; }
+    .sidebar {
+      display: flex; flex-direction: column; gap: var(--space-8);
+      min-height: 100vh; padding: var(--space-6) var(--space-4);
+      background: #202643; color: #dce2f2;
+    }
+    .brand { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-2); }
+    .brand__mark {
+      display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+      border-radius: 0.7rem; background: #726cf2; color: #fff; font-weight: 800; letter-spacing: -0.05em;
+    }
+    .brand__name { font-size: 1.05rem; font-weight: 750; color: #fff; }
+    .brand__label { display: block; color: #9ea9c4; font-size: 0.7rem; font-weight: 600; margin-top: -0.15rem; }
+    .nav-list { display: grid; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+    .nav-list__link {
+      display: flex; align-items: center; gap: var(--space-3); min-height: 2.75rem;
+      padding: 0 var(--space-3); border-radius: 0.65rem; color: #aeb8d0; text-decoration: none; font-size: 0.88rem; font-weight: 650;
+    }
+    .nav-list__link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-list__link[aria-current="page"] { background: #4b4894; color: #fff; }
+    .nav-list__icon { width: 1.2rem; text-align: center; font-size: 1rem; }
+    .sidebar__footer { margin-top: auto; padding: var(--space-4) var(--space-2) 0; border-top: 1px solid rgba(255,255,255,0.1); color: #9ea9c4; font-size: 0.76rem; }
+    .sidebar__footer strong { display: block; color: #e8ecf6; font-size: 0.82rem; margin-bottom: var(--space-1); }
+
+    .main { min-width: 0; padding: var(--space-8) clamp(1.25rem, 3vw, 3rem); }
+    .main__header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-8); }
+    .eyebrow { color: var(--color-brand); text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.68rem; font-weight: 800; margin: 0 0 var(--space-2); }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: var(--space-2); font-size: clamp(1.7rem, 3vw, 2.15rem); line-height: 1.15; letter-spacing: -0.04em; }
+    .main__subtitle { margin-bottom: 0; color: var(--color-muted); font-size: 0.9rem; }
+    .header-actions { display: flex; align-items: center; gap: var(--space-3); }
+    .select-control { display: grid; gap: var(--space-1); }
+    .select-control label { color: var(--color-muted); font-size: 0.68rem; font-weight: 700; }
+    .select-control select { min-width: 8rem; padding: 0.55rem 2rem 0.55rem 0.75rem; border: 1px solid var(--color-line); border-radius: 0.6rem; color: var(--color-ink); background: #fff; }
+    .button { border: 0; border-radius: 0.6rem; padding: 0.63rem 0.9rem; color: #fff; background: var(--color-brand); cursor: pointer; font-size: 0.82rem; font-weight: 750; }
+    .button:hover { background: var(--color-brand-dark); }
+    .button--light { color: var(--color-brand-dark); background: var(--color-brand-soft); }
+    .button--light:hover { background: #dfdefe; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-bottom: var(--space-4); }
+    .metric-card, .panel { background: var(--color-panel); border: 1px solid var(--color-line); border-radius: var(--radius-panel); box-shadow: var(--shadow-panel); }
+    .metric-card { padding: var(--space-5); }
+    .metric-card--feature { grid-column: span 2; background: linear-gradient(135deg, #504bd6, #35318f); color: #fff; border-color: transparent; }
+    .metric-card__label { display: flex; justify-content: space-between; align-items: center; color: var(--color-muted); font-size: 0.78rem; font-weight: 700; }
+    .metric-card--feature .metric-card__label { color: #dcdbff; }
+    .metric-card__value { display: block; margin: var(--space-3) 0 var(--space-2); font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1; letter-spacing: -0.05em; }
+    .metric-card__detail { margin: 0; color: var(--color-muted); font-size: 0.76rem; }
+    .metric-card--feature .metric-card__detail { color: #dcdbff; }
+    .trend { display: inline-flex; align-items: center; gap: var(--space-1); border-radius: 999px; padding: 0.22rem 0.5rem; color: var(--color-green); background: var(--color-green-soft); font-size: 0.7rem; font-weight: 800; }
+    .trend--light { color: #d9ffed; background: rgba(255,255,255,0.14); }
+    .metric-card__icon { color: var(--color-subtle); font-size: 1.1rem; }
+
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.95fr); gap: var(--space-4); }
+    .panel { padding: var(--space-5); min-width: 0; }
+    .panel__header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); margin-bottom: var(--space-5); }
+    .panel__heading { margin: 0; font-size: 1rem; letter-spacing: -0.015em; }
+    .panel__description { margin: var(--space-1) 0 0; color: var(--color-muted); font-size: 0.76rem; }
+    .panel__link { color: var(--color-brand-dark); font-size: 0.76rem; font-weight: 750; text-decoration: none; white-space: nowrap; }
+    .panel__link:hover { text-decoration: underline; }
+    .chart-wrap { position: relative; height: 15.5rem; }
+    .chart-wrap canvas { display: block; width: 100%; height: 100%; }
+    .chart-caption { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-3); color: var(--color-subtle); font-size: 0.68rem; }
+    .legend { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-muted); font-weight: 650; }
+    .legend__swatch { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--color-brand); }
+
+    .product-list, .activity-list { list-style: none; padding: 0; margin: 0; }
+    .product-list { display: grid; gap: var(--space-4); }
+    .product-list__item { display: grid; grid-template-columns: 2.15rem 1fr auto; align-items: center; gap: var(--space-3); }
+    .product-list__rank { display: grid; place-items: center; width: 2.15rem; height: 2.15rem; border-radius: 0.6rem; color: var(--color-brand-dark); background: var(--color-brand-soft); font-size: 0.78rem; font-weight: 800; }
+    .product-list__name { margin: 0; font-size: 0.8rem; font-weight: 750; }
+    .product-list__meta { margin: 0.12rem 0 0; color: var(--color-muted); font-size: 0.7rem; }
+    .product-list__units { text-align: right; font-size: 0.8rem; font-weight: 800; }
+    .product-list__units span { display: block; color: var(--color-muted); font-size: 0.68rem; font-weight: 500; }
+
+    .activity-panel { grid-column: 1 / -1; }
+    .activity-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-8); }
+    .activity-list__item { display: grid; grid-template-columns: 2.25rem 1fr auto; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-line); }
+    .activity-list__item:nth-last-child(-n+2) { border-bottom: 0; }
+    .activity-list__icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 0.65rem; font-size: 0.95rem; }
+    .activity-list__icon--order { color: var(--color-brand-dark); background: var(--color-brand-soft); }
+    .activity-list__icon--refund { color: var(--color-red); background: var(--color-red-soft); }
+    .activity-list__icon--review { color: var(--color-orange); background: var(--color-orange-soft); }
+    .activity-list__title { margin: 0; font-size: 0.78rem; font-weight: 750; }
+    .activity-list__detail { margin: 0.12rem 0 0; color: var(--color-muted); font-size: 0.7rem; }
+    .activity-list__time { color: var(--color-subtle); font-size: 0.68rem; white-space: nowrap; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .toast { position: fixed; right: var(--space-5); bottom: var(--space-5); max-width: 20rem; padding: var(--space-3) var(--space-4); border-radius: 0.65rem; color: #fff; background: #222a45; box-shadow: var(--shadow-panel); opacity: 0; transform: translateY(0.5rem); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; font-size: 0.8rem; }
+    .toast--visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 62rem) {
+      .app-shell { grid-template-columns: 4.5rem 1fr; }
+      .sidebar { align-items: center; padding-inline: var(--space-2); }
+      .brand { padding: 0; }
+      .brand__text, .nav-list__label, .sidebar__footer { display: none; }
+      .nav-list__link { justify-content: center; width: 2.75rem; padding: 0; }
+      .content-grid { grid-template-columns: 1fr; }
+      .activity-panel { grid-column: auto; }
+    }
+    @media (max-width: 38rem) {
+      .main { padding: var(--space-6) var(--space-4); }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .metric-card--feature { grid-column: auto; }
+      .main__header { margin-bottom: var(--space-6); }
+      .header-actions { width: 100%; }
+      .header-actions .select-control { flex: 1; }
+      .header-actions select { width: 100%; min-width: 0; }
+      .activity-list { grid-template-columns: 1fr; }
+      .activity-list__item:nth-last-child(-n+2) { border-bottom: 1px solid var(--color-line); }
+      .activity-list__item:last-child { border-bottom: 0; }
+      .panel { padding: var(--space-4); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#overview" aria-label="Northstar Shop home">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span class="brand__text"><span class="brand__name">Northstar</span><span class="brand__label">SHOP ADMIN</span></span>
+      </a>
+      <nav aria-label="Main menu">
+        <ul class="nav-list">
+          <li><a class="nav-list__link" href="#overview" aria-current="page"><span class="nav-list__icon" aria-hidden="true">⌂</span><span class="nav-list__label">Overview</span></a></li>
+          <li><a class="nav-list__link" href="#orders"><span class="nav-list__icon" aria-hidden="true">▤</span><span class="nav-list__label">Orders</span></a></li>
+          <li><a class="nav-list__link" href="#products"><span class="nav-list__icon" aria-hidden="true">◇</span><span class="nav-list__label">Products</span></a></li>
+          <li><a class="nav-list__link" href="#customers"><span class="nav-list__icon" aria-hidden="true">♙</span><span class="nav-list__label">Customers</span></a></li>
+          <li><a class="nav-list__link" href="#reports"><span class="nav-list__icon" aria-hidden="true">↗</span><span class="nav-list__label">Reports</span></a></li>
+        </ul>
+      </nav>
+      <div class="sidebar__footer"><strong>Store status</strong>All systems operational</div>
+    </aside>
+
+    <main class="main" id="overview">
+      <header class="main__header">
+        <div>
+          <p class="eyebrow">Tuesday, October 24, 2023</p>
+          <h1>Good morning, Maya</h1>
+          <p class="main__subtitle">Here’s what’s happening with your shop this month.</p>
+        </div>
+        <div class="header-actions">
+          <div class="select-control">
+            <label for="date-range">Reporting period</label>
+            <select id="date-range" name="date-range">
+              <option value="month" selected>This month</option>
+              <option value="quarter">This quarter</option>
+              <option value="year">This year</option>
+            </select>
+          </div>
+          <button class="button button--light" type="button" id="export-button">Export report</button>
+        </div>
+      </header>
+
+      <section class="metrics-grid" aria-labelledby="performance-heading">
+        <h2 class="sr-only" id="performance-heading">Performance summary</h2>
+        <article class="metric-card metric-card--feature">
+          <div class="metric-card__label"><span>Total revenue</span><span class="metric-card__icon" aria-hidden="true">◒</span></div>
+          <strong class="metric-card__value">$24,680.00</strong>
+          <p class="metric-card__detail"><span class="trend trend--light"><span aria-hidden="true">↑</span> 18.4%</span> compared with $20,845 last month</p>
+        </article>
+        <article class="metric-card">
+          <div class="metric-card__label"><span>Orders this week</span><span class="metric-card__icon" aria-hidden="true">▤</span></div>
+          <strong class="metric-card__value">186</strong>
+          <p class="metric-card__detail"><span class="trend"><span aria-hidden="true">↑</span> 12.6%</span> <span class="sr-only">increase</span> from last week</p>
+        </article>
+        <article class="metric-card">
+          <div class="metric-card__label"><span>Average order value</span><span class="metric-card__icon" aria-hidden="true">◈</span></div>
+          <strong class="metric-card__value">$132.69</strong>
+          <p class="metric-card__detail"><span class="trend"><span aria-hidden="true">↑</span> 4.1%</span> <span class="sr-only">increase</span> from last month</p>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel" aria-labelledby="revenue-heading">
+          <header class="panel__header">
+            <div><h2 class="panel__heading" id="revenue-heading">Revenue over time</h2><p class="panel__description">Daily revenue for the last 30 days</p></div>
+            <span class="legend"><span class="legend__swatch" aria-hidden="true"></span>Revenue</span>
+          </header>
+          <figure class="chart-wrap" aria-labelledby="revenue-heading revenue-caption">
+            <canvas id="revenue-chart" role="img" aria-label="Line chart showing daily revenue rising from 540 dollars to 1,280 dollars over the last 30 days"></canvas>
+            <figcaption class="sr-only" id="revenue-caption">Revenue peaked at 1,420 dollars on October 20 and finished at 1,280 dollars on October 24.</figcaption>
+          </figure>
+          <div class="chart-caption" aria-hidden="true"><span>Sep 25</span><span>Oct 9</span><span>Oct 24</span></div>
+        </section>
+
+        <section class="panel" id="products" aria-labelledby="products-heading">
+          <header class="panel__header"><div><h2 class="panel__heading" id="products-heading">Top products</h2><p class="panel__description">Best sellers this month</p></div><a class="panel__link" href="#products">View all</a></header>
+          <ol class="product-list">
+            <li class="product-list__item"><span class="product-list__rank">01</span><div><p class="product-list__name">Luna Ceramic Mug</p><p class="product-list__meta">Home &amp; living</p></div><div class="product-list__units">486<span>units</span></div></li>
+            <li class="product-list__item"><span class="product-list__rank">02</span><div><p class="product-list__name">Everyday Tote</p><p class="product-list__meta">Bags &amp; accessories</p></div><div class="product-list__units">354<span>units</span></div></li>
+            <li class="product-list__item"><span class="product-list__rank">03</span><div><p class="product-list__name">Cloud Knit Throw</p><p class="product-list__meta">Home &amp; living</p></div><div class="product-list__units">291<span>units</span></div></li>
+            <li class="product-list__item"><span class="product-list__rank">04</span><div><p class="product-list__name">Field Notes Set</p><p class="product-list__meta">Stationery</p></div><div class="product-list__units">244<span>units</span></div></li>
+            <li class="product-list__item"><span class="product-list__rank">05</span><div><p class="product-list__name">Meridian Candle</p><p class="product-list__meta">Home &amp; living</p></div><div class="product-list__units">198<span>units</span></div></li>
+          </ol>
+        </section>
+
+        <section class="panel activity-panel" id="orders" aria-labelledby="activity-heading">
+          <header class="panel__header"><div><h2 class="panel__heading" id="activity-heading">Recent activity</h2><p class="panel__description">The latest updates from your shop</p></div><a class="panel__link" href="#orders">View all activity</a></header>
+          <ul class="activity-list">
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--order" aria-hidden="true">＋</span><div><p class="activity-list__title">New order <span class="sr-only">from</span> #NS-1048</p><p class="activity-list__detail">Luna Ceramic Mug · $84.00</p></div><time class="activity-list__time" datetime="2023-10-24T10:42">12 min ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--review" aria-hidden="true">★</span><div><p class="activity-list__title">New 5-star review</p><p class="activity-list__detail">“Beautiful and practical.” · Alex R.</p></div><time class="activity-list__time" datetime="2023-10-24T10:16">38 min ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--order" aria-hidden="true">＋</span><div><p class="activity-list__title">New order <span class="sr-only">from</span> #NS-1047</p><p class="activity-list__detail">Everyday Tote · $48.00</p></div><time class="activity-list__time" datetime="2023-10-24T09:30">1 hr ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--refund" aria-hidden="true">↶</span><div><p class="activity-list__title">Refund processed <span class="sr-only">for</span> #NS-1039</p><p class="activity-list__detail">Cloud Knit Throw · −$76.00</p></div><time class="activity-list__time" datetime="2023-10-24T08:58">2 hrs ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--order" aria-hidden="true">＋</span><div><p class="activity-list__title">New order <span class="sr-only">from</span> #NS-1046</p><p class="activity-list__detail">Field Notes Set · $32.00</p></div><time class="activity-list__time" datetime="2023-10-24T08:20">2 hrs ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--review" aria-hidden="true">★</span><div><p class="activity-list__title">New 4-star review</p><p class="activity-list__detail">“Great gift packaging.” · Priya S.</p></div><time class="activity-list__time" datetime="2023-10-24T07:45">3 hrs ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--order" aria-hidden="true">＋</span><div><p class="activity-list__title">New order <span class="sr-only">from</span> #NS-1045</p><p class="activity-list__detail">Meridian Candle · $28.00</p></div><time class="activity-list__time" datetime="2023-10-24T06:55">4 hrs ago</time></li>
+            <li class="activity-list__item"><span class="activity-list__icon activity-list__icon--refund" aria-hidden="true">↶</span><div><p class="activity-list__title">Refund processed <span class="sr-only">for</span> #NS-1031</p><p class="activity-list__detail">Everyday Tote · −$48.00</p></div><time class="activity-list__time" datetime="2023-10-24T06:20">5 hrs ago</time></li>
+          </ul>
+        </section>
+      </div>
+      <footer class="sr-only">Northstar Shop analytics dashboard</footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const CHART_DATA = [540, 610, 575, 690, 640, 735, 780, 720, 850, 805, 920, 880, 940, 865, 1010, 980, 1060, 995, 1125, 1080, 1420, 1180, 1260, 1150, 1310, 1235, 1380, 1210, 1295, 1280];
+      const CHART_PADDING = { top: 16, right: 14, bottom: 22, left: 42 };
+      const COLORS = { grid: '#e8edf4', label: '#8c98ae', line: '#4d48d8', fill: 'rgba(77, 72, 216, 0.12)', point: '#ffffff' };
+      const chart = document.getElementById('revenue-chart');
+      const toast = document.getElementById('toast');
+      const exportButton = document.getElementById('export-button');
+      const dateRange = document.getElementById('date-range');
+      let toastTimeout;
+
+      const formatCurrency = (value) => `$${value.toLocaleString('en-US')}`;
+      const getChartDimensions = () => ({ width: chart.clientWidth, height: chart.clientHeight });
+      const getScale = (data) => {
+        const minimum = 0;
+        const maximum = Math.ceil(Math.max(...data) / 500) * 500;
+        return { minimum, maximum };
+      };
+      const drawChart = () => {
+        if (!chart) return;
+        const dimensions = getChartDimensions();
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        chart.width = dimensions.width * devicePixelRatio;
+        chart.height = dimensions.height * devicePixelRatio;
+        const context = chart.getContext('2d');
+        if (!context || dimensions.width === 0 || dimensions.height === 0) return;
+        context.scale(devicePixelRatio, devicePixelRatio);
+        const { width, height } = dimensions;
+        const plotWidth = width - CHART_PADDING.left - CHART_PADDING.right;
+        const plotHeight = height - CHART_PADDING.top - CHART_PADDING.bottom;
+        const scale = getScale(CHART_DATA);
+        const pointAt = (index) => ({
+          x: CHART_PADDING.left + (index / (CHART_DATA.length - 1)) * plotWidth,
+          y: CHART_PADDING.top + plotHeight - ((CHART_DATA[index] - scale.minimum) / (scale.maximum - scale.minimum)) * plotHeight
+        });
+
+        context.clearRect(0, 0, width, height);
+        context.font = '10px system-ui, sans-serif';
+        context.textBaseline = 'middle';
+        context.strokeStyle = COLORS.grid;
+        context.fillStyle = COLORS.label;
+        context.lineWidth = 1;
+        const gridSteps = 4;
+        for (let step = 0; step <= gridSteps; step += 1) {
+          const y = CHART_PADDING.top + (plotHeight / gridSteps) * step;
+          const value = scale.maximum - (scale.maximum / gridSteps) * step;
+          context.beginPath();
+          context.moveTo(CHART_PADDING.left, y + 0.5);
+          context.lineTo(width - CHART_PADDING.right, y + 0.5);
+          context.stroke();
+          context.textAlign = 'right';
+          context.fillText(formatCurrency(value), CHART_PADDING.left - 9, y);
+        }
+
+        const points = CHART_DATA.map((_, index) => pointAt(index));
+        context.beginPath();
+        context.moveTo(points[0].x, height - CHART_PADDING.bottom);
+        points.forEach((point) => context.lineTo(point.x, point.y));
+        context.lineTo(points[points.length - 1].x, height - CHART_PADDING.bottom);
+        context.closePath();
+        context.fillStyle = COLORS.fill;
+        context.fill();
+        context.beginPath();
+        points.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y));
+        context.strokeStyle = COLORS.line;
+        context.lineWidth = 2.5;
+        context.lineJoin = 'round';
+        context.stroke();
+        points.forEach((point, index) => {
+          if (index % 5 !== 0 && index !== points.length - 1) return;
+          context.beginPath();
+          context.arc(point.x, point.y, 3.5, 0, Math.PI * 2);
+          context.fillStyle = COLORS.point;
+          context.fill();
+          context.strokeStyle = COLORS.line;
+          context.lineWidth = 2;
+          context.stroke();
+        });
+      };
+      const showToast = (message) => {
+        if (!toast) return;
+        window.clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.classList.add('toast--visible');
+        toastTimeout = window.setTimeout(() => toast.classList.remove('toast--visible'), 3000);
+      };
+
+      if (exportButton) exportButton.addEventListener('click', () => showToast('Report prepared — your download will begin shortly.'));
+      if (dateRange) dateRange.addEventListener('change', (event) => showToast(`Showing ${event.target.options[event.target.selectedIndex].text.toLowerCase()} data.`));
+      window.addEventListener('resize', drawChart, { passive: true });
+      window.requestAnimationFrame(drawChart);
+    })();
+  </script>
+</body>
+</html>

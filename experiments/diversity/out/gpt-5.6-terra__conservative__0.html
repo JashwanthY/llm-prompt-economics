@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shopline monthly sales analytics dashboard">
+  <title>Shopline Analytics</title>
+  <style>
+    :root {
+      --page: #f5f7f9;
+      --surface: #ffffff;
+      --border: #dfe3e8;
+      --text: #1f2933;
+      --muted: #667085;
+      --subtle: #f8fafc;
+      --blue: #2563a7;
+      --blue-light: #dbeafe;
+      --green: #19754b;
+      --green-light: #e7f5ed;
+      --red: #b42318;
+      --red-light: #fef0ef;
+      --amber: #9a6700;
+      --amber-light: #fff7e0;
+      --nav: #202b38;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .app { min-height: 100vh; }
+    .topbar {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      background: var(--nav);
+      color: #fff;
+      border-bottom: 1px solid #17212c;
+    }
+    .brand { font-size: 18px; font-weight: 700; letter-spacing: .1px; }
+    .brand span { color: #b9d7f4; }
+    .topbar-meta { color: #c9d1da; font-size: 13px; }
+    main { max-width: 1440px; margin: 0 auto; padding: 28px 30px 36px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    h1 { margin: 0 0 4px; font-size: 24px; line-height: 1.25; font-weight: 700; }
+    .page-heading p { margin: 0; color: var(--muted); }
+    .period {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: #344054;
+      font-size: 13px;
+    }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; }
+    .metric { padding: 19px 20px; min-height: 128px; }
+    .card-label { color: var(--muted); font-size: 13px; font-weight: 600; }
+    .metric-value { margin: 8px 0 7px; font-size: 28px; line-height: 1.1; font-weight: 700; letter-spacing: -.3px; }
+    .metric-detail { color: var(--muted); font-size: 13px; }
+    .positive { color: var(--green); font-weight: 700; }
+    .main-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(330px, .95fr); gap: 18px; margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px 13px; border-bottom: 1px solid var(--border); }
+    .card-title { margin: 0; font-size: 16px; font-weight: 700; }
+    .card-note { color: var(--muted); font-size: 12px; }
+    .chart-wrap { padding: 16px 20px 12px; }
+    .chart { display: block; width: 100%; height: 270px; }
+    .chart text { font-family: Arial, Helvetica, sans-serif; fill: #667085; font-size: 11px; }
+    .chart .grid { stroke: #e6eaf0; stroke-width: 1; }
+    .chart .axis { stroke: #cfd6df; stroke-width: 1; }
+    .chart .area { fill: #e2eef9; }
+    .chart .line { fill: none; stroke: var(--blue); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .chart .dot { fill: var(--surface); stroke: var(--blue); stroke-width: 2; }
+    .chart .label-strong { fill: #344054; font-weight: 700; }
+    .table-wrap { padding: 3px 20px 15px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px 0 9px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .35px; text-align: left; text-transform: uppercase; }
+    th:not(:first-child), td:not(:first-child) { text-align: right; }
+    td { padding: 13px 0; border-bottom: 1px solid #edf0f3; color: #344054; }
+    tbody tr:last-child td { border-bottom: none; }
+    .product { color: var(--text); font-weight: 600; }
+    .activity-list { list-style: none; padding: 4px 20px 9px; margin: 0; }
+    .activity { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; padding: 12px 0; border-bottom: 1px solid #edf0f3; }
+    .activity:last-child { border-bottom: 0; }
+    .activity-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .order { background: var(--blue-light); color: var(--blue); }
+    .refund { background: var(--red-light); color: var(--red); }
+    .review { background: var(--amber-light); color: var(--amber); }
+    .activity-main { min-width: 0; }
+    .activity-title { margin: 0; color: #344054; font-size: 13px; }
+    .activity-title strong { color: var(--text); }
+    .activity-time { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .bottom-card { overflow: hidden; }
+    .summary-row { display: grid; grid-template-columns: 1.2fr .8fr .8fr .8fr; padding: 14px 20px; color: var(--muted); font-size: 13px; }
+    .summary-row strong { color: var(--text); font-size: 15px; }
+    .summary-row div:not(:first-child) { text-align: right; }
+    .status { display: inline-block; padding: 2px 7px; border-radius: 10px; background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 700; }
+    @media (max-width: 850px) {
+      main { padding: 20px 16px 28px; }
+      .topbar { padding: 0 16px; }
+      .metrics, .main-grid { grid-template-columns: 1fr; }
+      .page-heading { gap: 12px; }
+      .summary-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .summary-row div:nth-child(even) { text-align: right; }
+    }
+    @media (max-width: 520px) {
+      .topbar-meta { display: none; }
+      .page-heading { display: block; }
+      .period { display: inline-block; margin-top: 12px; }
+      .metric-value { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">Shopline <span>Analytics</span></div>
+      <div class="topbar-meta">Updated today at 9:42 AM</div>
+    </header>
+
+    <main>
+      <section class="page-heading" aria-labelledby="dashboard-title">
+        <div>
+          <h1 id="dashboard-title">Sales overview</h1>
+          <p>Monitor store performance and recent customer activity.</p>
+        </div>
+        <div class="period" aria-label="Reporting period">April 1–30, 2025</div>
+      </section>
+
+      <section class="metrics" aria-label="Key metrics">
+        <article class="card metric">
+          <div class="card-label">Total revenue</div>
+          <div class="metric-value">$24,860.40</div>
+          <div class="metric-detail"><span class="positive">↑ 12.4%</span> compared with March</div>
+        </article>
+        <article class="card metric">
+          <div class="card-label">Orders this week</div>
+          <div class="metric-value">148</div>
+          <div class="metric-detail">18 more than last week</div>
+        </article>
+        <article class="card metric">
+          <div class="card-label">Average order value</div>
+          <div class="metric-value">$68.31</div>
+          <div class="metric-detail"><span class="positive">↑ 3.1%</span> compared with March</div>
+        </article>
+      </section>
+
+      <section class="main-grid" aria-label="Sales detail">
+        <article class="card">
+          <div class="card-head">
+            <h2 class="card-title">Revenue over time</h2>
+            <span class="card-note">Last 30 days</span>
+          </div>
+          <div class="chart-wrap">
+            <svg class="chart" viewBox="0 0 760 280" role="img" aria-label="Revenue trend chart from April 1 to April 30, with daily revenue ranging from 480 to 1280 dollars.">
+              <line class="grid" x1="54" y1="30" x2="735" y2="30"></line>
+              <line class="grid" x1="54" y1="82" x2="735" y2="82"></line>
+              <line class="grid" x1="54" y1="134" x2="735" y2="134"></line>
+              <line class="grid" x1="54" y1="186" x2="735" y2="186"></line>
+              <line class="axis" x1="54" y1="238" x2="735" y2="238"></line>
+              <text x="8" y="34">$1,400</text><text x="8" y="86">$1,050</text><text x="14" y="138">$700</text><text x="14" y="190">$350</text>
+              <path class="area" d="M54 179 L77 164 L101 173 L124 148 L148 156 L171 137 L195 145 L218 126 L242 139 L265 118 L289 131 L312 104 L336 114 L359 96 L383 121 L406 109 L430 89 L453 101 L477 78 L500 88 L524 69 L547 83 L571 61 L594 74 L618 50 L641 66 L665 43 L688 54 L712 36 L735 47 L735 238 L54 238 Z"></path>
+              <path class="line" d="M54 179 L77 164 L101 173 L124 148 L148 156 L171 137 L195 145 L218 126 L242 139 L265 118 L289 131 L312 104 L336 114 L359 96 L383 121 L406 109 L430 89 L453 101 L477 78 L500 88 L524 69 L547 83 L571 61 L594 74 L618 50 L641 66 L665 43 L688 54 L712 36 L735 47"></path>
+              <circle class="dot" cx="735" cy="47" r="4"></circle>
+              <text class="label-strong" x="704" y="27">$1,280</text>
+              <text x="54" y="260">Apr 1</text><text x="210" y="260">Apr 8</text><text x="371" y="260">Apr 15</text><text x="530" y="260">Apr 22</text><text x="700" y="260">Apr 30</text>
+            </svg>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <h2 class="card-title">Recent activity</h2>
+            <span class="card-note">Latest 8 events</span>
+          </div>
+          <ol class="activity-list">
+            <li class="activity"><span class="activity-icon order">O</span><div class="activity-main"><p class="activity-title"><strong>Order #10482</strong> placed by Olivia Martin — $84.00</p><time class="activity-time">8 minutes ago</time></div></li>
+            <li class="activity"><span class="activity-icon review">★</span><div class="activity-main"><p class="activity-title"><strong>New 5-star review</strong> for Everyday Tote</p><time class="activity-time">26 minutes ago</time></div></li>
+            <li class="activity"><span class="activity-icon order">O</span><div class="activity-main"><p class="activity-title"><strong>Order #10481</strong> placed by Marcus Lee — $129.50</p><time class="activity-time">51 minutes ago</time></div></li>
+            <li class="activity"><span class="activity-icon refund">R</span><div class="activity-main"><p class="activity-title"><strong>Refund issued</strong> for order #10463 — $32.00</p><time class="activity-time">1 hour ago</time></div></li>
+            <li class="activity"><span class="activity-icon order">O</span><div class="activity-main"><p class="activity-title"><strong>Order #10480</strong> placed by Ava Thompson — $56.00</p><time class="activity-time">2 hours ago</time></div></li>
+            <li class="activity"><span class="activity-icon review">★</span><div class="activity-main"><p class="activity-title"><strong>New 4-star review</strong> for Ceramic Mug Set</p><time class="activity-time">3 hours ago</time></div></li>
+            <li class="activity"><span class="activity-icon order">O</span><div class="activity-main"><p class="activity-title"><strong>Order #10479</strong> placed by Daniel Kim — $72.00</p><time class="activity-time">4 hours ago</time></div></li>
+            <li class="activity"><span class="activity-icon refund">R</span><div class="activity-main"><p class="activity-title"><strong>Refund issued</strong> for order #10452 — $18.50</p><time class="activity-time">5 hours ago</time></div></li>
+          </ol>
+        </article>
+      </section>
+
+      <section class="card bottom-card" aria-labelledby="products-title">
+        <div class="card-head">
+          <h2 id="products-title" class="card-title">Best-selling products</h2>
+          <span class="card-note">Month to date</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Product</th><th scope="col">Units sold</th><th scope="col">Revenue</th><th scope="col">Stock status</th></tr></thead>
+            <tbody>
+              <tr><td class="product">Everyday Canvas Tote</td><td>186</td><td>$4,278.00</td><td><span class="status">In stock</span></td></tr>
+              <tr><td class="product">Classic Crew Sweatshirt</td><td>154</td><td>$7,546.00</td><td><span class="status">In stock</span></td></tr>
+              <tr><td class="product">Ceramic Mug Set</td><td>131</td><td>$3,799.00</td><td><span class="status">In stock</span></td></tr>
+              <tr><td class="product">Essential Cap</td><td>118</td><td>$2,714.00</td><td><span class="status">In stock</span></td></tr>
+              <tr><td class="product">Weekender Duffel Bag</td><td>92</td><td>$8,188.00</td><td><span class="status">In stock</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

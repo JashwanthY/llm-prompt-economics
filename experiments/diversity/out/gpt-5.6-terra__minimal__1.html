@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field &amp; Found — Shop Analytics</title>
+<style>
+  :root { --ink:#1c242d; --muted:#6c7884; --line:#e7ebee; --paper:#fff; --ground:#f5f7f8; --green:#17866f; --green-pale:#e8f5f0; --orange:#e78a43; --blue:#2869c7; --red:#c75454; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:Arial, Helvetica, sans-serif; font-size:14px; }
+  .shell { max-width:1280px; margin:auto; padding:30px 32px 42px; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .brand { display:flex; gap:11px; align-items:center; font-weight:700; font-size:18px; letter-spacing:-.3px; }
+  .mark { width:31px; height:31px; border-radius:9px; display:grid; place-items:center; background:var(--green); color:#fff; font-size:17px; }
+  .period { color:var(--muted); font-size:13px; padding:10px 13px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  h1 { margin:0 0 5px; font-size:27px; letter-spacing:-.8px; }
+  .intro { color:var(--muted); margin:0 0 22px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:18px; }
+  .card { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .label { color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.055em; text-transform:uppercase; }
+  .metric { margin:9px 0 6px; font-size:29px; font-weight:700; letter-spacing:-1px; }
+  .detail { color:var(--muted); font-size:13px; }
+  .up { color:var(--green); font-weight:700; }
+  .grid { display:grid; grid-template-columns:1.25fr .75fr; gap:18px; }
+  .stack { display:grid; gap:18px; }
+  .card-title { display:flex; align-items:center; justify-content:space-between; margin-bottom:17px; }
+  h2 { font-size:16px; margin:0; letter-spacing:-.2px; }
+  .subtle { color:var(--muted); font-size:12px; }
+  #chart { display:block; height:270px; width:100%; }
+  .chart-note { display:flex; justify-content:space-between; padding:8px 2px 0 43px; color:var(--muted); font-size:11px; }
+  .products { width:100%; border-collapse:collapse; }
+  .products th { text-align:left; color:var(--muted); font-size:11px; letter-spacing:.05em; text-transform:uppercase; padding:0 0 10px; }
+  .products th:last-child,.products td:last-child { text-align:right; }
+  .products td { border-top:1px solid var(--line); padding:12px 0; }
+  .rank { display:inline-grid; place-items:center; height:22px; width:22px; margin-right:10px; border-radius:50%; background:#f0f3f4; color:var(--muted); font-size:11px; font-weight:bold; }
+  .product { font-weight:600; }
+  .units { font-weight:700; }
+  .bar { display:inline-block; height:6px; width:70px; margin-left:10px; border-radius:8px; background:#edf0f1; overflow:hidden; vertical-align:middle; }
+  .bar i { display:block; height:100%; background:var(--green); border-radius:inherit; }
+  .feed { list-style:none; padding:0; margin:0; }
+  .feed li { display:grid; grid-template-columns:30px 1fr auto; gap:10px; align-items:start; padding:11px 0; border-top:1px solid var(--line); }
+  .feed li:first-child { border-top:0; padding-top:0; }
+  .icon { width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-size:14px; font-weight:bold; }
+  .order { background:var(--green-pale); color:var(--green); }.refund { background:#fbeded; color:var(--red); }.review { background:#fff2e8; color:var(--orange); }
+  .event { font-size:13px; line-height:1.35; }.event strong { font-weight:700; }.time { color:var(--muted); font-size:11px; white-space:nowrap; padding-top:2px; }
+  .event small { display:block; color:var(--muted); margin-top:2px; }
+  @media (max-width:800px) { .shell{padding:22px 16px;} .stats,.grid{grid-template-columns:1fr;} header{margin-bottom:22px;} .period{display:none;} }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header><div class="brand"><span class="mark">✦</span> Field &amp; Found</div><div class="period">May 1–30, 2024 ▾</div></header>
+  <section aria-labelledby="overview"><h1 id="overview">Good morning, Ava</h1><p class="intro">Here’s how your shop is performing this month.</p>
+    <div class="stats">
+      <article class="card"><div class="label">Total revenue</div><div class="metric">$24,860.42</div><div class="detail"><span class="up">↑ 12.8%</span> vs. $22,034 last month</div></article>
+      <article class="card"><div class="label">Orders this week</div><div class="metric">126</div><div class="detail"><span class="up">↑ 9.6%</span> vs. last week</div></article>
+      <article class="card"><div class="label">Average order value</div><div class="metric">$68.11</div><div class="detail"><span class="up">↑ 3.2%</span> vs. last month</div></article>
+    </div>
+  </section>
+  <section class="grid" aria-label="Detailed analytics">
+    <div class="stack">
+      <article class="card"><div class="card-title"><h2>Revenue over time</h2><span class="subtle">Last 30 days</span></div><canvas id="chart" aria-label="Line chart showing revenue for the last 30 days"></canvas><div class="chart-note"><span>May 1</span><span>May 8</span><span>May 15</span><span>May 22</span><span>May 30</span></div></article>
+      <article class="card"><div class="card-title"><h2>Best-selling products</h2><span class="subtle">Units sold this month</span></div>
+        <table class="products"><thead><tr><th>Product</th><th>Units sold</th></tr></thead><tbody>
+          <tr><td><span class="rank">1</span><span class="product">Cloud Knit Throw, Oat</span></td><td><span class="units">184</span><span class="bar"><i style="width:100%"></i></span></td></tr>
+          <tr><td><span class="rank">2</span><span class="product">Stoneware Mug Set</span></td><td><span class="units">161</span><span class="bar"><i style="width:88%"></i></span></td></tr>
+          <tr><td><span class="rank">3</span><span class="product">Linen Table Runner</span></td><td><span class="units">142</span><span class="bar"><i style="width:77%"></i></span></td></tr>
+          <tr><td><span class="rank">4</span><span class="product">Cedar &amp; Fig Candle</span></td><td><span class="units">119</span><span class="bar"><i style="width:65%"></i></span></td></tr>
+          <tr><td><span class="rank">5</span><span class="product">Woven Market Basket</span></td><td><span class="units">96</span><span class="bar"><i style="width:52%"></i></span></td></tr>
+        </tbody></table>
+      </article>
+    </div>
+    <aside class="card"><div class="card-title"><h2>Recent activity</h2><span class="subtle">Live</span></div><ul class="feed">
+      <li><span class="icon order">↗</span><div class="event"><strong>New order #10482</strong><small>Marin L. · $128.00</small></div><time class="time">8 min</time></li>
+      <li><span class="icon review">★</span><div class="event"><strong>New 5-star review</strong><small>“Beautifully made and fast shipping.”</small></div><time class="time">24 min</time></li>
+      <li><span class="icon order">↗</span><div class="event"><strong>New order #10481</strong><small>Jonas P. · $74.50</small></div><time class="time">42 min</time></li>
+      <li><span class="icon refund">↩</span><div class="event"><strong>Refund issued #10439</strong><small>Ella R. · $36.00</small></div><time class="time">1 hr</time></li>
+      <li><span class="icon order">↗</span><div class="event"><strong>New order #10480</strong><small>Maya C. · $212.00</small></div><time class="time">2 hr</time></li>
+      <li><span class="icon review">★</span><div class="event"><strong>New 4-star review</strong><small>Stoneware Mug Set</small></div><time class="time">3 hr</time></li>
+      <li><span class="icon order">↗</span><div class="event"><strong>New order #10479</strong><small>Samuel K. · $58.00</small></div><time class="time">4 hr</time></li>
+      <li><span class="icon order">↗</span><div class="event"><strong>New order #10478</strong><small>Leah W. · $96.00</small></div><time class="time">5 hr</time></li>
+    </ul></aside>
+  </section>
+</main>
+<script>
+(() => {
+  const canvas = document.getElementById('chart');
+  const values = [580,690,640,810,730,920,860,770,980,1060,900,1120,1040,1260,1180,1340,1210,1450,1380,1540,1490,1700,1580,1830,1740,1960,1870,2110,2020,2260];
+  function draw() {
+    const dpr = devicePixelRatio || 1, rect = canvas.getBoundingClientRect(), w = rect.width, h = rect.height;
+    canvas.width = w*dpr; canvas.height = h*dpr; const c = canvas.getContext('2d'); c.scale(dpr,dpr);
+    const pad={l:43,r:14,t:12,b:16}, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b, min=0, max=2500;
+    c.clearRect(0,0,w,h); c.font='11px Arial'; c.fillStyle='#7b8791'; c.strokeStyle='#e8edef'; c.lineWidth=1;
+    [0,625,1250,1875,2500].forEach(v=>{ const y=pad.t+ih-(v-min)/(max-min)*ih; c.beginPath();c.moveTo(pad.l,y);c.lineTo(w-pad.r,y);c.stroke();c.textAlign='right';c.fillText(v===0?'$0':'$'+(v/1000).toFixed(v%1000?1:0)+'k',pad.l-8,y+4); });
+    const point=(v,i)=>[pad.l+i/(values.length-1)*iw,pad.t+ih-(v-min)/(max-min)*ih];
+    const grad=c.createLinearGradient(0,pad.t,0,pad.t+ih);grad.addColorStop(0,'rgba(23,134,111,.22)');grad.addColorStop(1,'rgba(23,134,111,0)');
+    c.beginPath(); values.forEach((v,i)=>{const [x,y]=point(v,i);i?c.lineTo(x,y):c.moveTo(x,y)});c.lineTo(w-pad.r,pad.t+ih);c.lineTo(pad.l,pad.t+ih);c.closePath();c.fillStyle=grad;c.fill();
+    c.beginPath(); values.forEach((v,i)=>{const [x,y]=point(v,i);i?c.lineTo(x,y):c.moveTo(x,y)});c.strokeStyle='#17866f';c.lineWidth=2.5;c.lineJoin='round';c.stroke();
+    const [x,y]=point(values.at(-1),values.length-1);c.beginPath();c.arc(x,y,4.5,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.strokeStyle='#17866f';c.lineWidth=2.5;c.stroke();
+  }
+  addEventListener('resize',draw); draw();
+})();
+</script>
+</body>
+</html>

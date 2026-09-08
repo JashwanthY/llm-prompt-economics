@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Northstar Goods — Analytics</title>
+  <style>
+    :root { --navy:#243447; --blue:#326fa8; --blue-dark:#285b8c; --text:#24313d; --muted:#677684; --line:#dce3e8; --soft:#f5f7f9; --page:#f3f5f7; --green:#28754a; --red:#b64a4a; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--page); color:var(--text); font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:1.4; }
+    .topbar { height:58px; background:var(--navy); color:#fff; display:flex; align-items:center; padding:0 32px; }
+    .brand { font-weight:700; font-size:17px; letter-spacing:.1px; white-space:nowrap; }
+    .brand span { font-weight:400; color:#cbd5df; margin-left:8px; font-size:13px; }
+    .topbar nav { display:flex; gap:25px; margin-left:52px; height:100%; align-items:center; }
+    .topbar nav a { color:#cbd5df; text-decoration:none; font-size:14px; height:100%; display:flex; align-items:center; border-bottom:3px solid transparent; }
+    .topbar nav a.active { color:#fff; border-bottom-color:#fff; }
+    .account { margin-left:auto; color:#dbe3ea; font-size:13px; }
+    main { max-width:1280px; margin:0 auto; padding:28px 32px 40px; }
+    .heading-row { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:22px; }
+    h1 { margin:0; font-size:24px; line-height:1.2; font-weight:600; color:#202d38; }
+    .period { color:var(--muted); font-size:13px; }
+    .metrics { display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:18px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:3px; }
+    .metric { min-height:125px; padding:20px; }
+    .metric-label { color:#5c6b78; font-size:13px; margin-bottom:11px; }
+    .metric-value { font-size:28px; font-weight:600; color:#22313e; letter-spacing:-.3px; }
+    .metric-note { margin-top:8px; color:var(--muted); font-size:13px; }
+    .positive { color:var(--green); font-weight:600; }
+    .two-column { display:grid; grid-template-columns:minmax(0, 1.8fr) minmax(330px, 1fr); gap:18px; margin-bottom:18px; }
+    .panel-header { padding:17px 20px 15px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+    h2 { margin:0; font-size:16px; font-weight:600; color:#283642; }
+    .subtext { font-size:12px; color:var(--muted); }
+    .chart-body { padding:17px 20px 12px; }
+    .chart-wrap { height:250px; position:relative; }
+    canvas { display:block; width:100%; height:100%; }
+    .chart-key { padding:0 20px 17px; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:7px; }
+    .key-line { display:inline-block; width:18px; border-top:2px solid var(--blue); }
+    table { width:100%; border-collapse:collapse; }
+    th { background:var(--soft); border-bottom:1px solid var(--line); color:#5e6c78; text-align:left; font-size:12px; font-weight:600; padding:10px 16px; }
+    td { padding:12px 16px; border-bottom:1px solid #e8edf0; font-size:13px; }
+    tbody tr:last-child td { border-bottom:0; }
+    td:last-child, th:last-child { text-align:right; }
+    .rank { color:#75828d; width:33px; }
+    .product { font-weight:600; }
+    .activity-list { list-style:none; padding:0; margin:0; }
+    .activity { display:grid; grid-template-columns:10px minmax(0,1fr) auto; gap:10px; padding:13px 18px; border-bottom:1px solid #e8edf0; align-items:start; }
+    .activity:last-child { border-bottom:0; }
+    .dot { width:8px; height:8px; border-radius:50%; margin-top:5px; background:var(--blue); }
+    .dot.refund { background:#b76a42; } .dot.review { background:#657889; }
+    .event-main { font-size:13px; color:#2d3b47; }
+    .event-main strong { font-weight:600; }
+    .event-detail { font-size:12px; color:var(--muted); margin-top:2px; }
+    .event-time { font-size:12px; color:var(--muted); white-space:nowrap; padding-left:8px; }
+    .footer-note { color:var(--muted); font-size:12px; padding:0 2px; }
+    @media (max-width:800px) { .topbar { padding:0 20px; } .topbar nav { margin-left:25px; gap:16px; } .account { display:none; } main { padding:22px 18px 32px; } .metrics, .two-column { grid-template-columns:1fr; } .heading-row { align-items:flex-start; gap:10px; flex-direction:column; } }
+    @media (max-width:520px) { .topbar nav a:not(.active) { display:none; } .topbar nav { margin-left:25px; } .metrics { gap:12px; } .metric { min-height:auto; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Northstar Goods <span>Storefront</span></div>
+    <nav aria-label="Primary navigation"><a href="#">Overview</a><a href="#">Orders</a><a href="#">Products</a><a class="active" href="#">Analytics</a></nav>
+    <div class="account">Morgan Lee &nbsp;•&nbsp; Administrator</div>
+  </header>
+  <main>
+    <div class="heading-row">
+      <div><h1>Analytics overview</h1></div>
+      <div class="period">Reporting period: June 1–30, 2024</div>
+    </div>
+
+    <section class="metrics" aria-label="Summary metrics">
+      <article class="card metric"><div class="metric-label">Total revenue</div><div class="metric-value">$48,260.75</div><div class="metric-note"><span class="positive">▲ 8.4%</span> compared with May 2024</div></article>
+      <article class="card metric"><div class="metric-label">Orders this week</div><div class="metric-value">186</div><div class="metric-note"><span class="positive">▲ 12.1%</span> compared with last week</div></article>
+      <article class="card metric"><div class="metric-label">Average order value</div><div class="metric-value">$74.02</div><div class="metric-note">Based on 652 orders this month</div></article>
+    </section>
+
+    <section class="two-column" aria-label="Revenue chart and best-selling products">
+      <article class="card">
+        <div class="panel-header"><div><h2>Revenue over time</h2><div class="subtext">Daily gross sales for the last 30 days</div></div><div class="subtext">June 2024</div></div>
+        <div class="chart-body"><div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="Line chart showing daily revenue from June 1 through June 30, 2024."></canvas></div></div>
+        <div class="chart-key"><span class="key-line"></span> Daily revenue</div>
+      </article>
+      <article class="card">
+        <div class="panel-header"><div><h2>Best-selling products</h2><div class="subtext">Units sold this month</div></div></div>
+        <table aria-label="Five best-selling products"><thead><tr><th scope="col"></th><th scope="col">Product</th><th scope="col">Units sold</th></tr></thead><tbody>
+          <tr><td class="rank">1</td><td class="product">Everyday Canvas Tote</td><td>214</td></tr>
+          <tr><td class="rank">2</td><td class="product">Studio Ceramic Mug</td><td>187</td></tr>
+          <tr><td class="rank">3</td><td class="product">Linen Table Runner</td><td>163</td></tr>
+          <tr><td class="rank">4</td><td class="product">Essential Crew Socks</td><td>156</td></tr>
+          <tr><td class="rank">5</td><td class="product">Wool Throw, Stone</td><td>118</td></tr>
+        </tbody></table>
+      </article>
+    </section>
+
+    <section class="card" aria-labelledby="activity-title">
+      <div class="panel-header"><div><h2 id="activity-title">Recent activity</h2><div class="subtext">Latest orders, refunds, and customer reviews</div></div></div>
+      <ol class="activity-list">
+        <li class="activity"><span class="dot"></span><div><div class="event-main"><strong>Order #10482</strong> placed by Olivia Bennett</div><div class="event-detail">$126.00 · 3 items</div></div><time class="event-time">12 min ago</time></li>
+        <li class="activity"><span class="dot review"></span><div><div class="event-main">New <strong>5-star review</strong> for Studio Ceramic Mug</div><div class="event-detail">“Exactly as pictured and arrived quickly.”</div></div><time class="event-time">28 min ago</time></li>
+        <li class="activity"><span class="dot"></span><div><div class="event-main"><strong>Order #10481</strong> placed by Daniel Kim</div><div class="event-detail">$84.50 · 2 items</div></div><time class="event-time">46 min ago</time></li>
+        <li class="activity"><span class="dot refund"></span><div><div class="event-main"><strong>Refund issued</strong> for order #10434</div><div class="event-detail">$32.00 · Customer request approved</div></div><time class="event-time">1 hr ago</time></li>
+        <li class="activity"><span class="dot"></span><div><div class="event-main"><strong>Order #10480</strong> placed by Priya Shah</div><div class="event-detail">$59.00 · 1 item</div></div><time class="event-time">2 hrs ago</time></li>
+        <li class="activity"><span class="dot review"></span><div><div class="event-main">New <strong>4-star review</strong> for Linen Table Runner</div><div class="event-detail">“Lovely fabric and color.”</div></div><time class="event-time">3 hrs ago</time></li>
+        <li class="activity"><span class="dot"></span><div><div class="event-main"><strong>Order #10479</strong> placed by Marcus Turner</div><div class="event-detail">$212.00 · 4 items</div></div><time class="event-time">4 hrs ago</time></li>
+        <li class="activity"><span class="dot refund"></span><div><div class="event-main"><strong>Refund issued</strong> for order #10419</div><div class="event-detail">$18.50 · Item returned</div></div><time class="event-time">5 hrs ago</time></li>
+      </ol>
+    </section>
+    <p class="footer-note">Sales figures exclude cancelled orders. Data last updated June 30, 2024 at 4:20 PM.</p>
+  </main>
+  <script>
+    (function () {
+      const values = [1120,1385,1210,1480,1575,1890,1750,1325,1410,1660,1550,1725,2100,1980,1810,1525,1610,1895,2050,2180,1940,1760,1850,2215,2090,2360,2485,2250,2115,2365];
+      const canvas = document.getElementById('revenueChart');
+      const ctx = canvas.getContext('2d');
+      function draw() {
+        const box = canvas.parentElement.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.round(box.width * ratio); canvas.height = Math.round(box.height * ratio);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const w = box.width, h = box.height, pad = { top:12, right:12, bottom:31, left:52 };
+        const plotW = w-pad.left-pad.right, plotH = h-pad.top-pad.bottom, min=0, max=3000;
+        ctx.clearRect(0,0,w,h); ctx.font='12px Arial, sans-serif'; ctx.fillStyle='#677684'; ctx.strokeStyle='#e2e8ec'; ctx.lineWidth=1;
+        [0,1000,2000,3000].forEach(v => { const y=pad.top+plotH-(v-min)/(max-min)*plotH; ctx.beginPath(); ctx.moveTo(pad.left,y+.5); ctx.lineTo(w-pad.right,y+.5); ctx.stroke(); ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText('$'+(v===0?'0':(v/1000)+'k'),pad.left-9,y); });
+        const labels=[1,7,14,21,30]; ctx.textAlign='center'; ctx.textBaseline='top'; labels.forEach(day => { const x=pad.left+(day-1)/29*plotW; ctx.fillText('Jun '+day,x,h-pad.bottom+10); });
+        ctx.strokeStyle='#326fa8'; ctx.lineWidth=2; ctx.beginPath(); values.forEach((v,i)=>{ const x=pad.left+i/29*plotW, y=pad.top+plotH-(v-min)/(max-min)*plotH; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+        const last=values.length-1, x=pad.left+last/29*plotW, y=pad.top+plotH-(values[last]-min)/(max-min)*plotH; ctx.fillStyle='#326fa8'; ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fill();
+      }
+      draw(); window.addEventListener('resize', draw);
+    }());
+  </script>
+</body>
+</html>

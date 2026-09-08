@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Northstar Goods — Store analytics</title>
+  <style>
+    :root {
+      --color-ink: #18202b;
+      --color-muted: #667085;
+      --color-subtle: #98a2b3;
+      --color-border: #e6e9ee;
+      --color-surface: #ffffff;
+      --color-canvas: #f7f8fa;
+      --color-brand: #4f46e5;
+      --color-brand-dark: #3730a3;
+      --color-brand-soft: #eef2ff;
+      --color-success: #087443;
+      --color-success-soft: #e9f8f0;
+      --color-warning: #9a5b00;
+      --color-warning-soft: #fff6df;
+      --color-danger: #b42318;
+      --color-danger-soft: #fff0ef;
+      --color-chart: #635bff;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --radius-sm: 0.5rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+      --shadow-card: 0 0.125rem 0.75rem rgba(16, 24, 40, 0.04);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-size: 100%; }
+    body {
+      margin: 0;
+      min-width: 18rem;
+      background: var(--color-canvas);
+      color: var(--color-ink);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible {
+      outline: 0.1875rem solid #f59e0b;
+      outline-offset: 0.1875rem;
+    }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 15.5rem 1fr; }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      padding: var(--space-6) var(--space-4);
+      background: #151b2c;
+      color: #f8fafc;
+    }
+    .brand { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-2); }
+    .brand__mark {
+      display: grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      background: #756cff;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+    .brand__name { font-size: 1rem; font-weight: 750; letter-spacing: -0.02em; }
+    .sidebar__label {
+      margin: 0 var(--space-2) var(--space-2);
+      color: #9aa4bd;
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .nav-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0.7rem 0.75rem;
+      border-radius: var(--radius-sm);
+      color: #b9c1d3;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .nav-link:hover { background: #222b44; color: #fff; }
+    .nav-link--active { background: #30375f; color: #fff; }
+    .nav-link__icon { width: 1.125rem; text-align: center; font-size: 1rem; }
+    .sidebar__footer { margin-top: auto; padding: var(--space-4) var(--space-2) 0; border-top: 1px solid #2d354b; color: #9aa4bd; font-size: 0.75rem; }
+    .sidebar__footer strong { display: block; margin-bottom: var(--space-1); color: #f8fafc; font-size: 0.8125rem; }
+
+    .main-content { min-width: 0; padding: var(--space-8) clamp(1rem, 4vw, 3rem); }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-5); margin-bottom: var(--space-8); }
+    .eyebrow { margin: 0 0 var(--space-2); color: var(--color-brand); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: var(--space-2); font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -0.04em; line-height: 1.15; }
+    h2 { margin-bottom: var(--space-1); font-size: 1.05rem; letter-spacing: -0.015em; }
+    .page-header__description { margin-bottom: 0; color: var(--color-muted); }
+    .header-actions { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .control-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .select-control, .button {
+      min-height: 2.5rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-ink);
+      cursor: pointer;
+      font-weight: 650;
+    }
+    .select-control { padding: 0 var(--space-8) 0 var(--space-3); }
+    .button { padding: 0 var(--space-4); }
+    .button:hover, .select-control:hover { border-color: #aab3c3; background: #fcfcfd; }
+    .button--primary { border-color: var(--color-brand); background: var(--color-brand); color: #fff; }
+    .button--primary:hover { border-color: var(--color-brand-dark); background: var(--color-brand-dark); }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .card { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .metric-card { padding: var(--space-5); }
+    .metric-card__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .metric-card__label { margin: 0; color: var(--color-muted); font-size: 0.8125rem; font-weight: 650; }
+    .metric-card__icon { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: var(--radius-sm); background: var(--color-brand-soft); color: var(--color-brand-dark); font-weight: 800; }
+    .metric-card__value { margin-bottom: var(--space-2); font-size: 1.875rem; font-weight: 800; letter-spacing: -0.045em; line-height: 1.1; }
+    .metric-card__detail { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: 0.75rem; }
+    .trend { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 750; }
+    .trend--positive { color: var(--color-success); }
+    .trend--neutral { color: var(--color-warning); }
+    .trend__symbol { font-size: 1rem; line-height: 0; }
+
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 0.9fr); gap: var(--space-6); margin-bottom: var(--space-6); }
+    .panel { min-width: 0; padding: var(--space-6); }
+    .panel__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+    .panel__title { margin-bottom: var(--space-1); }
+    .panel__subtitle { margin: 0; color: var(--color-muted); font-size: 0.8125rem; }
+    .legend { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-muted); font-size: 0.75rem; white-space: nowrap; }
+    .legend__dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-chart); }
+    .chart-wrap { position: relative; height: 18rem; }
+    .chart-wrap canvas { display: block; width: 100%; height: 100%; }
+    .chart-caption { margin: var(--space-3) 0 0; color: var(--color-subtle); font-size: 0.6875rem; }
+    .product-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+    .product-item { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); }
+    .product-item__avatar { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: var(--radius-sm); background: #f3f4f6; color: #475467; font-size: 0.75rem; font-weight: 800; }
+    .product-item__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; font-weight: 700; }
+    .product-item__meta { margin: var(--space-1) 0 0; color: var(--color-muted); font-size: 0.6875rem; }
+    .product-item__units { font-size: 0.8125rem; font-weight: 800; text-align: right; }
+    .product-item__bar { grid-column: 2 / 4; height: 0.3rem; overflow: hidden; border-radius: 99rem; background: #f0f1f4; }
+    .product-item__bar span { display: block; height: 100%; border-radius: inherit; background: var(--color-brand); }
+
+    .activity-panel { padding-bottom: var(--space-3); }
+    .activity-list { margin: 0; padding: 0; list-style: none; }
+    .activity-item { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; padding: var(--space-4) 0; border-top: 1px solid var(--color-border); }
+    .activity-item:first-child { padding-top: 0; border-top: 0; }
+    .activity-item__icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: 50%; font-size: 0.8125rem; font-weight: 800; }
+    .activity-item__icon--order { background: var(--color-success-soft); color: var(--color-success); }
+    .activity-item__icon--refund { background: var(--color-danger-soft); color: var(--color-danger); }
+    .activity-item__icon--review { background: var(--color-warning-soft); color: var(--color-warning); }
+    .activity-item__title { margin: 0; font-size: 0.8125rem; font-weight: 750; }
+    .activity-item__meta { margin: var(--space-1) 0 0; color: var(--color-muted); font-size: 0.75rem; }
+    .activity-item__amount { font-size: 0.8125rem; font-weight: 750; text-align: right; white-space: nowrap; }
+    .activity-item__time { margin-top: var(--space-1); color: var(--color-subtle); font-size: 0.6875rem; text-align: right; white-space: nowrap; }
+    .activity-item__amount--refund { color: var(--color-danger); }
+
+    .footer { display: flex; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) 0 0; color: var(--color-subtle); font-size: 0.75rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 62rem) {
+      .app-shell { grid-template-columns: 4.5rem 1fr; }
+      .sidebar { align-items: center; padding-inline: var(--space-2); }
+      .brand__name, .sidebar__label, .nav-link__text, .sidebar__footer { display: none; }
+      .brand { padding: 0; }
+      .nav-link { justify-content: center; width: 3rem; height: 3rem; padding: 0; }
+    }
+    @media (max-width: 48rem) {
+      .main-content { padding: var(--space-6) var(--space-4); }
+      .page-header { flex-direction: column; margin-bottom: var(--space-6); }
+      .header-actions { width: 100%; }
+      .select-control, .header-actions .button { flex: 1; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 30rem) {
+      .app-shell { display: block; }
+      .sidebar { position: sticky; top: 0; z-index: 2; flex-direction: row; justify-content: space-between; padding: var(--space-3) var(--space-4); }
+      .sidebar nav { display: flex; }
+      .nav-list { display: flex; gap: var(--space-1); }
+      .nav-link { width: 2.5rem; height: 2.5rem; }
+      .main-content { padding: var(--space-5) var(--space-3); }
+      .panel { padding: var(--space-4); }
+      .panel__header { flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+      .chart-wrap { height: 14rem; }
+      .footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#main-content" aria-label="Northstar Goods dashboard">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span class="brand__name">Northstar Goods</span>
+      </a>
+      <nav aria-label="Store management">
+        <p class="sidebar__label">Workspace</p>
+        <ul class="nav-list">
+          <li><a class="nav-link nav-link--active" href="#overview" aria-current="page"><span class="nav-link__icon" aria-hidden="true">⌂</span><span class="nav-link__text">Overview</span></a></li>
+          <li><a class="nav-link" href="#orders"><span class="nav-link__icon" aria-hidden="true">▤</span><span class="nav-link__text">Orders</span></a></li>
+          <li><a class="nav-link" href="#products"><span class="nav-link__icon" aria-hidden="true">◇</span><span class="nav-link__text">Products</span></a></li>
+          <li><a class="nav-link" href="#customers"><span class="nav-link__icon" aria-hidden="true">♙</span><span class="nav-link__text">Customers</span></a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Account management">
+        <p class="sidebar__label">Manage</p>
+        <ul class="nav-list">
+          <li><a class="nav-link" href="#settings"><span class="nav-link__icon" aria-hidden="true">⚙</span><span class="nav-link__text">Settings</span></a></li>
+          <li><a class="nav-link" href="#help"><span class="nav-link__icon" aria-hidden="true">?</span><span class="nav-link__text">Help center</span></a></li>
+        </ul>
+      </nav>
+      <div class="sidebar__footer"><strong>Starter plan</strong>2,418 of 5,000 orders used</div>
+    </aside>
+
+    <main id="main-content" class="main-content">
+      <header class="page-header" id="overview">
+        <div>
+          <p class="eyebrow">Store overview</p>
+          <h1>Good morning, Jashwanth</h1>
+          <p class="page-header__description">Here’s what’s happening with your store today.</p>
+        </div>
+        <div class="header-actions">
+          <label class="control-label" for="date-range">Reporting period</label>
+          <select class="select-control" id="date-range" aria-label="Reporting period">
+            <option>This month</option>
+            <option>Last month</option>
+            <option>Last 30 days</option>
+          </select>
+          <button class="button button--primary" id="export-button" type="button">Export report</button>
+        </div>
+      </header>
+
+      <section class="metric-grid" aria-label="Key performance indicators">
+        <article class="card metric-card">
+          <div class="metric-card__top"><p class="metric-card__label">Total revenue</p><span class="metric-card__icon" aria-hidden="true">$</span></div>
+          <div class="metric-card__value">$24,680.50</div>
+          <p class="metric-card__detail"><span class="trend trend--positive"><span class="trend__symbol" aria-hidden="true">↗</span> 18.4%</span> <span>vs. last month</span></p>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-card__top"><p class="metric-card__label">Orders this week</p><span class="metric-card__icon" aria-hidden="true">#</span></div>
+          <div class="metric-card__value">186</div>
+          <p class="metric-card__detail"><span class="trend trend--positive"><span class="trend__symbol" aria-hidden="true">↗</span> 12.7%</span> <span>vs. last week</span></p>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-card__top"><p class="metric-card__label">Average order value</p><span class="metric-card__icon" aria-hidden="true">⌁</span></div>
+          <div class="metric-card__value">$132.69</div>
+          <p class="metric-card__detail"><span class="trend trend--neutral"><span class="trend__symbol" aria-hidden="true">→</span> 2.1%</span> <span>vs. last month</span></p>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="card panel" aria-labelledby="revenue-title">
+          <div class="panel__header">
+            <div><h2 class="panel__title" id="revenue-title">Revenue over time</h2><p class="panel__subtitle">Daily gross revenue · Jun 1–30, 2024</p></div>
+            <span class="legend"><span class="legend__dot" aria-hidden="true"></span>Revenue</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="revenue-chart" role="img" aria-label="Line chart showing revenue rising from 540 dollars on June 1 to 1,240 dollars on June 30, with a peak of 1,580 dollars on June 27."></canvas>
+          </div>
+          <p class="chart-caption">Hover or focus the chart to inspect the daily values.</p>
+          <div class="sr-only" id="chart-data">Daily revenue: June 1 $540; June 2 $620; June 3 $590; June 4 $710; June 5 $680; June 6 $760; June 7 $820; June 8 $780; June 9 $850; June 10 $910; June 11 $870; June 12 $940; June 13 $980; June 14 $1,020; June 15 $960; June 16 $1,080; June 17 $1,120; June 18 $1,030; June 19 $1,180; June 20 $1,250; June 21 $1,190; June 22 $1,300; June 23 $1,280; June 24 $1,370; June 25 $1,420; June 26 $1,490; June 27 $1,580; June 28 $1,430; June 29 $1,350; June 30 $1,240.</div>
+        </section>
+
+        <section class="card panel" id="products" aria-labelledby="products-title">
+          <div class="panel__header"><div><h2 class="panel__title" id="products-title">Best-selling products</h2><p class="panel__subtitle">Units sold this month</p></div><a href="#all-products" class="button" style="display:inline-flex;align-items:center;text-decoration:none;">View all</a></div>
+          <ol class="product-list">
+            <li class="product-item"><span class="product-item__avatar" aria-hidden="true">01</span><div><div class="product-item__name">Canvas Weekender</div><p class="product-item__meta">Bags &amp; travel</p></div><span class="product-item__units">248 units</span><div class="product-item__bar" aria-hidden="true"><span style="width:100%"></span></div></li>
+            <li class="product-item"><span class="product-item__avatar" aria-hidden="true">02</span><div><div class="product-item__name">Everyday Linen Shirt</div><p class="product-item__meta">Apparel</p></div><span class="product-item__units">196 units</span><div class="product-item__bar" aria-hidden="true"><span style="width:79%"></span></div></li>
+            <li class="product-item"><span class="product-item__avatar" aria-hidden="true">03</span><div><div class="product-item__name">Stoneware Mug Set</div><p class="product-item__meta">Home goods</p></div><span class="product-item__units">173 units</span><div class="product-item__bar" aria-hidden="true"><span style="width:70%"></span></div></li>
+            <li class="product-item"><span class="product-item__avatar" aria-hidden="true">04</span><div><div class="product-item__name">Ridge Knit Throw</div><p class="product-item__meta">Home goods</p></div><span class="product-item__units">142 units</span><div class="product-item__bar" aria-hidden="true"><span style="width:57%"></span></div></li>
+            <li class="product-item"><span class="product-item__avatar" aria-hidden="true">05</span><div><div class="product-item__name">Minimal Desk Tray</div><p class="product-item__meta">Workspace</p></div><span class="product-item__units">119 units</span><div class="product-item__bar" aria-hidden="true"><span style="width:48%"></span></div></li>
+          </ol>
+        </section>
+      </div>
+
+      <section class="card panel activity-panel" id="orders" aria-labelledby="activity-title">
+        <div class="panel__header"><div><h2 class="panel__title" id="activity-title">Recent activity</h2><p class="panel__subtitle">The latest orders, refunds and customer reviews</p></div><button class="button" id="activity-button" type="button">View all activity</button></div>
+        <ol class="activity-list" id="activity-list">
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--order" aria-label="Order" role="img">↗</span><div><p class="activity-item__title">New order from Maya Chen</p><p class="activity-item__meta">Order #NS-10482 · 2 items</p></div><div><div class="activity-item__amount">+$186.00</div><div class="activity-item__time">8 min ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--review" aria-label="Review" role="img">★</span><div><p class="activity-item__title">New 5-star review</p><p class="activity-item__meta">“Beautiful quality and fast shipping” · Canvas Weekender</p></div><div><div class="activity-item__amount">★★★★★</div><div class="activity-item__time">34 min ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--order" aria-label="Order" role="img">↗</span><div><p class="activity-item__title">New order from Leo Martins</p><p class="activity-item__meta">Order #NS-10481 · 1 item</p></div><div><div class="activity-item__amount">+$72.00</div><div class="activity-item__time">1 hr ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--refund" aria-label="Refund" role="img">↩</span><div><p class="activity-item__title">Refund completed for Aisha Patel</p><p class="activity-item__meta">Order #NS-10467 · Size exchange</p></div><div><div class="activity-item__amount activity-item__amount--refund">−$94.50</div><div class="activity-item__time">2 hrs ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--order" aria-label="Order" role="img">↗</span><div><p class="activity-item__title">New order from Oliver Grant</p><p class="activity-item__meta">Order #NS-10480 · 3 items</p></div><div><div class="activity-item__amount">+$248.00</div><div class="activity-item__time">3 hrs ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--review" aria-label="Review" role="img">★</span><div><p class="activity-item__title">New 4-star review</p><p class="activity-item__meta">“The mug set is even nicer in person” · Stoneware Mug Set</p></div><div><div class="activity-item__amount">★★★★☆</div><div class="activity-item__time">5 hrs ago</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--refund" aria-label="Refund" role="img">↩</span><div><p class="activity-item__title">Refund completed for Noah Williams</p><p class="activity-item__meta">Order #NS-10451 · Damaged in transit</p></div><div><div class="activity-item__amount activity-item__amount--refund">−$58.00</div><div class="activity-item__time">Yesterday</div></div></li>
+          <li class="activity-item"><span class="activity-item__icon activity-item__icon--order" aria-label="Order" role="img">↗</span><div><p class="activity-item__title">New order from Sofia Rossi</p><p class="activity-item__meta">Order #NS-10479 · 2 items</p></div><div><div class="activity-item__amount">+$129.00</div><div class="activity-item__time">Yesterday</div></div></li>
+        </ol>
+        <p id="activity-status" class="sr-only" aria-live="polite"></p>
+      </section>
+      <footer class="footer"><span>Data refreshed just now</span><span>Northstar Goods Analytics · 2024</span></footer>
+    </main>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const revenueData = [540, 620, 590, 710, 680, 760, 820, 780, 850, 910, 870, 940, 980, 1020, 960, 1080, 1120, 1030, 1180, 1250, 1190, 1300, 1280, 1370, 1420, 1490, 1580, 1430, 1350, 1240];
+      const chartCanvas = document.getElementById('revenue-chart');
+      const exportButton = document.getElementById('export-button');
+      const activityButton = document.getElementById('activity-button');
+      const activityStatus = document.getElementById('activity-status');
+      const chartWrap = chartCanvas?.parentElement;
+      const chartColors = { grid: '#e8ebf0', label: '#667085', line: '#635bff', fill: 'rgba(99, 91, 255, 0.12)', point: '#ffffff' };
+
+      const formatCurrency = (value) => `$${value.toLocaleString('en-US')}`;
+
+      function drawRevenueChart() {
+        if (!chartCanvas || !chartWrap) return;
+        const context = chartCanvas.getContext('2d');
+        if (!context) return;
+        const pixelRatio = window.devicePixelRatio || 1;
+        const width = Math.max(chartWrap.clientWidth, 280);
+        const height = Math.max(chartWrap.clientHeight, 200);
+        const padding = { top: 12, right: 12, bottom: 30, left: 42 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+        const maximum = 1800;
+        const labelValues = [0, 600, 1200, 1800];
+        const xFor = (index) => padding.left + (index / (revenueData.length - 1)) * plotWidth;
+        const yFor = (value) => padding.top + plotHeight - (value / maximum) * plotHeight;
+
+        chartCanvas.width = width * pixelRatio;
+        chartCanvas.height = height * pixelRatio;
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        context.clearRect(0, 0, width, height);
+        context.font = '11px system-ui, sans-serif';
+        context.lineWidth = 1;
+        context.strokeStyle = chartColors.grid;
+        context.fillStyle = chartColors.label;
+        context.textAlign = 'right';
+        labelValues.forEach((value) => {
+          const y = yFor(value);
+          context.beginPath();
+          context.moveTo(padding.left, y);
+          context.lineTo(width - padding.right, y);
+          context.stroke();
+          context.fillText(value === 0 ? '$0' : `$${value / 1000}k`, padding.left - 8, y + 4);
+        });
+        context.textAlign = 'center';
+        [0, 6, 12, 18, 24, 29].forEach((index) => context.fillText(`Jun ${index + 1}`, xFor(index), height - 8));
+
+        context.beginPath();
+        revenueData.forEach((value, index) => {
+          const x = xFor(index);
+          const y = yFor(value);
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.lineTo(xFor(revenueData.length - 1), padding.top + plotHeight);
+        context.lineTo(xFor(0), padding.top + plotHeight);
+        context.closePath();
+        context.fillStyle = chartColors.fill;
+        context.fill();
+
+        context.beginPath();
+        revenueData.forEach((value, index) => {
+          const x = xFor(index);
+          const y = yFor(value);
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.strokeStyle = chartColors.line;
+        context.lineWidth = 2.5;
+        context.lineJoin = 'round';
+        context.lineCap = 'round';
+        context.stroke();
+        [0, 6, 12, 18, 24, 29].forEach((index) => {
+          context.beginPath();
+          context.arc(xFor(index), yFor(revenueData[index]), 3.5, 0, Math.PI * 2);
+          context.fillStyle = chartColors.point;
+          context.fill();
+          context.strokeStyle = chartColors.line;
+          context.lineWidth = 2;
+          context.stroke();
+        });
+      }
+
+      function announce(message) {
+        if (activityStatus) activityStatus.textContent = message;
+      }
+
+      exportButton?.addEventListener('click', () => {
+        const report = `Northstar Goods report\nTotal revenue: $24,680.50\nOrders this week: 186\nAverage order value: $132.69`;
+        const download = document.createElement('a');
+        download.href = `data:text/plain;charset=utf-8,${encodeURIComponent(report)}`;
+        download.download = 'northstar-goods-report.txt';
+        document.body.appendChild(download);
+        download.click();
+        download.remove();
+        announce('Report downloaded.');
+      });
+
+      activityButton?.addEventListener('click', () => {
+        announce('Showing the eight most recent activity events.');
+        activityButton.textContent = 'Showing latest';
+        activityButton.disabled = true;
+        window.setTimeout(() => { activityButton.disabled = false; activityButton.textContent = 'View all activity'; }, 1800);
+      });
+
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(drawRevenueChart, 120);
+      });
+      drawRevenueChart();
+    })();
+  </script>
+</body>
+</html>

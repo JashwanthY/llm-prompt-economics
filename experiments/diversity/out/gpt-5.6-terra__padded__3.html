@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An accessible analytics dashboard for Cedar & Thread, an independent online shop.">
+  <title>Cedar & Thread — Shop analytics</title>
+  <style>
+    :root {
+      --color-ink: #172033;
+      --color-muted: #58647a;
+      --color-page: #f4f6fb;
+      --color-surface: #ffffff;
+      --color-border: #d8deea;
+      --color-primary: #315bdf;
+      --color-primary-dark: #2146b7;
+      --color-primary-soft: #e9eeff;
+      --color-positive: #057a55;
+      --color-positive-soft: #dff7ed;
+      --color-warning: #9a5b00;
+      --color-warning-soft: #fff2d4;
+      --color-danger: #b42318;
+      --color-danger-soft: #fee8e7;
+      --shadow-card: 0 0.25rem 1.25rem rgba(23, 32, 51, 0.07);
+      --radius-large: 1rem;
+      --radius-medium: 0.625rem;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      min-width: 20rem;
+      margin: 0;
+      color: var(--color-ink);
+      background: var(--color-page);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    button, select { font: inherit; }
+
+    :focus-visible {
+      outline: 0.1875rem solid #f0a429;
+      outline-offset: 0.1875rem;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      top: -4rem;
+      left: var(--space-4);
+      padding: var(--space-2) var(--space-4);
+      color: #fff;
+      background: var(--color-ink);
+      border-radius: var(--radius-medium);
+    }
+
+    .skip-link:focus { top: var(--space-4); }
+
+    .site-header {
+      color: #fff;
+      background: var(--color-ink);
+      border-bottom: 0.25rem solid var(--color-primary);
+    }
+
+    .header__inner, .dashboard, .site-footer__inner {
+      width: min(100% - 2rem, 78rem);
+      margin-inline: auto;
+    }
+
+    .header__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      min-height: 5.25rem;
+    }
+
+    .brand { display: flex; align-items: center; gap: var(--space-3); }
+
+    .brand__mark {
+      display: grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      color: #fff;
+      background: var(--color-primary);
+      border-radius: 0.7rem;
+      font-weight: 800;
+    }
+
+    .brand__name { margin: 0; font-size: 1.125rem; font-weight: 750; }
+    .brand__context { margin: 0; color: #c5cede; font-size: 0.8125rem; }
+
+    .header__date { margin: 0; color: #dce3f2; font-size: 0.875rem; text-align: right; }
+
+    .dashboard { padding-block: var(--space-8) var(--space-10); }
+
+    .page-intro {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: var(--space-1); font-size: clamp(1.65rem, 4vw, 2.25rem); line-height: 1.15; letter-spacing: -0.035em; }
+    h2 { margin-bottom: 0; font-size: 1.0625rem; line-height: 1.3; }
+    h3 { margin-bottom: var(--space-1); font-size: 0.9375rem; }
+    .page-intro__summary { margin-bottom: 0; color: var(--color-muted); }
+
+    .control { display: grid; gap: var(--space-1); min-width: 10.5rem; }
+    .control__label { color: var(--color-muted); font-size: 0.8125rem; font-weight: 700; }
+    .control__select {
+      min-height: 2.5rem;
+      padding: 0 var(--space-6) 0 var(--space-3);
+      color: var(--color-ink);
+      background: var(--color-surface);
+      border: 0.0625rem solid #aeb9cc;
+      border-radius: var(--radius-medium);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 0.0625rem solid var(--color-border);
+      border-radius: var(--radius-large);
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-card { padding: var(--space-5); }
+    .metric-card__label { margin-bottom: var(--space-2); color: var(--color-muted); font-size: 0.875rem; font-weight: 700; }
+    .metric-card__value { margin-bottom: var(--space-2); font-size: clamp(1.7rem, 4vw, 2.25rem); font-weight: 780; line-height: 1.1; letter-spacing: -0.04em; }
+    .metric-card__detail { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: 0.875rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.625rem;
+      padding-inline: var(--space-2);
+      border-radius: 99rem;
+      font-size: 0.75rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge--positive { color: #075c40; background: var(--color-positive-soft); }
+    .badge--neutral { color: #33415b; background: #e9edf5; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    .dashboard-column { display: grid; gap: var(--space-6); }
+    .section-card { padding: var(--space-5); }
+    .section-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+    .section-card__subheading { margin: var(--space-1) 0 0; color: var(--color-muted); font-size: 0.8125rem; }
+
+    .chart-wrap { overflow-x: auto; }
+    .chart { display: block; width: 100%; min-width: 31rem; height: auto; }
+    .chart__grid { stroke: #dce3ef; stroke-width: 1; }
+    .chart__axis-label { fill: #58647a; font-family: var(--font-sans); font-size: 11px; }
+    .chart__line { fill: none; stroke: var(--color-primary); stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+    .chart__area { fill: url(#chartFill); }
+    .chart__point { fill: #fff; stroke: var(--color-primary); stroke-width: 2; }
+
+    .chart-summary { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); margin: var(--space-4) 0 0; color: var(--color-muted); font-size: 0.8125rem; }
+    .chart-summary strong { color: var(--color-ink); }
+
+    .product-list, .activity-list { padding: 0; margin: 0; list-style: none; }
+    .product-list { display: grid; gap: var(--space-1); }
+    .product {
+      display: grid;
+      grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 0.0625rem solid var(--color-border);
+    }
+    .product:last-child { border-bottom: 0; }
+    .product__rank { color: var(--color-muted); font-size: 0.8125rem; font-weight: 800; }
+    .product__name { margin: 0; font-weight: 700; }
+    .product__category { margin: 0; color: var(--color-muted); font-size: 0.75rem; }
+    .product__units { margin: 0; font-size: 0.8125rem; font-weight: 750; text-align: right; }
+    .product__units span { display: block; color: var(--color-muted); font-size: 0.6875rem; font-weight: 600; }
+
+    .activity-list { display: grid; gap: 0; }
+    .activity {
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 0.0625rem solid var(--color-border);
+    }
+    .activity:last-child { padding-bottom: 0; border-bottom: 0; }
+    .activity__icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: 50%; font-size: 1rem; font-weight: 800; }
+    .activity__icon--order { color: #193b9e; background: var(--color-primary-soft); }
+    .activity__icon--refund { color: #85241d; background: var(--color-danger-soft); }
+    .activity__icon--review { color: #754600; background: var(--color-warning-soft); }
+    .activity__content { min-width: 0; }
+    .activity__text { margin: 0; font-size: 0.875rem; line-height: 1.35; }
+    .activity__text strong { font-weight: 800; }
+    .activity__time { display: block; margin-top: var(--space-1); color: var(--color-muted); font-size: 0.75rem; }
+
+    .empty-state { margin: 0; padding: var(--space-6); color: var(--color-muted); text-align: center; background: var(--color-page); border-radius: var(--radius-medium); }
+    .site-footer { border-top: 0.0625rem solid var(--color-border); }
+    .site-footer__inner { padding-block: var(--space-5); color: var(--color-muted); font-size: 0.8125rem; }
+    .site-footer__inner p { margin: 0; }
+    .sr-only { position: absolute; width: 0.0625rem; height: 0.0625rem; padding: 0; margin: -0.0625rem; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 48rem) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 34rem) {
+      .header__date { display: none; }
+      .page-intro { align-items: stretch; flex-direction: column; }
+      .control { min-width: 0; }
+      .metric-grid { grid-template-columns: 1fr; }
+      .section-card { padding: var(--space-4); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#dashboard-content">Skip to dashboard content</a>
+  <header class="site-header">
+    <div class="header__inner">
+      <div class="brand" aria-label="Cedar and Thread">
+        <span class="brand__mark" aria-hidden="true">C</span>
+        <div>
+          <p class="brand__name">Cedar &amp; Thread</p>
+          <p class="brand__context">Shop analytics</p>
+        </div>
+      </div>
+      <p class="header__date">Reporting period: 1–30 June 2025</p>
+    </div>
+  </header>
+
+  <main id="dashboard-content" class="dashboard" tabindex="-1">
+    <section class="page-intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">Good morning, Maya</h1>
+        <p class="page-intro__summary">Here is how your shop is doing this month.</p>
+      </div>
+      <div class="control">
+        <label class="control__label" for="report-range">Report range</label>
+        <select id="report-range" class="control__select" aria-describedby="range-status">
+          <option value="30" selected>Last 30 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="7">Last 7 days</option>
+        </select>
+        <span id="range-status" class="sr-only" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="metric-grid" aria-label="Sales summary">
+      <article class="card metric-card">
+        <p class="metric-card__label">Total revenue</p>
+        <p id="revenue-total" class="metric-card__value">$18,642.30</p>
+        <p class="metric-card__detail"><span class="badge badge--positive">↑ 12.8%</span> versus last month</p>
+      </article>
+      <article class="card metric-card">
+        <p class="metric-card__label">Orders this week</p>
+        <p id="order-count" class="metric-card__value">86</p>
+        <p class="metric-card__detail"><span class="badge badge--neutral">14 more</span> than the prior week</p>
+      </article>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Detailed shop performance">
+      <div class="dashboard-column">
+        <section class="card section-card" aria-labelledby="revenue-heading">
+          <header class="section-card__header">
+            <div>
+              <h2 id="revenue-heading">Revenue over time</h2>
+              <p id="chart-period" class="section-card__subheading">Daily gross sales for the last 30 days</p>
+            </div>
+            <span class="badge badge--positive" id="chart-change">↑ 12.8%</span>
+          </header>
+          <div class="chart-wrap">
+            <svg id="revenue-chart" class="chart" viewBox="0 0 640 270" role="img" aria-labelledby="chart-title chart-description">
+              <title id="chart-title">Daily revenue</title>
+              <desc id="chart-description">A line chart of daily revenue for the selected period.</desc>
+            </svg>
+          </div>
+          <p id="chart-summary" class="chart-summary" aria-live="polite"></p>
+        </section>
+
+        <section class="card section-card" aria-labelledby="products-heading">
+          <header class="section-card__header">
+            <div>
+              <h2 id="products-heading">Best-selling products</h2>
+              <p class="section-card__subheading">By units sold this month</p>
+            </div>
+          </header>
+          <ol id="product-list" class="product-list" aria-label="Five best-selling products"></ol>
+        </section>
+      </div>
+
+      <section class="card section-card" aria-labelledby="activity-heading">
+        <header class="section-card__header">
+          <div>
+            <h2 id="activity-heading">Recent activity</h2>
+            <p class="section-card__subheading">Latest orders, refunds, and reviews</p>
+          </div>
+        </header>
+        <ol id="activity-list" class="activity-list" aria-label="Last eight activity events"></ol>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner"><p>All amounts are in USD and reflect completed payments before fees.</p></div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const dashboardState = {
+        revenueByDay: [492, 615, 581, 748, 622, 705, 816, 692, 735, 819, 664, 592, 778, 846, 923, 704, 681, 775, 889, 954, 836, 743, 913, 1025, 861, 799, 942, 1088, 1124, 1018],
+        products: [
+          { name: 'Stoneware Mug', category: 'Home goods', units: 184 },
+          { name: 'Linen Market Tote', category: 'Bags', units: 159 },
+          { name: 'Cedar Candle — No. 04', category: 'Home fragrance', units: 137 },
+          { name: 'Everyday Notebook', category: 'Paper goods', units: 121 },
+          { name: 'Wool Blend Throw', category: 'Textiles', units: 96 }
+        ],
+        activities: [
+          { type: 'order', label: 'Order <strong>#10482</strong> placed by Aisha K.', detail: '$86.00 · 3 items', time: '12 minutes ago' },
+          { type: 'review', label: '<strong>New 5-star review</strong> for Stoneware Mug', detail: '“Beautifully made and arrived quickly.”', time: '31 minutes ago' },
+          { type: 'refund', label: 'Refund issued for <strong>order #10471</strong>', detail: '$34.00 · duplicate purchase', time: '1 hour ago' },
+          { type: 'order', label: 'Order <strong>#10481</strong> placed by Lucas M.', detail: '$124.50 · 4 items', time: '1 hour ago' },
+          { type: 'order', label: 'Order <strong>#10480</strong> placed by Riley P.', detail: '$52.00 · 2 items', time: '2 hours ago' },
+          { type: 'review', label: '<strong>New 4-star review</strong> for Linen Market Tote', detail: '“Great size for errands.”', time: '3 hours ago' },
+          { type: 'order', label: 'Order <strong>#10479</strong> placed by Priya S.', detail: '$73.00 · 2 items', time: '4 hours ago' },
+          { type: 'refund', label: 'Refund issued for <strong>order #10462</strong>', detail: '$18.00 · customer return', time: '5 hours ago' }
+        ]
+      };
+
+      const CHART_WIDTH = 640;
+      const CHART_HEIGHT = 270;
+      const CHART_PADDING = { top: 18, right: 20, bottom: 40, left: 58 };
+      const CURRENCY_FORMATTER = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+      const elements = {
+        reportRange: document.querySelector('#report-range'),
+        rangeStatus: document.querySelector('#range-status'),
+        chart: document.querySelector('#revenue-chart'),
+        chartPeriod: document.querySelector('#chart-period'),
+        chartSummary: document.querySelector('#chart-summary'),
+        productList: document.querySelector('#product-list'),
+        activityList: document.querySelector('#activity-list')
+      };
+
+      const getRevenueSubset = (days) => dashboardState.revenueByDay.slice(-days);
+      const formatCurrency = (amount) => CURRENCY_FORMATTER.format(amount);
+      const createElement = (tagName, className, content) => {
+        const element = document.createElement(tagName);
+        if (className) element.className = className;
+        if (content !== undefined) element.innerHTML = content;
+        return element;
+      };
+
+      const renderProducts = () => {
+        if (!elements.productList) return;
+        const fragment = document.createDocumentFragment();
+        dashboardState.products.forEach((product, index) => {
+          const item = createElement('li', 'product');
+          item.innerHTML = `<span class="product__rank" aria-label="Rank ${index + 1}">${index + 1}</span><div><p class="product__name">${product.name}</p><p class="product__category">${product.category}</p></div><p class="product__units">${product.units}<span>units sold</span></p>`;
+          fragment.append(item);
+        });
+        elements.productList.replaceChildren(fragment);
+      };
+
+      const renderActivities = () => {
+        if (!elements.activityList) return;
+        const typeSymbols = { order: '↗', refund: '↩', review: '★' };
+        const typeLabels = { order: 'Order', refund: 'Refund', review: 'Review' };
+        const fragment = document.createDocumentFragment();
+        dashboardState.activities.slice(0, 8).forEach((activity) => {
+          const item = createElement('li', 'activity');
+          item.innerHTML = `<span class="activity__icon activity__icon--${activity.type}" aria-label="${typeLabels[activity.type]}">${typeSymbols[activity.type]}</span><div class="activity__content"><p class="activity__text">${activity.label}</p><span class="activity__time">${activity.detail} · ${activity.time}</span></div>`;
+          fragment.append(item);
+        });
+        elements.activityList.replaceChildren(fragment);
+      };
+
+      const niceMaximum = (value) => Math.ceil(value / 250) * 250;
+
+      const renderChart = (values, days) => {
+        if (!elements.chart || values.length === 0) return;
+        const chartBottom = CHART_HEIGHT - CHART_PADDING.bottom;
+        const innerWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
+        const innerHeight = chartBottom - CHART_PADDING.top;
+        const maximum = niceMaximum(Math.max(...values));
+        const xPosition = (index) => CHART_PADDING.left + (index / Math.max(values.length - 1, 1)) * innerWidth;
+        const yPosition = (value) => CHART_PADDING.top + ((maximum - value) / maximum) * innerHeight;
+        const points = values.map((value, index) => `${xPosition(index).toFixed(1)},${yPosition(value).toFixed(1)}`);
+        const gridLines = [0, 0.5, 1].map((ratio) => {
+          const y = (CHART_PADDING.top + innerHeight * ratio).toFixed(1);
+          const value = Math.round(maximum * (1 - ratio));
+          return `<line class="chart__grid" x1="${CHART_PADDING.left}" x2="${CHART_WIDTH - CHART_PADDING.right}" y1="${y}" y2="${y}" /><text class="chart__axis-label" x="${CHART_PADDING.left - 10}" y="${Number(y) + 4}" text-anchor="end">${formatCurrency(value)}</text>`;
+        }).join('');
+        const firstDate = 31 - days;
+        const xLabels = [{ position: 0, label: `Jun ${firstDate}` }, { position: Math.floor((values.length - 1) / 2), label: 'Mid-month' }, { position: values.length - 1, label: 'Jun 30' }].map(({ position, label }) => `<text class="chart__axis-label" x="${xPosition(position)}" y="${CHART_HEIGHT - 12}" text-anchor="middle">${label}</text>`).join('');
+        const areaPath = `M ${points.join(' L ')} L ${xPosition(values.length - 1).toFixed(1)},${chartBottom} L ${xPosition(0).toFixed(1)},${chartBottom} Z`;
+        const markerIndexes = [...new Set([0, Math.floor((values.length - 1) / 2), values.length - 1])];
+        const markers = markerIndexes.map((index) => `<circle class="chart__point" cx="${xPosition(index).toFixed(1)}" cy="${yPosition(values[index]).toFixed(1)}" r="4" />`).join('');
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const average = Math.round(total / values.length);
+        elements.chart.innerHTML = `<title id="chart-title">Daily revenue for the last ${days} days</title><desc id="chart-description">Revenue ranges from ${formatCurrency(Math.min(...values))} to ${formatCurrency(Math.max(...values))} per day, totaling ${formatCurrency(total)}.</desc><defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#315bdf" stop-opacity="0.25" /><stop offset="100%" stop-color="#315bdf" stop-opacity="0.02" /></linearGradient></defs>${gridLines}<path class="chart__area" d="${areaPath}" /><polyline class="chart__line" points="${points.join(' ')}" />${markers}${xLabels}`;
+        elements.chartPeriod.textContent = `Daily gross sales for the last ${days} days`;
+        elements.chartSummary.innerHTML = `<span><strong>${formatCurrency(total)}</strong> total revenue</span><span><strong>${formatCurrency(average)}</strong> daily average</span><span><strong>${formatCurrency(Math.max(...values))}</strong> best day</span>`;
+      };
+
+      const updateReport = () => {
+        if (!elements.reportRange) return;
+        const days = Number.parseInt(elements.reportRange.value, 10);
+        if (![7, 14, 30].includes(days)) return;
+        renderChart(getRevenueSubset(days), days);
+        if (elements.rangeStatus) elements.rangeStatus.textContent = `Revenue chart updated to show the last ${days} days.`;
+      };
+
+      renderProducts();
+      renderActivities();
+      updateReport();
+      if (elements.reportRange) elements.reportRange.addEventListener('change', updateReport);
+    })();
+  </script>
+</body>
+</html>

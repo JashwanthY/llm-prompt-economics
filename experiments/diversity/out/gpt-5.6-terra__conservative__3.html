@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Northline Goods — Analytics</title>
+<style>
+  :root {
+    --navy: #24364b;
+    --blue: #2f6fad;
+    --blue-soft: #eaf2f9;
+    --green: #27724f;
+    --red: #a33a3a;
+    --text: #263342;
+    --muted: #687788;
+    --border: #d8e0e8;
+    --panel: #ffffff;
+    --background: #f4f6f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--text);
+    background: var(--background);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .topbar {
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { color: var(--navy); font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+  .brand span { color: var(--muted); font-weight: 400; }
+  .topbar-right { color: var(--muted); font-size: 13px; }
+  .layout { display: flex; min-height: calc(100vh - 62px); }
+  aside {
+    width: 216px;
+    flex: 0 0 216px;
+    padding: 24px 12px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+  }
+  .nav-label { margin: 0 12px 9px; color: #84909d; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  nav a {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    margin: 2px 0;
+    padding: 0 12px;
+    color: #506174;
+    border-radius: 3px;
+    text-decoration: none;
+  }
+  nav a.active { color: #1d568e; background: var(--blue-soft); font-weight: 700; }
+  main { width: 100%; max-width: 1440px; padding: 30px 34px 42px; }
+  .page-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  h1 { margin: 0 0 4px; color: var(--navy); font-size: 25px; line-height: 1.2; font-weight: 700; }
+  .subtitle { margin: 0; color: var(--muted); }
+  .date-range { padding: 8px 12px; color: #4c5f72; background: #fff; border: 1px solid var(--border); border-radius: 3px; font-size: 13px; }
+  .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+  .metric { min-height: 142px; padding: 21px 22px; }
+  .metric-label { color: var(--muted); font-size: 13px; font-weight: 700; }
+  .metric-value { margin: 10px 0 8px; color: var(--navy); font-size: 29px; font-weight: 700; letter-spacing: -.4px; }
+  .metric-note { font-size: 13px; }
+  .up { color: var(--green); font-weight: 700; }
+  .neutral { color: var(--muted); }
+  .content-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(330px, .9fr); gap: 22px; }
+  .stack { display: grid; gap: 22px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 19px 21px 15px; border-bottom: 1px solid var(--border); }
+  .panel-header h2 { margin: 0; color: var(--navy); font-size: 16px; font-weight: 700; }
+  .panel-header span { color: var(--muted); font-size: 12px; }
+  .chart-body { padding: 14px 21px 18px; }
+  .chart-wrap { position: relative; height: 277px; }
+  #revenue-chart { display: block; width: 100%; height: 100%; }
+  .chart-legend { display: flex; justify-content: flex-end; align-items: center; gap: 7px; margin-top: 6px; color: var(--muted); font-size: 12px; }
+  .legend-line { width: 18px; height: 3px; background: var(--blue); border-radius: 2px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 11px 20px; color: var(--muted); background: #fafbfc; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-align: left; text-transform: uppercase; }
+  td { padding: 13px 20px; border-bottom: 1px solid #e8edf1; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td:last-child, th:last-child { text-align: right; }
+  .rank { display: inline-block; width: 22px; color: var(--muted); font-size: 12px; }
+  .product { font-weight: 700; }
+  .sku { display: block; margin-top: 1px; color: var(--muted); font-size: 12px; font-weight: 400; }
+  .units { color: var(--navy); font-weight: 700; }
+  .activity-list { margin: 0; padding: 0; list-style: none; }
+  .activity-list li { display: grid; grid-template-columns: 9px minmax(0, 1fr); gap: 11px; padding: 13px 20px; border-bottom: 1px solid #e8edf1; }
+  .activity-list li:last-child { border-bottom: 0; }
+  .dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--blue); }
+  .dot.refund { background: var(--red); }
+  .dot.review { background: #788899; }
+  .event { margin: 0; color: #354658; font-size: 13px; }
+  .event strong { color: var(--navy); }
+  .event-time { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+  @media (max-width: 900px) {
+    aside { display: none; }
+    main { padding: 24px 20px; }
+    .content-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .topbar { padding: 0 20px; }
+    .topbar-right { display: none; }
+    .page-heading { gap: 12px; flex-direction: column; }
+    .metrics { grid-template-columns: 1fr; gap: 12px; }
+    .date-range { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Northline <span>Goods</span></div>
+  <div class="topbar-right">Store analytics &nbsp;•&nbsp; Updated today at 9:42 AM</div>
+</header>
+<div class="layout">
+  <aside>
+    <p class="nav-label">Overview</p>
+    <nav aria-label="Main navigation">
+      <a class="active" href="#">Analytics</a>
+      <a href="#">Orders</a>
+      <a href="#">Products</a>
+      <a href="#">Customers</a>
+    </nav>
+    <p class="nav-label" style="margin-top:26px">Store</p>
+    <nav aria-label="Store navigation">
+      <a href="#">Discounts</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+  <main>
+    <section class="page-heading">
+      <div><h1>Analytics overview</h1><p class="subtitle">Performance across your online store</p></div>
+      <div class="date-range">March 1 – March 30, 2025</div>
+    </section>
+
+    <section class="metrics" aria-label="Key metrics">
+      <article class="card metric"><div class="metric-label">Total revenue</div><div class="metric-value">$28,460.75</div><div class="metric-note"><span class="up">↑ 12.4%</span> <span class="neutral">vs. February</span></div></article>
+      <article class="card metric"><div class="metric-label">Orders this week</div><div class="metric-value">186</div><div class="metric-note"><span class="up">↑ 8.1%</span> <span class="neutral">vs. last week</span></div></article>
+      <article class="card metric"><div class="metric-label">Average order value</div><div class="metric-value">$74.63</div><div class="metric-note"><span class="up">↑ 3.6%</span> <span class="neutral">vs. February</span></div></article>
+    </section>
+
+    <section class="content-grid">
+      <div class="stack">
+        <article class="card">
+          <header class="panel-header"><h2>Revenue over time</h2><span>Last 30 days</span></header>
+          <div class="chart-body"><div class="chart-wrap"><canvas id="revenue-chart" role="img" aria-label="Line chart showing daily revenue from March 1 to March 30, 2025"></canvas></div><div class="chart-legend"><i class="legend-line"></i>Daily revenue</div></div>
+        </article>
+        <article class="card">
+          <header class="panel-header"><h2>Best-selling products</h2><span>March 2025</span></header>
+          <table>
+            <thead><tr><th>Product</th><th>Units sold</th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank">01</span><span class="product">Harbor Canvas Tote</span><span class="sku">SKU: NLG-CT-01</span></td><td class="units">324</td></tr>
+              <tr><td><span class="rank">02</span><span class="product">Classic Crewneck Sweatshirt</span><span class="sku">SKU: NLG-CS-04</span></td><td class="units">287</td></tr>
+              <tr><td><span class="rank">03</span><span class="product">Insulated Travel Mug</span><span class="sku">SKU: NLG-TM-08</span></td><td class="units">241</td></tr>
+              <tr><td><span class="rank">04</span><span class="product">Everyday Notebook Set</span><span class="sku">SKU: NLG-NS-03</span></td><td class="units">198</td></tr>
+              <tr><td><span class="rank">05</span><span class="product">Wool Blend Beanie</span><span class="sku">SKU: NLG-WB-02</span></td><td class="units">176</td></tr>
+            </tbody>
+          </table>
+        </article>
+      </div>
+      <article class="card">
+        <header class="panel-header"><h2>Recent activity</h2><span>Latest events</span></header>
+        <ol class="activity-list">
+          <li><i class="dot"></i><p class="event"><strong>Order #18429</strong> placed by Mia Thompson — $86.00<span class="event-time">9 minutes ago</span></p></li>
+          <li><i class="dot review"></i><p class="event"><strong>New 5-star review</strong> for Harbor Canvas Tote<span class="event-time">34 minutes ago</span></p></li>
+          <li><i class="dot"></i><p class="event"><strong>Order #18428</strong> placed by Daniel Kim — $124.50<span class="event-time">1 hour ago</span></p></li>
+          <li><i class="dot refund"></i><p class="event"><strong>Refund issued</strong> for order #18396 — $32.00<span class="event-time">2 hours ago</span></p></li>
+          <li><i class="dot"></i><p class="event"><strong>Order #18427</strong> placed by Ava Rodriguez — $59.00<span class="event-time">3 hours ago</span></p></li>
+          <li><i class="dot review"></i><p class="event"><strong>New 4-star review</strong> for Insulated Travel Mug<span class="event-time">4 hours ago</span></p></li>
+          <li><i class="dot"></i><p class="event"><strong>Order #18426</strong> placed by Noah Williams — $178.25<span class="event-time">5 hours ago</span></p></li>
+          <li><i class="dot"></i><p class="event"><strong>Order #18425</strong> placed by Sophia Patel — $72.00<span class="event-time">6 hours ago</span></p></li>
+        </ol>
+      </article>
+    </section>
+  </main>
+</div>
+<script>
+(function () {
+  const canvas = document.getElementById('revenue-chart');
+  const values = [610, 735, 680, 820, 760, 905, 1010, 870, 790, 945, 1025, 980, 1110, 920, 875, 1080, 1175, 1030, 1225, 1140, 960, 1055, 1190, 1285, 1160, 1310, 1250, 1420, 1365, 1510];
+  function draw() {
+    const rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+    const w = rect.width, h = rect.height, left = 48, right = 12, top = 16, bottom = 32;
+    const pw = w - left - right, ph = h - top - bottom, min = 0, max = 1600;
+    ctx.font = '12px Arial'; ctx.textBaseline = 'middle';
+    [0, 400, 800, 1200, 1600].forEach(v => {
+      const y = top + ph - ((v - min) / (max - min)) * ph;
+      ctx.strokeStyle = '#e3e9ee'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(w - right, y); ctx.stroke();
+      ctx.fillStyle = '#788797'; ctx.textAlign = 'right'; ctx.fillText('$' + (v === 0 ? '0' : (v / 1000) + 'k'), left - 8, y);
+    });
+    const labels = [{i:0,t:'Mar 1'}, {i:7,t:'Mar 8'}, {i:14,t:'Mar 15'}, {i:21,t:'Mar 22'}, {i:29,t:'Mar 30'}];
+    ctx.fillStyle = '#788797'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    labels.forEach(({i,t}) => ctx.fillText(t, left + i * pw / (values.length - 1), h - 7));
+    const point = (v, i) => [left + i * pw / (values.length - 1), top + ph - ((v - min) / (max - min)) * ph];
+    ctx.beginPath(); values.forEach((v,i) => { const [x,y] = point(v,i); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+    ctx.lineTo(left + pw, top + ph); ctx.lineTo(left, top + ph); ctx.closePath();
+    const fill = ctx.createLinearGradient(0, top, 0, top + ph); fill.addColorStop(0, 'rgba(47,111,173,.18)'); fill.addColorStop(1, 'rgba(47,111,173,0)'); ctx.fillStyle = fill; ctx.fill();
+    ctx.beginPath(); values.forEach((v,i) => { const [x,y] = point(v,i); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+    ctx.strokeStyle = '#2f6fad'; ctx.lineWidth = 2; ctx.stroke();
+    const [x,y] = point(values.length ? values[values.length - 1] : 0, values.length - 1); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2f6fad'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  }
+  draw(); window.addEventListener('resize', draw);
+}());
+</script>
+</body>
+</html>

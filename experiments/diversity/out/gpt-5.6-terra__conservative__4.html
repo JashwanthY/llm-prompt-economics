@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northstar Goods — Sales Overview</title>
+<style>
+  :root { --navy:#1f2937; --muted:#64748b; --border:#d9e0e7; --surface:#fff; --page:#f4f6f8; --blue:#2563a8; --green:#18794e; --red:#b42318; --grid:#e7ebef; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--navy); font:14px/1.45 Arial, Helvetica, sans-serif; }
+  .topbar { height:64px; background:#fff; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 32px; gap:34px; }
+  .brand { font-size:18px; font-weight:700; letter-spacing:-.2px; white-space:nowrap; }
+  .brand span { color:var(--blue); }
+  nav { display:flex; height:100%; gap:26px; }
+  nav a { display:flex; align-items:center; color:#526174; text-decoration:none; font-size:14px; }
+  nav a.active { color:var(--blue); border-bottom:3px solid var(--blue); font-weight:600; }
+  .account { margin-left:auto; color:var(--muted); font-size:13px; }
+  main { max-width:1280px; margin:0 auto; padding:28px 32px 42px; }
+  .page-heading { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:23px; }
+  h1 { font-size:24px; line-height:1.2; margin:0 0 5px; font-weight:700; }
+  .subtitle { margin:0; color:var(--muted); }
+  .period { border:1px solid var(--border); border-radius:4px; background:white; padding:8px 11px; font-size:13px; color:#344256; }
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:18px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:5px; }
+  .metric { padding:18px 20px; min-height:130px; }
+  .metric-label { color:#526174; font-size:13px; font-weight:600; }
+  .metric-value { margin:10px 0 6px; font-size:28px; line-height:1; font-weight:700; letter-spacing:-.5px; }
+  .metric-note { font-size:13px; color:var(--muted); }
+  .positive { color:var(--green); font-weight:600; }
+  .content-grid { display:grid; grid-template-columns:minmax(0,1.75fr) minmax(320px,1fr); gap:18px; }
+  .chart-card { grid-column:1; }
+  .section-header { padding:17px 20px 14px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; justify-content:space-between; }
+  h2 { margin:0; font-size:16px; line-height:1.2; font-weight:700; }
+  .section-meta { color:var(--muted); font-size:12px; }
+  .chart-wrap { height:320px; padding:16px 18px 12px 8px; }
+  svg { width:100%; height:100%; overflow:visible; }
+  .axis { fill:#718096; font-size:11px; }
+  .gridline { stroke:var(--grid); stroke-width:1; }
+  .area { fill:#dbeafe; }
+  .line { fill:none; stroke:var(--blue); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+  .point { fill:#fff; stroke:var(--blue); stroke-width:2; }
+  .side-stack { display:grid; gap:18px; }
+  .products { grid-column:2; }
+  .table-wrap { padding:3px 20px 10px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { padding:10px 0 8px; color:#64748b; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+  th:last-child, td:last-child { text-align:right; }
+  td { padding:10px 0; border-top:1px solid #e9edf1; color:#344256; }
+  .product-name { color:#253449; font-weight:600; }
+  .activity { grid-column:1 / -1; }
+  .activity-list { list-style:none; margin:0; padding:1px 20px 9px; }
+  .activity-list li { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #e9edf1; }
+  .activity-list li:last-child { border:0; }
+  .event-icon { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .order { background:#e8f1fb; color:#2163a6; }
+  .refund { background:#fbeaea; color:#b42318; }
+  .review { background:#eef2f5; color:#516072; }
+  .event-main { min-width:0; color:#324155; }
+  .event-main strong { color:#1f2937; }
+  .event-time { color:#748194; font-size:12px; white-space:nowrap; }
+  @media (max-width:800px) { .topbar { padding:0 18px; } nav { display:none; } main { padding:22px 18px; } .metrics, .content-grid { grid-template-columns:1fr; } .chart-card,.products,.activity { grid-column:auto; } .page-heading { align-items:flex-start; gap:14px; flex-direction:column; } .chart-wrap { height:280px; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Northstar <span>Goods</span></div>
+  <nav aria-label="Primary navigation"><a class="active" href="#overview">Overview</a><a href="#orders">Orders</a><a href="#products">Products</a><a href="#customers">Customers</a></nav>
+  <div class="account">Alex Morgan · Admin</div>
+</header>
+<main id="overview">
+  <div class="page-heading"><div><h1>Sales overview</h1><p class="subtitle">A summary of store performance and recent customer activity.</p></div><div class="period">May 1–31, 2024 ▾</div></div>
+  <section class="metrics" aria-label="Key performance indicators">
+    <article class="card metric"><div class="metric-label">Total revenue</div><div class="metric-value">$48,294.60</div><div class="metric-note"><span class="positive">↑ 12.4%</span> compared with April</div></article>
+    <article class="card metric"><div class="metric-label">Orders this week</div><div class="metric-value">186</div><div class="metric-note"><span class="positive">↑ 8.1%</span> compared with last week</div></article>
+    <article class="card metric"><div class="metric-label">Average order value</div><div class="metric-value">$72.55</div><div class="metric-note"><span class="positive">↑ 3.2%</span> compared with April</div></article>
+  </section>
+  <section class="content-grid" aria-label="Store performance details">
+    <article class="card chart-card"><div class="section-header"><h2>Revenue over time</h2><span class="section-meta">Last 30 days</span></div><div class="chart-wrap">
+      <svg viewBox="0 0 700 285" role="img" aria-label="Line chart showing revenue over the last 30 days, ending at 48,294 dollars total">
+        <line class="gridline" x1="55" y1="25" x2="680" y2="25"/><line class="gridline" x1="55" y1="82" x2="680" y2="82"/><line class="gridline" x1="55" y1="139" x2="680" y2="139"/><line class="gridline" x1="55" y1="196" x2="680" y2="196"/><line class="gridline" x1="55" y1="253" x2="680" y2="253"/>
+        <text class="axis" x="8" y="29">$2,400</text><text class="axis" x="8" y="86">$1,800</text><text class="axis" x="8" y="143">$1,200</text><text class="axis" x="18" y="200">$600</text><text class="axis" x="28" y="257">$0</text>
+        <path class="area" d="M55 187 L77 170 L98 181 L120 139 L141 158 L163 150 L184 126 L206 143 L227 105 L249 121 L270 134 L292 92 L313 111 L335 74 L356 98 L378 84 L399 112 L421 66 L442 76 L464 50 L485 70 L507 61 L528 87 L550 45 L571 55 L593 38 L614 65 L636 48 L657 29 L680 43 L680 253 L55 253 Z"/>
+        <path class="line" d="M55 187 L77 170 L98 181 L120 139 L141 158 L163 150 L184 126 L206 143 L227 105 L249 121 L270 134 L292 92 L313 111 L335 74 L356 98 L378 84 L399 112 L421 66 L442 76 L464 50 L485 70 L507 61 L528 87 L550 45 L571 55 L593 38 L614 65 L636 48 L657 29 L680 43"/>
+        <circle class="point" cx="680" cy="43" r="4"/>
+        <text class="axis" x="55" y="275">May 2</text><text class="axis" x="250" y="275">May 11</text><text class="axis" x="448" y="275">May 20</text><text class="axis" x="646" y="275">May 31</text>
+      </svg>
+    </div></article>
+    <article class="card products" id="products"><div class="section-header"><h2>Best-selling products</h2><span class="section-meta">This month</span></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Units sold</th></tr></thead><tbody><tr><td class="product-name">Everyday Crew Tee</td><td>342</td></tr><tr><td class="product-name">Canvas Market Tote</td><td>287</td></tr><tr><td class="product-name">Classic Insulated Bottle</td><td>241</td></tr><tr><td class="product-name">Relaxed Cotton Hoodie</td><td>198</td></tr><tr><td class="product-name">Wool Blend Beanie</td><td>176</td></tr></tbody></table></div></article>
+    <article class="card activity"><div class="section-header"><h2>Recent activity</h2><span class="section-meta">Latest 8 events</span></div><ul class="activity-list">
+      <li><span class="event-icon order">O</span><span class="event-main"><strong>New order #10482</strong> from Maya Patel — $84.00</span><time class="event-time">8 min ago</time></li>
+      <li><span class="event-icon review">★</span><span class="event-main"><strong>New 5-star review</strong> for Classic Insulated Bottle</span><time class="event-time">24 min ago</time></li>
+      <li><span class="event-icon order">O</span><span class="event-main"><strong>New order #10481</strong> from Daniel Kim — $126.50</span><time class="event-time">41 min ago</time></li>
+      <li><span class="event-icon refund">R</span><span class="event-main"><strong>Refund issued</strong> for order #10459 — $32.00</span><time class="event-time">1 hr ago</time></li>
+      <li><span class="event-icon order">O</span><span class="event-main"><strong>New order #10480</strong> from Jordan Reed — $59.00</span><time class="event-time">2 hrs ago</time></li>
+      <li><span class="event-icon review">★</span><span class="event-main"><strong>New 4-star review</strong> for Everyday Crew Tee</span><time class="event-time">3 hrs ago</time></li>
+      <li><span class="event-icon order">O</span><span class="event-main"><strong>New order #10479</strong> from Sofia Martinez — $145.00</span><time class="event-time">4 hrs ago</time></li>
+      <li><span class="event-icon order">O</span><span class="event-main"><strong>New order #10478</strong> from Ethan Walker — $72.00</span><time class="event-time">5 hrs ago</time></li>
+    </ul></article>
+  </section>
+</main>
+</body>
+</html>
