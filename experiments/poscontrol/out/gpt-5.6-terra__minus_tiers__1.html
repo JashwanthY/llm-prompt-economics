@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    body { max-width: 42rem; margin: 2rem auto; padding: 0 1rem; font-family: system-ui, sans-serif; color: #1f2937; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .65rem; border-bottom: 1px solid #d1d5db; text-align: left; }
+    th:last-child, td:last-child { text-align: right; }
+    input[type="number"] { width: 5rem; padding: .35rem; }
+    input[type="text"] { padding: .4rem; }
+    button { padding: .4rem .7rem; }
+    .error { margin-left: .5rem; color: #b91c1c; }
+    dl { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1.5rem; margin-top: 1.5rem; }
+    dt, dd { margin: 0; }
+    .total { padding-top: .5rem; border-top: 2px solid #374151; font-size: 1.1rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>Checkout</h1>
+  <table>
+    <thead><tr><th>Item</th><th>Price</th><th>Quantity</th></tr></thead>
+    <tbody>
+      <tr><td>Widget</td><td>$24.99</td><td><input id="qty-widget" type="number" min="0" step="1" value="0" aria-label="Widget quantity"></td></tr>
+      <tr><td>Gadget</td><td>$79.50</td><td><input id="qty-gadget" type="number" min="0" step="1" value="0" aria-label="Gadget quantity"></td></tr>
+      <tr><td>Doohickey</td><td>$12.25</td><td><input id="qty-doohickey" type="number" min="0" step="1" value="0" aria-label="Doohickey quantity"></td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    <label for="app-coupon">Coupon code</label>
+    <input id="app-coupon" type="text" autocomplete="off">
+    <button id="app-apply" type="button">Apply</button>
+    <span id="out-coupon-error" class="error" aria-live="polite"></span>
+  </p>
+
+  <dl>
+    <dt>Subtotal</dt><dd><span id="out-subtotal">$0.00</span></dd>
+    <dt>Discount</dt><dd><span id="out-discount">$0.00</span></dd>
+    <dt>Shipping</dt><dd><span id="out-shipping">$0.00</span></dd>
+    <dt>Tax</dt><dd><span id="out-tax">$0.00</span></dd>
+    <dt class="total">Total</dt><dd class="total"><span id="out-total">$0.00</span></dd>
+  </dl>
+
+  <script>
+    (() => {
+      const products = [
+        { id: 'qty-widget', price: 24.99 },
+        { id: 'qty-gadget', price: 79.50 },
+        { id: 'qty-doohickey', price: 12.25 }
+      ];
+      // Standard volume discount: highest eligible tier is used.
+      const volumeTiers = [
+        { minimum: 100, rate: 0.05 },
+        { minimum: 250, rate: 0.10 },
+        { minimum: 500, rate: 0.15 }
+      ];
+      const couponInput = document.getElementById('app-coupon');
+      const couponError = document.getElementById('out-coupon-error');
+      const validCoupons = new Set(['SAVE10', 'BULK5', 'FREESHIP']);
+      let appliedCoupon = '';
+
+      const money = amount => '$' + amount.toFixed(2);
+
+      function normalizedQuantity(input) {
+        const value = Number(input.value);
+        const quantity = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+        if (input.value !== String(quantity)) input.value = quantity;
+        return quantity;
+      }
+
+      function update() {
+        const subtotal = products.reduce((sum, product) => {
+          const input = document.getElementById(product.id);
+          return sum + product.price * normalizedQuantity(input);
+        }, 0);
+
+        const volumeRate = volumeTiers.reduce(
+          (rate, tier) => subtotal >= tier.minimum ? tier.rate : rate,
+          0
+        );
+        const volumeDiscount = subtotal * volumeRate;
+        const save10Discount = appliedCoupon === 'SAVE10' ? subtotal * 0.10 : 0;
+        let discount = Math.max(volumeDiscount, save10Discount);
+
+        if (appliedCoupon === 'BULK5') {
+          discount += Math.min(5, Math.max(0, subtotal - discount));
+        }
+
+        const postDiscountSubtotal = Math.max(0, subtotal - discount);
+        const shipping = appliedCoupon === 'FREESHIP' || postDiscountSubtotal >= 75 ? 0 : 8;
+        const tax = postDiscountSubtotal * 0.0825;
+        const total = postDiscountSubtotal + shipping + tax;
+
+        document.getElementById('out-subtotal').textContent = money(subtotal);
+        document.getElementById('out-discount').textContent = money(discount);
+        document.getElementById('out-shipping').textContent = money(shipping);
+        document.getElementById('out-tax').textContent = money(tax);
+        document.getElementById('out-total').textContent = money(total);
+      }
+
+      function applyCoupon() {
+        const code = couponInput.value.trim().toUpperCase();
+        if (code && !validCoupons.has(code)) {
+          appliedCoupon = '';
+          couponError.textContent = 'Invalid coupon';
+        } else {
+          appliedCoupon = code;
+          couponError.textContent = '';
+        }
+        update();
+      }
+
+      products.forEach(({ id }) => {
+        document.getElementById(id).addEventListener('input', update);
+      });
+      document.getElementById('app-apply').addEventListener('click', applyCoupon);
+      couponInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') applyCoupon();
+      });
+      update();
+    })();
+  </script>
+</body>
+</html>

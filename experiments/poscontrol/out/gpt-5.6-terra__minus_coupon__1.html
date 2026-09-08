@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    th, td { padding: .65rem; border-bottom: 1px solid #ddd; text-align: left; }
+    td:last-child, th:last-child { text-align: right; }
+    input[type="number"] { width: 5rem; padding: .35rem; }
+    #app-coupon { padding: .4rem; }
+    button { padding: .4rem .8rem; }
+    #out-coupon-error { color: #b00020; margin-left: .5rem; }
+    .summary { margin-top: 1.25rem; }
+    .summary div { display: flex; justify-content: space-between; padding: .35rem 0; }
+    .summary .total { font-weight: bold; border-top: 2px solid #222; margin-top: .35rem; padding-top: .65rem; }
+  </style>
+</head>
+<body>
+  <h1>Checkout</h1>
+  <table>
+    <thead><tr><th>Item</th><th>Price</th><th>Quantity</th></tr></thead>
+    <tbody>
+      <tr><td>Widget</td><td>$24.99</td><td><input id="qty-widget" type="number" min="0" step="1" value="0" aria-label="Widget quantity"></td></tr>
+      <tr><td>Gadget</td><td>$79.50</td><td><input id="qty-gadget" type="number" min="0" step="1" value="0" aria-label="Gadget quantity"></td></tr>
+      <tr><td>Doohickey</td><td>$12.25</td><td><input id="qty-doohickey" type="number" min="0" step="1" value="0" aria-label="Doohickey quantity"></td></tr>
+    </tbody>
+  </table>
+
+  <label for="app-coupon">Coupon</label>
+  <input id="app-coupon" type="text" autocomplete="off">
+  <button id="app-apply" type="button">Apply</button>
+  <span id="out-coupon-error" aria-live="polite"></span>
+
+  <section class="summary" aria-label="Order summary">
+    <div><span>Subtotal</span><span id="out-subtotal">$0.00</span></div>
+    <div><span>Discount</span><span id="out-discount">$0.00</span></div>
+    <div><span>Shipping</span><span id="out-shipping">$0.00</span></div>
+    <div><span>Tax</span><span id="out-tax">$0.00</span></div>
+    <div class="total"><span>Total</span><span id="out-total">$0.00</span></div>
+  </section>
+
+  <script>
+    (function () {
+      'use strict';
+      var products = [
+        { id: 'qty-widget', price: 24.99 },
+        { id: 'qty-gadget', price: 79.50 },
+        { id: 'qty-doohickey', price: 12.25 }
+      ];
+      var couponInput = document.getElementById('app-coupon');
+      var appliedCoupon = '';
+      var error = document.getElementById('out-coupon-error');
+
+      function money(value) { return '$' + value.toFixed(2); }
+      function quantity(input) {
+        var value = Number(input.value);
+        return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+      }
+      function update() {
+        var subtotal = products.reduce(function (sum, product) {
+          return sum + product.price * quantity(document.getElementById(product.id));
+        }, 0);
+        var volumeRate = subtotal >= 500 ? 0.15 : subtotal >= 250 ? 0.10 : subtotal >= 100 ? 0.05 : 0;
+        var volumeDiscount = subtotal * volumeRate;
+        var couponDiscount = appliedCoupon === 'SAVE10' ? subtotal * 0.10 : appliedCoupon === 'BULK5' ? 5 : 0;
+        couponDiscount = Math.min(couponDiscount, subtotal - volumeDiscount);
+        var discount = volumeDiscount + couponDiscount;
+        var postDiscountSubtotal = subtotal - discount;
+        var shipping = appliedCoupon === 'FREESHIP' || postDiscountSubtotal >= 75 ? 0 : 8;
+        var tax = postDiscountSubtotal * 0.0825;
+        var total = postDiscountSubtotal + shipping + tax;
+
+        document.getElementById('out-subtotal').textContent = money(subtotal);
+        document.getElementById('out-discount').textContent = money(discount);
+        document.getElementById('out-shipping').textContent = money(shipping);
+        document.getElementById('out-tax').textContent = money(tax);
+        document.getElementById('out-total').textContent = money(total);
+      }
+      products.forEach(function (product) {
+        document.getElementById(product.id).addEventListener('input', update);
+      });
+      document.getElementById('app-apply').addEventListener('click', function () {
+        var code = couponInput.value.trim().toUpperCase();
+        if (code === '' || code === 'SAVE10' || code === 'BULK5' || code === 'FREESHIP') {
+          appliedCoupon = code;
+          error.textContent = '';
+        } else {
+          appliedCoupon = '';
+          error.textContent = 'Invalid coupon';
+        }
+        update();
+      });
+      update();
+    }());
+  </script>
+</body>
+</html>

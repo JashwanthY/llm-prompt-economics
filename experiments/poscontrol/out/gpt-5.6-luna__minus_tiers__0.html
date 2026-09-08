@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #f4f6f8; color: #17202a; }
+    main { width: min(100% - 2rem, 40rem); margin: 3rem auto; padding: 2rem; box-sizing: border-box; background: #fff; border: 1px solid #d9e0e6; border-radius: .75rem; box-shadow: 0 .25rem 1rem rgb(0 0 0 / 7%); }
+    h1 { margin: 0 0 1.5rem; font-size: 1.6rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .75rem .5rem; border-bottom: 1px solid #e4e8eb; text-align: left; }
+    th:last-child, td:last-child { text-align: right; }
+    input { width: 5rem; box-sizing: border-box; padding: .45rem; border: 1px solid #aeb8c2; border-radius: .3rem; font: inherit; }
+    .coupon { display: flex; gap: .5rem; align-items: start; margin: 1.25rem 0; }
+    .coupon input { flex: 1; width: auto; }
+    button { padding: .48rem .85rem; border: 0; border-radius: .3rem; background: #2457a6; color: #fff; font: inherit; cursor: pointer; }
+    button:hover { background: #194482; }
+    #out-coupon-error { display: block; min-height: 1.25rem; color: #b42318; font-size: .9rem; margin-top: .35rem; }
+    .summary { margin-top: 1.25rem; padding-top: .75rem; border-top: 2px solid #17202a; }
+    .summary p { display: flex; justify-content: space-between; margin: .65rem 0; }
+    .summary .total { margin-top: 1rem; font-size: 1.15rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <table>
+      <thead><tr><th>Item</th><th>Price</th><th>Quantity</th></tr></thead>
+      <tbody>
+        <tr><td>Widget</td><td>$24.99</td><td><input id="qty-widget" type="number" min="0" step="1" value="0"></td></tr>
+        <tr><td>Gadget</td><td>$79.50</td><td><input id="qty-gadget" type="number" min="0" step="1" value="0"></td></tr>
+        <tr><td>Doohickey</td><td>$12.25</td><td><input id="qty-doohickey" type="number" min="0" step="1" value="0"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="coupon">
+      <input id="app-coupon" type="text" placeholder="Coupon code" aria-label="Coupon code">
+      <button id="app-apply" type="button">Apply</button>
+    </div>
+    <span id="out-coupon-error" role="alert"></span>
+
+    <section class="summary" aria-label="Order summary">
+      <p><span>Subtotal</span><span id="out-subtotal">$0.00</span></p>
+      <p><span>Discount</span><span id="out-discount">$0.00</span></p>
+      <p><span>Shipping</span><span id="out-shipping">$8.00</span></p>
+      <p><span>Tax</span><span id="out-tax">$0.00</span></p>
+      <p class="total"><span>Total</span><span id="out-total">$8.00</span></p>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const products = [
+        { id: 'qty-widget', price: 24.99 },
+        { id: 'qty-gadget', price: 79.50 },
+        { id: 'qty-doohickey', price: 12.25 }
+      ];
+      const volumeTiers = [
+        { threshold: 500, rate: 0.15 },
+        { threshold: 200, rate: 0.10 },
+        { threshold: 100, rate: 0.05 }
+      ];
+      let appliedCoupon = '';
+
+      const money = value => '$' + value.toFixed(2);
+      const quantity = input => {
+        const value = Number(input.value);
+        if (!Number.isFinite(value) || value < 0) return 0;
+        return Math.floor(value);
+      };
+
+      function calculate() {
+        const subtotal = products.reduce((sum, product) => {
+          const input = document.getElementById(product.id);
+          return sum + product.price * quantity(input);
+        }, 0);
+
+        const tier = volumeTiers.find(item => subtotal >= item.threshold);
+        const volumeDiscount = tier ? subtotal * tier.rate : 0;
+        let discount = volumeDiscount;
+        let postDiscountSubtotal = subtotal - discount;
+        const coupon = appliedCoupon;
+
+        if (coupon === 'SAVE10') {
+          const couponDiscount = subtotal * 0.10;
+          discount = Math.max(volumeDiscount, couponDiscount);
+          postDiscountSubtotal = subtotal - discount;
+        } else if (coupon === 'BULK5') {
+          discount = volumeDiscount + Math.min(5, subtotal);
+          postDiscountSubtotal = subtotal - discount;
+        }
+
+        const shipping = coupon === 'FREESHIP' || postDiscountSubtotal >= 75 ? 0 : 8;
+        const tax = postDiscountSubtotal * 0.0825;
+        const total = postDiscountSubtotal + shipping + tax;
+
+        document.getElementById('out-subtotal').textContent = money(subtotal);
+        document.getElementById('out-discount').textContent = money(discount);
+        document.getElementById('out-shipping').textContent = money(shipping);
+        document.getElementById('out-tax').textContent = money(tax);
+        document.getElementById('out-total').textContent = money(total);
+      }
+
+      products.forEach(product => {
+        const input = document.getElementById(product.id);
+        input.addEventListener('input', () => {
+          if (input.value.trim() === '' || !Number.isFinite(Number(input.value)) || Number(input.value) < 0) input.value = '0';
+          else input.value = String(Math.floor(Number(input.value)));
+          calculate();
+        });
+        input.addEventListener('change', () => {
+          input.value = String(quantity(input));
+          calculate();
+        });
+      });
+
+      document.getElementById('app-apply').addEventListener('click', () => {
+        const code = document.getElementById('app-coupon').value.trim().toUpperCase();
+        const error = document.getElementById('out-coupon-error');
+        if (code === '' || ['SAVE10', 'BULK5', 'FREESHIP'].includes(code)) {
+          appliedCoupon = code;
+          error.textContent = '';
+        } else {
+          appliedCoupon = '';
+          error.textContent = 'Invalid coupon';
+        }
+        calculate();
+      });
+
+      calculate();
+    })();
+  </script>
+</body>
+</html>

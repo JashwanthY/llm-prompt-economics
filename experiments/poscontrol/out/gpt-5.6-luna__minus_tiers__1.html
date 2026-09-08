@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #f4f6f8; color: #17202a; }
+    main { max-width: 38rem; margin: 2rem auto; padding: 1.5rem; background: #fff; border: 1px solid #d9dee3; border-radius: .6rem; box-shadow: 0 .2rem .8rem #0000000d; }
+    h1 { margin-top: 0; font-size: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; }
+    th, td { padding: .65rem .4rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    th:last-child, td:last-child { text-align: right; }
+    input { box-sizing: border-box; padding: .45rem .5rem; border: 1px solid #aeb7c2; border-radius: .3rem; font: inherit; }
+    .quantity { width: 5rem; }
+    .coupon { display: flex; gap: .5rem; align-items: center; margin: 1rem 0; }
+    .coupon input { flex: 1; }
+    button { padding: .45rem .8rem; border: 0; border-radius: .3rem; background: #175cd3; color: white; font: inherit; cursor: pointer; }
+    button:hover { background: #1249ab; }
+    #out-coupon-error { display: block; min-height: 1.3em; color: #b42318; margin-top: .35rem; }
+    .summary { margin-top: 1rem; }
+    .summary div { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0; }
+    .summary .total { margin-top: .4rem; padding-top: .7rem; border-top: 2px solid #17202a; font-weight: 700; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <table>
+      <thead><tr><th>Item</th><th>Price</th><th>Quantity</th></tr></thead>
+      <tbody>
+        <tr><td>Widget</td><td>$24.99</td><td><input class="quantity" id="qty-widget" type="number" min="0" step="1" value="0" inputmode="numeric"></td></tr>
+        <tr><td>Gadget</td><td>$79.50</td><td><input class="quantity" id="qty-gadget" type="number" min="0" step="1" value="0" inputmode="numeric"></td></tr>
+        <tr><td>Doohickey</td><td>$12.25</td><td><input class="quantity" id="qty-doohickey" type="number" min="0" step="1" value="0" inputmode="numeric"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="coupon">
+      <label for="app-coupon">Coupon</label>
+      <input id="app-coupon" type="text" autocomplete="off">
+      <button id="app-apply" type="button">Apply</button>
+    </div>
+    <span id="out-coupon-error" aria-live="polite"></span>
+
+    <section class="summary" aria-label="Order summary">
+      <div><span>Subtotal</span><span id="out-subtotal">$0.00</span></div>
+      <div><span>Discount</span><span id="out-discount">$0.00</span></div>
+      <div><span>Shipping</span><span id="out-shipping">$8.00</span></div>
+      <div><span>Tax</span><span id="out-tax">$0.00</span></div>
+      <div class="total"><span>Total</span><span id="out-total">$8.00</span></div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var products = [
+        { id: 'qty-widget', price: 24.99 },
+        { id: 'qty-gadget', price: 79.50 },
+        { id: 'qty-doohickey', price: 12.25 }
+      ];
+      var appliedCoupon = '';
+
+      function money(value) {
+        return '$' + value.toFixed(2);
+      }
+
+      function quantity(input) {
+        var value = Number.parseInt(input.value, 10);
+        if (!Number.isFinite(value) || value < 0) value = 0;
+        value = Math.floor(value);
+        input.value = String(value);
+        return value;
+      }
+
+      function render() {
+        var subtotal = 0;
+        var totalQuantity = 0;
+        products.forEach(function (product) {
+          var input = document.getElementById(product.id);
+          var qty = quantity(input);
+          subtotal += product.price * qty;
+          totalQuantity += qty;
+        });
+
+        // Standard volume tiers: 5+ units = 5%, 10+ = 10%, 20+ = 15%.
+        var volumeRate = totalQuantity >= 20 ? 0.15 : totalQuantity >= 10 ? 0.10 : totalQuantity >= 5 ? 0.05 : 0;
+        var volumeDiscount = subtotal * volumeRate;
+        var discount = volumeDiscount;
+        var postDiscountSubtotal;
+
+        if (appliedCoupon === 'SAVE10') {
+          var couponDiscount = subtotal * 0.10;
+          if (couponDiscount > volumeDiscount) discount = couponDiscount;
+        } else if (appliedCoupon === 'BULK5') {
+          discount = Math.min(subtotal, volumeDiscount + 5);
+        }
+
+        postDiscountSubtotal = Math.max(0, subtotal - discount);
+        var freeShipping = appliedCoupon === 'FREESHIP';
+        var shipping = freeShipping || postDiscountSubtotal >= 75 ? 0 : 8;
+        var tax = postDiscountSubtotal * 0.0825;
+        var total = postDiscountSubtotal + shipping + tax;
+
+        document.getElementById('out-subtotal').textContent = money(subtotal);
+        document.getElementById('out-discount').textContent = money(discount);
+        document.getElementById('out-shipping').textContent = money(shipping);
+        document.getElementById('out-tax').textContent = money(tax);
+        document.getElementById('out-total').textContent = money(total);
+      }
+
+      products.forEach(function (product) {
+        document.getElementById(product.id).addEventListener('input', render);
+        document.getElementById(product.id).addEventListener('change', render);
+      });
+
+      document.getElementById('app-apply').addEventListener('click', function () {
+        var entered = document.getElementById('app-coupon').value.trim().toUpperCase();
+        var error = document.getElementById('out-coupon-error');
+        var valid = entered === '' || entered === 'SAVE10' || entered === 'BULK5' || entered === 'FREESHIP';
+        if (!valid) {
+          appliedCoupon = '';
+          error.textContent = 'Invalid coupon';
+        } else {
+          appliedCoupon = entered;
+          error.textContent = '';
+        }
+        render();
+      });
+
+      render();
+    }());
+  </script>
+</body>
+</html>
