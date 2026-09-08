@@ -4,7 +4,8 @@ Written because three separate measurement bugs in this study each produced a
 clean, plausible, wrong number. Run this before any change to the paper's
 figures is believed. Exits non-zero on the first mismatch.
 """
-import collections, json, pathlib, statistics as st, sys
+import collections, json, pathlib, random, statistics as st, sys
+from math import comb
 
 ROOT = pathlib.Path(__file__).parent
 sys.path.insert(0, str(ROOT / "dose"))
@@ -41,6 +42,25 @@ for lvl in LEVELS:
         claim(abs(o / base[0] - 1.42) < 0.005, "+42% output tokens at L3")
         claim(abs(s / base[1] - 1.38) < 0.005, "+38% latency at L3")
 claim(all(len(v) == 12 for v in by_dose.values()), "n=12 per dose")
+
+# Paired L0->L3 within each task/model/trial cell, with the sign test the paper
+# quotes. Seeded so the reported interval is reproducible.
+random.seed(0)
+def boot(vals, n=10000):
+    s = sorted(st.mean(random.choices(vals, k=len(vals))) for _ in range(n))
+    return s[int(.025 * n)], s[int(.975 * n)]
+kf = lambda r: (r["task"], r["model"], r["trial"])
+lo_ = {kf(r): r for _, r in by_dose["L0_none"]}
+hi_ = {kf(r): r for _, r in by_dose["L3_heavy"]}
+dt = [(hi_[k]["out_tokens"] - lo_[k]["out_tokens"], hi_[k]["secs"] - lo_[k]["secs"])
+      for k in lo_ if k in hi_]
+d_out, d_sec, n_p = [x[0] for x in dt], [x[1] for x in dt], len(dt)
+claim(n_p == 12 and all(x > 0 for x in d_out) and all(x > 0 for x in d_sec),
+      "all 12 paired L0->L3 deltas are positive in both measures")
+sign_p = sum(comb(n_p, i) for i in range(n_p, n_p + 1)) / 2 ** n_p
+claim(abs(sign_p - 0.00024) < 0.00002, f"sign test p = 0.00024 ({sign_p:.5f})")
+claim(abs(st.mean(d_out) - 1595) < 1, f"paired output delta +1,595 ({st.mean(d_out):.0f})")
+claim(abs(st.mean(d_sec) - 11.0) < 0.05, f"paired latency delta +11.0s ({st.mean(d_sec):.1f})")
 
 allg = [d for rows in by_dose.values() for d, _ in rows]
 perfect = sum(1 for d in allg if d["passed"] == d["total"])
