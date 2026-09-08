@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northstar Shop Analytics</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #7c8497;
+      --line: #e9ecf3;
+      --blue: #536dfe;
+      --blue-soft: #eef0ff;
+      --green: #20a36a;
+      --green-soft: #e7f7ef;
+      --orange: #e99044;
+      --orange-soft: #fff2e7;
+      --purple: #8b6bea;
+      --purple-soft: #f0edff;
+      --shadow: 0 10px 35px rgba(31, 42, 68, .06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 238px; flex: 0 0 238px; background: #fff; border-right: 1px solid var(--line);
+      padding: 27px 16px; display: flex; flex-direction: column;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 12px 34px; font-weight: 750; font-size: 17px; letter-spacing: -.4px; }
+    .brand-mark { width: 30px; height: 30px; background: var(--blue); border-radius: 9px; display:grid; place-items:center; color:#fff; font-weight:800; font-size: 16px; box-shadow: 0 5px 11px #536dfe44; }
+    .nav-label { text-transform: uppercase; font-size: 10px; letter-spacing: 1.1px; color: #a5adbe; padding: 0 13px 10px; font-weight: 700; }
+    nav a { display:flex; align-items:center; gap: 12px; height: 43px; padding: 0 13px; border-radius: 10px; color: #7b8497; text-decoration:none; font-size: 13px; font-weight: 600; margin: 3px 0; }
+    nav a.active { background: var(--blue-soft); color: var(--blue); }
+    .nav-icon { width: 19px; height: 19px; display:grid; place-items:center; font-size: 16px; font-weight: 500; }
+    .sidebar-bottom { margin-top:auto; padding: 17px 12px 0; border-top:1px solid var(--line); }
+    .store { display:flex; align-items:center; gap:10px; font-size:12px; color:#4c566d; font-weight:650; }
+    .avatar { width: 30px; height:30px; border-radius:50%; background:#ffd9c3; color:#a45b37; display:grid; place-items:center; font-size:11px; font-weight:800; }
+    main { flex: 1; min-width: 0; padding: 28px 39px 45px; max-width: 1480px; margin:0 auto; }
+    .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 29px; }
+    h1 { margin:0; font-size: 25px; letter-spacing:-.8px; line-height:1.2; }
+    .subtitle { color:var(--muted); font-size:13px; margin-top:7px; }
+    .top-actions { display:flex; gap:10px; align-items:center; }
+    button, select { border:1px solid var(--line); background:#fff; color:#59647b; border-radius:8px; height:37px; padding:0 12px; font-family:inherit; font-weight:600; font-size:12px; }
+    .icon-button { width:37px; padding:0; font-size:16px; }
+    .date-select { min-width:145px; }
+    .metrics { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom: 19px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+    .metric { padding:20px 21px 19px; position:relative; min-height:133px; }
+    .metric-head { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:12px; font-weight:650; }
+    .metric-icon { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-size:15px; }
+    .revenue .metric-icon { background:var(--blue-soft); color:var(--blue); } .orders .metric-icon { background:var(--green-soft); color:var(--green); } .average .metric-icon { background:var(--orange-soft); color:var(--orange); }
+    .metric-value { font-size:28px; font-weight:760; letter-spacing:-1px; margin-top:13px; }
+    .metric-foot { font-size:11px; color:var(--muted); margin-top:8px; display:flex; align-items:center; gap:6px; }
+    .up { color:var(--green); font-weight:700; } .down { color:#dd6d61; font-weight:700; }
+    .content-grid { display:grid; grid-template-columns: minmax(0, 1.52fr) minmax(330px, .84fr); gap:19px; }
+    .chart-card { padding:21px 21px 16px; min-height:360px; }
+    .panel-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+    .panel-title { font-size:14px; font-weight:750; letter-spacing:-.2px; }
+    .panel-subtitle { color:var(--muted); font-size:11px; margin-top:5px; }
+    .legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+    .legend-dot { width:7px; height:7px; border-radius:50%; background:var(--blue); }
+    canvas { display:block; width:100%; height:258px; }
+    .products-card { padding:21px 20px 10px; }
+    .view-all { color:var(--blue); font-size:11px; font-weight:700; text-decoration:none; }
+    .product { display:flex; align-items:center; padding:13px 0; border-bottom:1px solid #f0f1f5; gap:11px; }
+    .product:last-child { border-bottom:0; }
+    .product-thumb { width:36px; height:36px; border-radius:9px; display:grid; place-items:center; font-size:18px; flex:0 0 36px; }
+    .t1 { background:#eaf0ff; } .t2 { background:#fff1dd; } .t3 { background:#e5f6ed; } .t4 { background:#f5eaff; } .t5 { background:#ffe7e4; }
+    .product-name { font-size:12px; font-weight:650; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .product-units { font-size:11px; color:var(--muted); text-align:right; line-height:1.45; } .product-units b { color:var(--text); font-size:12px; display:block; }
+    .activity-card { grid-column: 1 / -1; padding:21px 21px 4px; }
+    .activity-list { display:grid; grid-template-columns: repeat(2, 1fr); column-gap: 35px; }
+    .activity { display:flex; align-items:center; gap:12px; padding:14px 3px; border-top:1px solid #f0f1f5; min-width:0; }
+    .activity-mark { width:32px; height:32px; border-radius:10px; display:grid; place-items:center; flex:0 0 32px; font-size:14px; }
+    .order-mark { color:var(--blue); background:var(--blue-soft); } .refund-mark { color:var(--orange); background:var(--orange-soft); } .review-mark { color:var(--purple); background:var(--purple-soft); }
+    .activity-body { min-width:0; flex:1; } .activity-title { font-size:12px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .activity-detail { color:var(--muted); font-size:11px; margin-top:4px; }
+    .activity-time { color:#a2a9b7; font-size:10px; white-space:nowrap; }
+    @media (max-width: 1000px) { .sidebar { width:70px; flex-basis:70px; padding-left:10px; padding-right:10px; } .brand { padding-left:10px; } .brand span, .nav-label, nav a span, .sidebar-bottom { display:none; } nav a { justify-content:center; padding:0; } main { padding:25px; } }
+    @media (max-width: 720px) { .metrics, .content-grid { grid-template-columns:1fr; } .activity-card { grid-column:auto; } .activity-list { grid-template-columns:1fr; } .topbar { gap:20px; flex-direction:column; } main { padding:20px 15px; } .top-actions { width:100%; } .date-select { flex:1; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">N</div><span>Northstar</span></div>
+      <div class="nav-label">Workspace</div>
+      <nav>
+        <a class="active" href="#"><div class="nav-icon">▦</div><span>Overview</span></a>
+        <a href="#"><div class="nav-icon">⌁</div><span>Orders</span></a>
+        <a href="#"><div class="nav-icon">□</div><span>Products</span></a>
+        <a href="#"><div class="nav-icon">◒</div><span>Customers</span></a>
+      </nav>
+      <div class="nav-label" style="margin-top:27px">Manage</div>
+      <nav>
+        <a href="#"><div class="nav-icon">▤</div><span>Reports</span></a>
+        <a href="#"><div class="nav-icon">⚙</div><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><div class="store"><div class="avatar">JM</div><div>Jasmine Miller<br><span style="font-size:10px;color:#9aa1af;font-weight:500">Store owner</span></div></div></div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div><h1>Good morning, Jasmine</h1><div class="subtitle">Here's what's happening with your store today.</div></div>
+        <div class="top-actions"><button class="icon-button" aria-label="Notifications">♧</button><select class="date-select" aria-label="Date range"><option>Last 30 days</option><option>Last 7 days</option><option>This month</option></select><button style="background:var(--blue);border-color:var(--blue);color:#fff;padding:0 15px">＋ Add report</button></div>
+      </header>
+      <section class="metrics">
+        <div class="card metric revenue"><div class="metric-head"><span>Total revenue</span><div class="metric-icon">↗</div></div><div class="metric-value">$24,680.50</div><div class="metric-foot"><span class="up">↑ 12.8%</span><span>vs. last month</span></div></div>
+        <div class="card metric orders"><div class="metric-head"><span>Orders this week</span><div class="metric-icon">⌁</div></div><div class="metric-value">186</div><div class="metric-foot"><span class="up">↑ 8.4%</span><span>vs. last week</span></div></div>
+        <div class="card metric average"><div class="metric-head"><span>Average order value</span><div class="metric-icon">＄</div></div><div class="metric-value">$132.69</div><div class="metric-foot"><span class="down">↓ 2.1%</span><span>vs. last month</span></div></div>
+      </section>
+      <section class="content-grid">
+        <div class="card chart-card"><div class="panel-header"><div><div class="panel-title">Revenue over time</div><div class="panel-subtitle">Daily revenue for the last 30 days</div></div><div class="legend"><span class="legend-dot"></span>Revenue</div></div><canvas id="revenueChart" aria-label="Revenue over the last 30 days"></canvas></div>
+        <div class="card products-card"><div class="panel-header"><div><div class="panel-title">Top products</div><div class="panel-subtitle">Best sellers this month</div></div><a class="view-all" href="#">View all</a></div>
+          <div class="product"><div class="product-thumb t1">☕</div><div class="product-name">Ceramic Pour-Over Set</div><div class="product-units"><b>248</b>units</div></div>
+          <div class="product"><div class="product-thumb t2">👜</div><div class="product-name">Canvas Market Tote</div><div class="product-units"><b>192</b>units</div></div>
+          <div class="product"><div class="product-thumb t3">🌿</div><div class="product-name">Linen Table Runner</div><div class="product-units"><b>167</b>units</div></div>
+          <div class="product"><div class="product-thumb t4">🕯</div><div class="product-name">Amber Scented Candle</div><div class="product-units"><b>143</b>units</div></div>
+          <div class="product"><div class="product-thumb t5">📓</div><div class="product-name">Recycled Paper Journal</div><div class="product-units"><b>121</b>units</div></div>
+        </div>
+        <div class="card activity-card"><div class="panel-header"><div><div class="panel-title">Recent activity</div><div class="panel-subtitle">The latest updates from your store</div></div><a class="view-all" href="#">See all activity</a></div><div class="activity-list">
+          <div class="activity"><div class="activity-mark order-mark">↗</div><div class="activity-body"><div class="activity-title">New order from Amelia R.</div><div class="activity-detail">Order #NS-2841 · $86.00</div></div><div class="activity-time">8 min ago</div></div>
+          <div class="activity"><div class="activity-mark review-mark">★</div><div class="activity-body"><div class="activity-title">New 5-star review</div><div class="activity-detail">“Beautiful and thoughtfully made.”</div></div><div class="activity-time">42 min ago</div></div>
+          <div class="activity"><div class="activity-mark order-mark">↗</div><div class="activity-body"><div class="activity-title">New order from Diego M.</div><div class="activity-detail">Order #NS-2840 · $154.50</div></div><div class="activity-time">1 hr ago</div></div>
+          <div class="activity"><div class="activity-mark refund-mark">↩</div><div class="activity-body"><div class="activity-title">Refund processed</div><div class="activity-detail">Order #NS-2819 · $42.00</div></div><div class="activity-time">2 hrs ago</div></div>
+          <div class="activity"><div class="activity-mark order-mark">↗</div><div class="activity-body"><div class="activity-title">New order from Priya K.</div><div class="activity-detail">Order #NS-2839 · $218.00</div></div><div class="activity-time">3 hrs ago</div></div>
+          <div class="activity"><div class="activity-mark review-mark">★</div><div class="activity-body"><div class="activity-title">New 4-star review</div><div class="activity-detail">“Lovely quality, fast shipping.”</div></div><div class="activity-time">4 hrs ago</div></div>
+          <div class="activity"><div class="activity-mark refund-mark">↩</div><div class="activity-body"><div class="activity-title">Refund processed</div><div class="activity-detail">Order #NS-2798 · $28.50</div></div><div class="activity-time">5 hrs ago</div></div>
+          <div class="activity"><div class="activity-mark order-mark">↗</div><div class="activity-body"><div class="activity-title">New order from Noah T.</div><div class="activity-detail">Order #NS-2838 · $97.00</div></div><div class="activity-time">6 hrs ago</div></div>
+        </div></div>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      const canvas = document.getElementById('revenueChart');
+      const ctx = canvas.getContext('2d');
+      const values = [510,620,580,760,690,840,795,910,875,1020,950,1120,1080,1240,1170,1290,1410,1330,1490,1560,1480,1710,1630,1800,1940,1810,2040,2160,2010,2320];
+      const labels = ['May 16','May 19','May 22','May 25','May 28','May 31','Jun 3','Jun 5','Jun 7','Jun 10','Jun 13'];
+      function draw() {
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * ratio; canvas.height = rect.height * ratio; ctx.setTransform(ratio,0,0,ratio,0,0);
+        const w = rect.width, h = rect.height, pad = {l:45,r:8,t:14,b:31};
+        const chartW=w-pad.l-pad.r, chartH=h-pad.t-pad.b, max=2500;
+        ctx.clearRect(0,0,w,h);
+        ctx.font='10px Inter, sans-serif'; ctx.fillStyle='#a2a9b7'; ctx.textAlign='right';
+        [0,500,1000,1500,2000,2500].forEach(v=>{ const y=pad.t+chartH-(v/max)*chartH; ctx.fillText(v===0?'$0':'$'+(v/1000)+'k',pad.l-10,y+3); ctx.strokeStyle='#edf0f5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke(); });
+        ctx.textAlign='center'; labels.forEach((label,i)=>{const x=pad.l+(i/(labels.length-1))*chartW;ctx.fillText(label,x,h-8);});
+        const points=values.map((v,i)=>[pad.l+(i/(values.length-1))*chartW,pad.t+chartH-(v/max)*chartH]);
+        const gradient=ctx.createLinearGradient(0,pad.t,0,h); gradient.addColorStop(0,'rgba(83,109,254,.22)');gradient.addColorStop(1,'rgba(83,109,254,0)');
+        ctx.beginPath();ctx.moveTo(points[0][0],pad.t+chartH);points.forEach(p=>ctx.lineTo(p[0],p[1]));ctx.lineTo(points[points.length-1][0],pad.t+chartH);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
+        ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle='#536dfe';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
+        const last=points[points.length-1];ctx.beginPath();ctx.arc(last[0],last[1],4,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#536dfe';ctx.lineWidth=2;ctx.stroke();
+      }
+      window.addEventListener('resize',draw); draw();
+    }());
+  </script>
+</body>
+</html>

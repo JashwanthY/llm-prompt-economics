@@ -1,0 +1,14 @@
+[
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minimal",
+    "trial": 0,
+    "exists": true,
+    "chars": 15914,
+    "in_tokens": 16248,
+    "out_tokens": 5241,
+    "secs": 38.9,
+    "error": null,
+    "relocated": false
+  }
+]
