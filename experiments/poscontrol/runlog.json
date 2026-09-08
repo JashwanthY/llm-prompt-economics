@@ -1,0 +1,134 @@
+[
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_tiers",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13731,
+    "out_tokens": 2114,
+    "secs": 16.0,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_tiers",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 13921,
+    "out_tokens": 2304,
+    "secs": 18.8,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_tiers",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13574,
+    "out_tokens": 1957,
+    "secs": 16.9,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_tiers",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 41974,
+    "out_tokens": 2262,
+    "secs": 23.0,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_coupon",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13647,
+    "out_tokens": 2057,
+    "secs": 20.9,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_coupon",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 13754,
+    "out_tokens": 2164,
+    "secs": 15.2,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_coupon",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13269,
+    "out_tokens": 1679,
+    "secs": 14.5,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_coupon",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 13178,
+    "out_tokens": 1588,
+    "secs": 13.0,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_tax",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13985,
+    "out_tokens": 2345,
+    "secs": 21.7,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-luna",
+    "arm": "minus_tax",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 44407,
+    "out_tokens": 2709,
+    "secs": 27.6,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_tax",
+    "trial": 0,
+    "exists": true,
+    "in_tokens": 13407,
+    "out_tokens": 1767,
+    "secs": 15.7,
+    "error": null,
+    "relocated": false
+  },
+  {
+    "model": "gpt-5.6-terra",
+    "arm": "minus_tax",
+    "trial": 1,
+    "exists": true,
+    "in_tokens": 13405,
+    "out_tokens": 1765,
+    "secs": 15.3,
+    "error": null,
+    "relocated": false
+  }
+]

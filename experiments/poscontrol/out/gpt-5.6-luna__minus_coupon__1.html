@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #f4f6f8; color: #1f2937; }
+    main { width: min(680px, calc(100% - 32px)); margin: 48px auto; padding: 28px; background: #fff; border: 1px solid #dfe3e8; border-radius: 12px; box-shadow: 0 8px 24px rgba(31, 41, 55, .08); }
+    h1 { margin: 0 0 22px; font-size: 1.6rem; }
+    .catalogue { border-top: 1px solid #e5e7eb; }
+    .product { display: grid; grid-template-columns: 1fr auto 92px; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid #e5e7eb; }
+    .price { color: #4b5563; }
+    input { width: 100%; padding: 9px 10px; font: inherit; border: 1px solid #cbd5e1; border-radius: 6px; }
+    input:focus, button:focus { outline: 3px solid rgba(37, 99, 235, .2); outline-offset: 1px; }
+    .coupon { display: flex; gap: 10px; margin: 24px 0 5px; }
+    .coupon input { flex: 1; }
+    button { padding: 9px 16px; font: inherit; font-weight: 600; color: #fff; background: #2563eb; border: 0; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    #out-coupon-error { display: block; min-height: 1.35em; color: #b91c1c; font-size: .9rem; }
+    .summary { margin-top: 20px; padding-top: 16px; border-top: 2px solid #e5e7eb; }
+    .summary p { display: flex; justify-content: space-between; margin: 10px 0; }
+    .summary .total { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 1.15rem; font-weight: 700; }
+    @media (max-width: 480px) { main { margin: 20px auto; padding: 20px; } .product { grid-template-columns: 1fr auto; } .product input { grid-column: 1 / -1; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <section class="catalogue" aria-label="Products">
+      <div class="product"><span>Widget</span><span class="price">$24.99</span><input id="qty-widget" type="text" inputmode="numeric" value="0" aria-label="Widget quantity"></div>
+      <div class="product"><span>Gadget</span><span class="price">$79.50</span><input id="qty-gadget" type="text" inputmode="numeric" value="0" aria-label="Gadget quantity"></div>
+      <div class="product"><span>Doohickey</span><span class="price">$12.25</span><input id="qty-doohickey" type="text" inputmode="numeric" value="0" aria-label="Doohickey quantity"></div>
+    </section>
+
+    <div class="coupon">
+      <input id="app-coupon" type="text" autocomplete="off" placeholder="Coupon code" aria-label="Coupon code">
+      <button id="app-apply" type="button">Apply</button>
+    </div>
+    <span id="out-coupon-error" role="alert" aria-live="polite"></span>
+
+    <section class="summary" aria-label="Order summary">
+      <p><span>Subtotal</span><span id="out-subtotal">$0.00</span></p>
+      <p><span>Discount</span><span id="out-discount">$0.00</span></p>
+      <p><span>Shipping</span><span id="out-shipping">$8.00</span></p>
+      <p><span>Tax</span><span id="out-tax">$0.00</span></p>
+      <p class="total"><span>Total</span><span id="out-total">$8.00</span></p>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const products = [
+        { id: "qty-widget", price: 24.99 },
+        { id: "qty-gadget", price: 79.50 },
+        { id: "qty-doohickey", price: 12.25 }
+      ];
+      let appliedCoupon = null;
+
+      const money = value => `$${value.toFixed(2)}`;
+      const quantity = input => {
+        const parsed = Number.parseInt(input.value, 10);
+        if (!Number.isFinite(parsed) || parsed < 0) return 0;
+        return parsed;
+      };
+
+      function render() {
+        const subtotal = products.reduce((sum, product) => {
+          const input = document.getElementById(product.id);
+          return sum + product.price * quantity(input);
+        }, 0);
+
+        let volumeRate = 0;
+        if (subtotal >= 500) volumeRate = 0.15;
+        else if (subtotal >= 250) volumeRate = 0.10;
+        else if (subtotal >= 100) volumeRate = 0.05;
+        const volumeDiscount = subtotal * volumeRate;
+        const afterVolume = subtotal - volumeDiscount;
+
+        let couponDiscount = 0;
+        let freeShipping = false;
+        if (appliedCoupon === "SAVE10") couponDiscount = afterVolume * 0.10;
+        else if (appliedCoupon === "BULK5") couponDiscount = Math.min(5, afterVolume);
+        else if (appliedCoupon === "FREESHIP") freeShipping = true;
+
+        const discount = volumeDiscount + couponDiscount;
+        const postDiscount = Math.max(0, afterVolume - couponDiscount);
+        const shipping = freeShipping || postDiscount >= 75 ? 0 : 8;
+        const tax = postDiscount * 0.0825;
+        const total = postDiscount + shipping + tax;
+
+        document.getElementById("out-subtotal").textContent = money(subtotal);
+        document.getElementById("out-discount").textContent = money(discount);
+        document.getElementById("out-shipping").textContent = money(shipping);
+        document.getElementById("out-tax").textContent = money(tax);
+        document.getElementById("out-total").textContent = money(total);
+      }
+
+      products.forEach(product => {
+        const input = document.getElementById(product.id);
+        input.addEventListener("input", render);
+        input.addEventListener("change", () => {
+          if (quantity(input) === 0) input.value = "0";
+          render();
+        });
+      });
+
+      document.getElementById("app-apply").addEventListener("click", () => {
+        const code = document.getElementById("app-coupon").value.trim().toUpperCase();
+        const error = document.getElementById("out-coupon-error");
+        if (["SAVE10", "BULK5", "FREESHIP"].includes(code)) {
+          appliedCoupon = code;
+          error.textContent = "";
+        } else {
+          appliedCoupon = null;
+          error.textContent = "Invalid coupon";
+        }
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

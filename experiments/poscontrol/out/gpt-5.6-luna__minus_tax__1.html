@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout Pricing Engine</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 2rem; background: #f4f5f7; color: #1f2937; }
+    main { max-width: 40rem; margin: 0 auto; background: #fff; padding: 1.5rem; border-radius: .75rem; box-shadow: 0 .25rem 1rem #0001; }
+    h1 { margin-top: 0; }
+    .catalogue-row, .summary-row { display: flex; justify-content: space-between; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid #e5e7eb; }
+    .catalogue-row input { width: 5rem; padding: .35rem; }
+    .coupon { display: flex; gap: .5rem; margin: 1.25rem 0; }
+    .coupon input { flex: 1; padding: .5rem; }
+    button { padding: .5rem .9rem; cursor: pointer; }
+    .error { min-height: 1.25em; color: #b91c1c; }
+    .summary { margin-top: 1rem; }
+    .total { font-weight: 700; font-size: 1.15rem; border-bottom: 0; padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <section aria-label="Catalogue">
+      <div class="catalogue-row"><span>Widget — $24.99</span><label>Quantity <input id="qty-widget" type="number" min="0" step="1" value="0"></label></div>
+      <div class="catalogue-row"><span>Gadget — $79.50</span><label>Quantity <input id="qty-gadget" type="number" min="0" step="1" value="0"></label></div>
+      <div class="catalogue-row"><span>Doohickey — $12.25</span><label>Quantity <input id="qty-doohickey" type="number" min="0" step="1" value="0"></label></div>
+    </section>
+
+    <div class="coupon">
+      <input id="app-coupon" type="text" aria-label="Coupon code" placeholder="Coupon code">
+      <button id="app-apply" type="button">Apply</button>
+    </div>
+    <span id="out-coupon-error" class="error" role="alert"></span>
+
+    <section class="summary" aria-label="Order summary">
+      <div class="summary-row"><span>Subtotal</span><span id="out-subtotal">$0.00</span></div>
+      <div class="summary-row"><span>Discount</span><span id="out-discount">$0.00</span></div>
+      <div class="summary-row"><span>Shipping</span><span id="out-shipping">$8.00</span></div>
+      <div class="summary-row"><span>Tax</span><span id="out-tax">$0.00</span></div>
+      <div class="summary-row total"><span>Total</span><span id="out-total">$8.00</span></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const products = [
+        { id: 'qty-widget', price: 24.99 },
+        { id: 'qty-gadget', price: 79.50 },
+        { id: 'qty-doohickey', price: 12.25 }
+      ];
+      const TAX_RATE = 0.08;
+      let appliedCoupon = '';
+
+      const money = value => '$' + value.toFixed(2);
+      const quantity = input => {
+        const value = Number(input.value);
+        if (!Number.isFinite(value) || value < 0) return 0;
+        return Math.floor(value);
+      };
+
+      function volumeDiscount(subtotal) {
+        if (subtotal >= 500) return subtotal * 0.15;
+        if (subtotal >= 250) return subtotal * 0.10;
+        if (subtotal >= 100) return subtotal * 0.05;
+        return 0;
+      }
+
+      function update() {
+        const subtotal = products.reduce((sum, product) => {
+          const input = document.getElementById(product.id);
+          return sum + product.price * quantity(input);
+        }, 0);
+
+        const volume = volumeDiscount(subtotal);
+        let discount = volume;
+        let couponIsFreeShip = appliedCoupon === 'FREESHIP';
+        if (appliedCoupon === 'SAVE10') {
+          const save10 = subtotal * 0.10;
+          discount = Math.max(volume, save10);
+        } else if (appliedCoupon === 'BULK5') {
+          discount = volume + Math.min(5, subtotal);
+        }
+
+        const postDiscountSubtotal = Math.max(0, subtotal - discount);
+        const shipping = couponIsFreeShip || postDiscountSubtotal >= 75 ? 0 : 8;
+        const tax = postDiscountSubtotal * TAX_RATE;
+        const total = postDiscountSubtotal + shipping + tax;
+
+        document.getElementById('out-subtotal').textContent = money(subtotal);
+        document.getElementById('out-discount').textContent = money(discount);
+        document.getElementById('out-shipping').textContent = money(shipping);
+        document.getElementById('out-tax').textContent = money(tax);
+        document.getElementById('out-total').textContent = money(total);
+      }
+
+      function applyCoupon() {
+        const code = document.getElementById('app-coupon').value.trim().toUpperCase();
+        const error = document.getElementById('out-coupon-error');
+        if (code === '' || ['SAVE10', 'BULK5', 'FREESHIP'].includes(code)) {
+          appliedCoupon = code;
+          error.textContent = '';
+        } else {
+          appliedCoupon = '';
+          error.textContent = 'Invalid coupon';
+        }
+        update();
+      }
+
+      products.forEach(product => {
+        document.getElementById(product.id).addEventListener('input', event => {
+          const value = Number(event.target.value);
+          event.target.value = Number.isFinite(value) && value >= 0 ? String(Math.floor(value)) : '0';
+          update();
+        });
+      });
+      document.getElementById('app-apply').addEventListener('click', applyCoupon);
+      update();
+    })();
+  </script>
+</body>
+</html>
