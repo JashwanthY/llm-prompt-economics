@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luna Shop — Analytics</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --ink: #19222d;
+    --muted: #77818f;
+    --line: #e7ebf0;
+    --navy: #182b49;
+    --blue: #4d7cff;
+    --blue-soft: #eef3ff;
+    --green: #18a875;
+    --green-soft: #eaf9f2;
+    --orange: #e28a32;
+    --orange-soft: #fff5e8;
+    --rose: #d85c74;
+    --rose-soft: #fff0f3;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .app { display: flex; min-height: 100vh; }
+  aside { width: 238px; background: var(--navy); color: #fff; padding: 26px 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+  .brand { display: flex; align-items: center; gap: 11px; padding: 0 12px 38px; font-weight: 750; letter-spacing: -.4px; font-size: 18px; }
+  .logo { width: 30px; height: 30px; border-radius: 9px; background: #6d90ff; position: relative; box-shadow: 10px -8px 0 -5px #a4b7ff; }
+  .logo:after { content: ""; position: absolute; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; left: 9px; top: 8px; }
+  nav { display: grid; gap: 7px; }
+  nav a { height: 44px; border-radius: 9px; display: flex; align-items: center; gap: 13px; color: #9dabc0; padding: 0 13px; font-size: 13px; text-decoration: none; }
+  nav a.active, nav a:hover { background: rgba(255,255,255,.1); color: #fff; }
+  nav svg { width: 17px; height: 17px; opacity: .9; }
+  .sidebar-bottom { margin-top: auto; color: #91a0b6; font-size: 11px; line-height: 1.5; padding: 15px 12px 3px; border-top: 1px solid rgba(255,255,255,.1); }
+  main { flex: 1; min-width: 0; padding: 30px 40px 42px; max-width: 1500px; margin: 0 auto; width: 100%; }
+  .topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 29px; }
+  h1 { font-size: 25px; line-height: 1.2; margin: 0 0 7px; letter-spacing: -.8px; }
+  .subhead { margin: 0; color: var(--muted); font-size: 13px; }
+  .actions { display: flex; align-items: center; gap: 13px; }
+  .date { border: 1px solid var(--line); background: #fff; color: #5d6875; border-radius: 7px; height: 38px; padding: 0 13px; display: flex; align-items: center; gap: 10px; font-size: 12px; box-shadow: 0 1px 2px rgba(23,39,64,.02); }
+  .bell { border: 1px solid var(--line); background: #fff; width: 38px; height: 38px; border-radius: 7px; display: grid; place-items: center; position: relative; }
+  .bell:after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #ee6b75; position: absolute; top: 7px; right: 8px; border: 2px solid #fff; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 5px rgba(29,48,76,.025); }
+  .metric { padding: 20px 21px 17px; min-height: 139px; position: relative; overflow: hidden; }
+  .metric-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .metric-icon { width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; margin-bottom: 13px; }
+  .metric.revenue .metric-icon { background: var(--blue-soft); color: var(--blue); }
+  .metric.orders .metric-icon { background: var(--green-soft); color: var(--green); }
+  .metric.rate .metric-icon { background: var(--orange-soft); color: var(--orange); }
+  .metric-value { font-size: 27px; font-weight: 750; letter-spacing: -.8px; margin-bottom: 8px; }
+  .metric-change { font-size: 11px; color: var(--green); font-weight: 650; }
+  .metric-change span { color: var(--muted); font-weight: 400; margin-left: 5px; }
+  .main-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .85fr); gap: 18px; margin-top: 18px; }
+  .panel-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 21px 0; }
+  .panel-title { margin: 0; font-size: 14px; font-weight: 720; letter-spacing: -.1px; }
+  .panel-note { color: var(--muted); font-size: 11px; margin-top: 5px; }
+  .select { color: #637080; font-size: 11px; border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; background: #fff; }
+  .chart-wrap { padding: 13px 16px 15px; height: 286px; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .product-list { padding: 13px 21px 17px; }
+  .product { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid #f0f2f5; }
+  .product:last-child { border: 0; }
+  .thumb { height: 37px; width: 38px; border-radius: 8px; display: grid; place-items: center; font-size: 18px; }
+  .t1 { background: #f4e9dd; } .t2 { background: #e8eff9; } .t3 { background: #f8e7e9; } .t4 { background: #e7f3ed; } .t5 { background: #f3edf9; }
+  .product-name { font-size: 12px; font-weight: 650; margin-bottom: 4px; }
+  .product-meta { font-size: 10px; color: var(--muted); }
+  .units { text-align: right; font-size: 13px; font-weight: 700; }
+  .units small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+  .activity { margin-top: 18px; }
+  .activity-list { padding: 12px 21px 17px; }
+  .event { display: grid; grid-template-columns: 30px 1fr auto; gap: 11px; align-items: center; min-height: 55px; border-bottom: 1px solid #f0f2f5; }
+  .event:last-child { border: 0; }
+  .event-icon { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .order { color: var(--blue); background: var(--blue-soft); } .refund { color: var(--rose); background: var(--rose-soft); } .review { color: var(--orange); background: var(--orange-soft); }
+  .event-text { font-size: 11px; line-height: 1.4; color: #46515f; }
+  .event-text strong { color: var(--ink); font-weight: 650; }
+  .event-time { color: #9aa3ae; font-size: 10px; white-space: nowrap; }
+  @media (max-width: 980px) { aside { width: 76px; padding-left: 10px; padding-right: 10px; } .brand { padding-left: 12px; } .brand span, nav a span, .sidebar-bottom { display: none; } nav a { justify-content: center; padding: 0; } main { padding: 27px 22px; } }
+  @media (max-width: 720px) { .topbar { gap: 18px; flex-direction: column; } .actions { width: 100%; } .date { flex: 1; } .grid, .main-grid { grid-template-columns: 1fr; } .main-grid { margin-top: 18px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="logo"></div><span>Luna Shop</span></div>
+    <nav>
+      <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><span>Overview</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7h14l-1.3 9H8z"/><path d="M6 7 5 4H3M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg><span>Orders</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5m0 14h16"/><path d="m7 15 3-4 3 2 5-7"/></svg><span>Analytics</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span>Products</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 1 1-2.3-5.7"/><path d="M20 4v7h-7"/></svg><span>Customers</span></a>
+    </nav>
+    <div class="sidebar-bottom">Luna Shop<br>Store workspace · 2024</div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <div><h1>Good morning, Jashwanth</h1><p class="subhead">Here’s what’s happening with your shop today.</p></div>
+      <div class="actions"><div class="date">April 1 – April 30, 2024 <span>⌄</span></div><button class="bell" aria-label="Notifications"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#657181" stroke-width="1.8"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button></div>
+    </header>
+    <section class="grid">
+      <div class="card metric revenue"><div class="metric-icon">$</div><div class="metric-label">Total revenue</div><div class="metric-value">$24,892.40</div><div class="metric-change">↑ 12.8% <span>vs. last month</span></div></div>
+      <div class="card metric orders"><div class="metric-icon">↗</div><div class="metric-label">Orders this week</div><div class="metric-value">184</div><div class="metric-change">↑ 8.4% <span>vs. last week</span></div></div>
+      <div class="card metric rate"><div class="metric-icon">%</div><div class="metric-label">Conversion rate</div><div class="metric-value">3.42%</div><div class="metric-change">↑ 0.6% <span>vs. last month</span></div></div>
+    </section>
+    <section class="main-grid">
+      <div class="card chart-card"><div class="panel-head"><div><h2 class="panel-title">Revenue over time</h2><div class="panel-note">Daily revenue · Last 30 days</div></div><div class="select">Last 30 days　⌄</div></div><div class="chart-wrap"><canvas id="revenueChart" aria-label="Revenue over the last 30 days"></canvas></div></div>
+      <div class="card"><div class="panel-head"><div><h2 class="panel-title">Best-selling products</h2><div class="panel-note">By units sold this month</div></div><span style="font-size:18px;color:#a1aab5">···</span></div><div class="product-list">
+        <div class="product"><div class="thumb t1">◒</div><div><div class="product-name">Cloud Knit Sweater</div><div class="product-meta">Apparel · $89.00</div></div><div class="units">328<small>units</small></div></div>
+        <div class="product"><div class="thumb t2">◫</div><div><div class="product-name">Everyday Carry Tote</div><div class="product-meta">Accessories · $54.00</div></div><div class="units">267<small>units</small></div></div>
+        <div class="product"><div class="thumb t3">◉</div><div><div class="product-name">Stoneware Mug Set</div><div class="product-meta">Home goods · $38.00</div></div><div class="units">214<small>units</small></div></div>
+        <div class="product"><div class="thumb t4">✦</div><div><div class="product-name">Linen Market Shirt</div><div class="product-meta">Apparel · $72.00</div></div><div class="units">189<small>units</small></div></div>
+        <div class="product"><div class="thumb t5">⌁</div><div><div class="product-name">Soft Focus Candle</div><div class="product-meta">Home goods · $26.00</div></div><div class="units">156<small>units</small></div></div>
+      </div></div>
+    </section>
+    <section class="card activity"><div class="panel-head"><div><h2 class="panel-title">Recent activity</h2><div class="panel-note">The latest updates from your store</div></div><a href="#" style="color:#4d7cff;font-size:11px;text-decoration:none;font-weight:650">View all</a></div><div class="activity-list">
+      <div class="event"><div class="event-icon order">＋</div><div class="event-text"><strong>New order #10482</strong> from Maya Chen · $142.00</div><div class="event-time">12 min ago</div></div>
+      <div class="event"><div class="event-icon review">★</div><div class="event-text"><strong>New 5-star review</strong> for Cloud Knit Sweater by Oliver Reed</div><div class="event-time">38 min ago</div></div>
+      <div class="event"><div class="event-icon order">＋</div><div class="event-text"><strong>New order #10481</strong> from Sofia Martinez · $86.50</div><div class="event-time">1 hr ago</div></div>
+      <div class="event"><div class="event-icon refund">↩</div><div class="event-text"><strong>Refund issued</strong> for order #10476 · $54.00</div><div class="event-time">2 hrs ago</div></div>
+      <div class="event"><div class="event-icon review">★</div><div class="event-text"><strong>New 4-star review</strong> for Everyday Carry Tote by Sam Wilson</div><div class="event-time">3 hrs ago</div></div>
+      <div class="event"><div class="event-icon order">＋</div><div class="event-text"><strong>New order #10480</strong> from Priya Nair · $212.00</div><div class="event-time">4 hrs ago</div></div>
+      <div class="event"><div class="event-icon refund">↩</div><div class="event-text"><strong>Refund issued</strong> for order #10471 · $38.00</div><div class="event-time">5 hrs ago</div></div>
+      <div class="event"><div class="event-icon order">＋</div><div class="event-text"><strong>New order #10479</strong> from Ethan Brooks · $96.00</div><div class="event-time">6 hrs ago</div></div>
+    </div></section>
+  </main>
+</div>
+<script>
+(function () {
+  const canvas = document.getElementById('revenueChart');
+  const ctx = canvas.getContext('2d');
+  const values = [612, 730, 685, 812, 760, 940, 886, 1018, 932, 1085, 1138, 1042, 1195, 1278, 1210, 1368, 1290, 1425, 1518, 1388, 1462, 1580, 1490, 1625, 1710, 1648, 1812, 1730, 1905, 1828];
+  const labels = ['Apr 1','Apr 5','Apr 10','Apr 15','Apr 20','Apr 25','Apr 30'];
+  function draw() {
+    const ratio = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * ratio; canvas.height = h * ratio; ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.clearRect(0,0,w,h);
+    const pad = { left: 43, right: 11, top: 15, bottom: 31 };
+    const cw = w-pad.left-pad.right, ch = h-pad.top-pad.bottom;
+    const min = 400, max = 2000;
+    const x = i => pad.left + (i/(values.length-1))*cw;
+    const y = v => pad.top + (1-(v-min)/(max-min))*ch;
+    ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = '#9aa3ae'; ctx.textAlign='right';
+    [500,1000,1500,2000].forEach(v => { const yy=y(v); ctx.fillText('$'+(v/1000).toFixed(v===500?1:0)+'k', pad.left-10, yy+3); ctx.strokeStyle='#edf0f4'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad.left,yy); ctx.lineTo(w-pad.right,yy); ctx.stroke(); });
+    ctx.textAlign='center'; labels.forEach((lab,i)=> { const xx=pad.left+(i/(labels.length-1))*cw; ctx.fillText(lab,xx,h-9); });
+    const grad=ctx.createLinearGradient(0,pad.top,0,h-pad.bottom); grad.addColorStop(0,'rgba(77,124,255,.22)'); grad.addColorStop(1,'rgba(77,124,255,0)');
+    ctx.beginPath(); values.forEach((v,i)=> i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.lineTo(x(values.length-1),h-pad.bottom); ctx.lineTo(x(0),h-pad.bottom); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); values.forEach((v,i)=> i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.strokeStyle='#4d7cff'; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.stroke();
+    [0, values.length-1].forEach(i=>{ctx.beginPath();ctx.arc(x(i),y(values[i]),3.2,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#4d7cff';ctx.lineWidth=2;ctx.stroke();});
+  }
+  new ResizeObserver(draw).observe(canvas); draw();
+})();
+</script>
+</body>
+</html>

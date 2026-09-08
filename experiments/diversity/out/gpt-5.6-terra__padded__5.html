@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A monthly performance dashboard for Northstar Goods online shop.">
+  <title>Northstar Goods — Shop analytics</title>
+  <style>
+    :root {
+      --color-ink: #172033;
+      --color-muted: #526178;
+      --color-surface: #ffffff;
+      --color-page: #f4f6fa;
+      --color-line: #d8dfeb;
+      --color-brand: #2457d6;
+      --color-brand-dark: #183d99;
+      --color-brand-soft: #eaf0ff;
+      --color-success: #087443;
+      --color-success-soft: #e4f6ec;
+      --color-warning: #9b5b00;
+      --color-warning-soft: #fff3dd;
+      --color-danger: #b42318;
+      --color-danger-soft: #feeceb;
+      --color-focus: #f59e0b;
+      --shadow-card: 0 0.4rem 1.3rem rgba(27, 42, 76, 0.08);
+      --radius-large: 1rem;
+      --radius-medium: 0.65rem;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.5rem;
+      --space-6: 2rem;
+      --max-width: 82rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    button, select { font: inherit; }
+
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+
+    :focus-visible {
+      outline: 0.2rem solid var(--color-focus);
+      outline-offset: 0.2rem;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: var(--space-2) var(--space-3);
+      transform: translateY(-180%);
+      border-radius: var(--radius-medium);
+      background: var(--color-ink);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .site-header {
+      border-bottom: 1px solid var(--color-line);
+      background: var(--color-surface);
+    }
+
+    .site-header__inner, .dashboard {
+      width: min(calc(100% - 2rem), var(--max-width));
+      margin: 0 auto;
+    }
+
+    .site-header__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      min-height: 4.75rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      color: var(--color-ink);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+
+    .brand__mark {
+      display: grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      border-radius: 0.7rem;
+      background: var(--color-brand);
+      color: #fff;
+      font-size: 1.15rem;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+
+    .header-status__dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--color-success);
+    }
+
+    .dashboard { padding: var(--space-6) 0; }
+
+    .dashboard__intro {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+
+    .eyebrow {
+      margin: 0 0 var(--space-1);
+      color: var(--color-brand-dark);
+      font-size: 0.8125rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 0;
+      font-size: clamp(1.7rem, 4vw, 2.35rem);
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: 1.125rem;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin-bottom: 0.15rem;
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .period-control {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 11rem;
+      color: var(--color-muted);
+      font-size: 0.8125rem;
+      font-weight: 700;
+    }
+
+    .period-control__select {
+      padding: 0.55rem 2rem 0.55rem 0.7rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-medium);
+      background: var(--color-surface);
+      color: var(--color-ink);
+      cursor: pointer;
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
+    .card {
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-large);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-card { padding: var(--space-5); }
+
+    .metric-card__label {
+      margin-bottom: var(--space-3);
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
+    .metric-card__value {
+      margin-bottom: var(--space-2);
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+
+    .metric-card__note {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin: 0;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+
+    .metric-card__badge {
+      padding: 0.15rem 0.45rem;
+      border-radius: 99rem;
+      background: var(--color-success-soft);
+      color: var(--color-success);
+      font-size: 0.75rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .metric-card__badge--neutral {
+      background: var(--color-brand-soft);
+      color: var(--color-brand-dark);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
+      gap: var(--space-4);
+      align-items: start;
+    }
+
+    .dashboard-grid__secondary {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .panel { padding: var(--space-5); }
+
+    .panel__header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+
+    .panel__subheading {
+      margin: var(--space-1) 0 0;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+
+    .chart-summary {
+      color: var(--color-brand-dark);
+      font-size: 0.875rem;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .chart-summary__label { display: block; color: var(--color-muted); font-size: 0.75rem; font-weight: 700; }
+
+    .chart {
+      position: relative;
+      min-height: 19rem;
+    }
+
+    .chart__canvas {
+      display: block;
+      width: 100%;
+      height: 19rem;
+    }
+
+    .chart__tooltip {
+      position: absolute;
+      z-index: 1;
+      display: none;
+      max-width: 10rem;
+      padding: 0.4rem 0.55rem;
+      transform: translate(-50%, calc(-100% - 0.6rem));
+      border-radius: 0.4rem;
+      background: var(--color-ink);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .chart__tooltip::after {
+      position: absolute;
+      bottom: -0.3rem;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform: translateX(-50%);
+      border-top: 0.35rem solid var(--color-ink);
+      border-right: 0.35rem solid transparent;
+      border-left: 0.35rem solid transparent;
+      content: "";
+    }
+
+    .list { margin: 0; padding: 0; list-style: none; }
+
+    .product-list { display: grid; gap: var(--space-3); }
+
+    .product-list__item {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .product-list__rank {
+      display: grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--color-brand-soft);
+      color: var(--color-brand-dark);
+      font-size: 0.8125rem;
+      font-weight: 800;
+    }
+
+    .product-list__name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .product-list__category { display: block; color: var(--color-muted); font-size: 0.8125rem; }
+    .product-list__units { color: var(--color-muted); font-size: 0.8125rem; text-align: right; white-space: nowrap; }
+    .product-list__units strong { display: block; color: var(--color-ink); font-size: 0.9375rem; }
+
+    .activity-list { display: grid; gap: 0; }
+
+    .activity-list__item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      gap: var(--space-3);
+      padding: 0 0 var(--space-4);
+    }
+
+    .activity-list__item:not(:last-child)::before {
+      position: absolute;
+      top: 2.25rem;
+      bottom: 0.3rem;
+      left: 1.08rem;
+      width: 1px;
+      background: var(--color-line);
+      content: "";
+    }
+
+    .activity-list__icon {
+      display: grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--color-brand-soft);
+      color: var(--color-brand-dark);
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .activity-list__icon--refund { background: var(--color-danger-soft); color: var(--color-danger); }
+    .activity-list__icon--review { background: var(--color-warning-soft); color: var(--color-warning); }
+    .activity-list__content { padding-top: 0.05rem; }
+    .activity-list__text { margin: 0; color: var(--color-ink); font-size: 0.875rem; }
+    .activity-list__time { display: block; margin-top: 0.15rem; color: var(--color-muted); font-size: 0.75rem; }
+
+    .panel__footer {
+      margin: var(--space-2) 0 0;
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-line);
+      color: var(--color-muted);
+      font-size: 0.8125rem;
+    }
+
+    .site-footer {
+      width: min(calc(100% - 2rem), var(--max-width));
+      margin: 0 auto;
+      padding: 0 0 var(--space-6);
+      color: var(--color-muted);
+      font-size: 0.8125rem;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 52rem) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .dashboard-grid__secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 38rem) {
+      .site-header__inner { min-height: 4.2rem; }
+      .header-status { display: none; }
+      .dashboard { padding-top: var(--space-5); }
+      .dashboard__intro { align-items: stretch; flex-direction: column; }
+      .period-control { width: 100%; }
+      .metrics, .dashboard-grid__secondary { grid-template-columns: 1fr; }
+      .panel, .metric-card { padding: var(--space-4); }
+      .chart-summary { font-size: 0.8125rem; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .card { transition: box-shadow 160ms ease, transform 160ms ease; }
+      .card:hover { box-shadow: 0 0.6rem 1.7rem rgba(27, 42, 76, 0.13); transform: translateY(-0.1rem); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#dashboard">Skip to dashboard content</a>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="brand" aria-label="Northstar Goods">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span>Northstar Goods</span>
+      </div>
+      <p class="header-status"><span class="header-status__dot" aria-hidden="true"></span>Storefront is live</p>
+    </div>
+  </header>
+
+  <main id="dashboard" class="dashboard">
+    <header class="dashboard__intro">
+      <div>
+        <p class="eyebrow">Shop performance</p>
+        <h1>Good morning, Maya</h1>
+      </div>
+      <div class="period-control">
+        <label for="period-select">Reporting period</label>
+        <select id="period-select" class="period-control__select">
+          <option value="may" selected>May 2025</option>
+          <option value="april">April 2025</option>
+        </select>
+      </div>
+    </header>
+
+    <p id="dashboard-announcement" class="sr-only" aria-live="polite"></p>
+
+    <section class="metrics" aria-label="Key performance metrics">
+      <article class="card metric-card">
+        <p class="metric-card__label">Total revenue</p>
+        <p id="revenue-value" class="metric-card__value">$28,869.42</p>
+        <p class="metric-card__note"><span id="revenue-change" class="metric-card__badge">↑ 17.6%</span><span id="revenue-note">vs. April</span></p>
+      </article>
+      <article class="card metric-card">
+        <p class="metric-card__label">Orders this week</p>
+        <p id="order-count" class="metric-card__value">186</p>
+        <p class="metric-card__note"><span class="metric-card__badge metric-card__badge--neutral">Mon–Sun</span><span>Average 27/day</span></p>
+      </article>
+      <article class="card metric-card">
+        <p class="metric-card__label">Average order value</p>
+        <p id="average-order-value" class="metric-card__value">$62.31</p>
+        <p class="metric-card__note"><span class="metric-card__badge">↑ 4.8%</span><span>vs. April</span></p>
+      </article>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Sales details">
+      <section class="card panel" aria-labelledby="revenue-chart-heading">
+        <header class="panel__header">
+          <div>
+            <h2 id="revenue-chart-heading">Revenue over time</h2>
+            <p class="panel__subheading">Daily gross sales for the last 30 days</p>
+          </div>
+          <p class="chart-summary"><span class="chart-summary__label">30-day total</span><span id="chart-total">$24,860</span></p>
+        </header>
+        <div id="revenue-chart" class="chart" role="img" aria-label="Line chart showing daily revenue for the last 30 days. Use the chart controls to examine individual dates." tabindex="0">
+          <canvas id="revenue-canvas" class="chart__canvas"></canvas>
+          <span id="chart-tooltip" class="chart__tooltip" aria-hidden="true"></span>
+        </div>
+        <p id="chart-description" class="sr-only">Revenue chart data is loading.</p>
+      </section>
+
+      <div class="dashboard-grid__secondary">
+        <section class="card panel" aria-labelledby="products-heading">
+          <header class="panel__header">
+            <div>
+              <h2 id="products-heading">Best-selling products</h2>
+              <p class="panel__subheading">Units sold this month</p>
+            </div>
+          </header>
+          <ol id="product-list" class="list product-list"></ol>
+        </section>
+
+        <section class="card panel" aria-labelledby="activity-heading">
+          <header class="panel__header">
+            <div>
+              <h2 id="activity-heading">Recent activity</h2>
+              <p class="panel__subheading">Latest store events</p>
+            </div>
+          </header>
+          <ol id="activity-list" class="list activity-list"></ol>
+          <p class="panel__footer">Showing the last 8 events</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Data refreshes automatically every 15 minutes. Last updated May 30, 2025 at 10:42 AM.</footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const shopData = {
+        may: {
+          revenue: 28869.42,
+          revenueChange: 17.6,
+          orders: 186,
+          averageOrderValue: 62.31,
+          chart: [620, 710, 685, 752, 810, 945, 890, 760, 805, 840, 915, 870, 1035, 1100, 980, 860, 925, 1010, 1125, 1050, 980, 1140, 1210, 1090, 1005, 1195, 1080, 1240, 1185, 1057.42],
+          products: [
+            ['Cloud Knit Throw', 'Home textiles', 214],
+            ['Stoneware Mug Set', 'Kitchen', 187],
+            ['Everyday Tote', 'Accessories', 156],
+            ['Cedar & Fig Candle', 'Home fragrance', 142],
+            ['Linen Table Runner', 'Dining', 119]
+          ]
+        },
+        april: {
+          revenue: 24555.08,
+          revenueChange: 8.1,
+          orders: 169,
+          averageOrderValue: 59.45,
+          chart: [540, 580, 615, 655, 705, 790, 740, 665, 700, 735, 790, 760, 850, 910, 825, 760, 800, 870, 940, 895, 830, 940, 995, 920, 855, 970, 910, 1015, 970, 1025.08],
+          products: [
+            ['Cloud Knit Throw', 'Home textiles', 196],
+            ['Stoneware Mug Set', 'Kitchen', 168],
+            ['Everyday Tote', 'Accessories', 143],
+            ['Cedar & Fig Candle', 'Home fragrance', 131],
+            ['Linen Table Runner', 'Dining', 108]
+          ]
+        }
+      };
+
+      const activities = [
+        ['order', 'Order <strong>#NS-1842</strong> placed by Ava R.', '$84.00 · 4 minutes ago'],
+        ['review', '<strong>New 5-star review</strong> for Cloud Knit Throw', '“Soft, substantial, and beautiful.” · 18 minutes ago'],
+        ['refund', 'Refund issued for <strong>order #NS-1829</strong>', '$36.00 · 42 minutes ago'],
+        ['order', 'Order <strong>#NS-1841</strong> placed by Ben K.', '$127.50 · 1 hour ago'],
+        ['order', 'Order <strong>#NS-1840</strong> placed by Sofia L.', '$62.00 · 2 hours ago'],
+        ['review', '<strong>New 4-star review</strong> for Stoneware Mug Set', '“Lovely finish and arrived quickly.” · 3 hours ago'],
+        ['order', 'Order <strong>#NS-1839</strong> placed by Daniel M.', '$98.00 · 4 hours ago'],
+        ['refund', 'Refund requested for <strong>order #NS-1818</strong>', '$54.00 · Yesterday']
+      ];
+
+      const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const compactCurrencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+      const chartDates = Array.from({ length: 30 }, (_, index) => new Date(2025, 4, index + 1));
+      const elements = {
+        period: document.querySelector('#period-select'),
+        revenue: document.querySelector('#revenue-value'),
+        revenueChange: document.querySelector('#revenue-change'),
+        revenueNote: document.querySelector('#revenue-note'),
+        orders: document.querySelector('#order-count'),
+        averageOrderValue: document.querySelector('#average-order-value'),
+        chartTotal: document.querySelector('#chart-total'),
+        canvas: document.querySelector('#revenue-canvas'),
+        chart: document.querySelector('#revenue-chart'),
+        tooltip: document.querySelector('#chart-tooltip'),
+        chartDescription: document.querySelector('#chart-description'),
+        products: document.querySelector('#product-list'),
+        activity: document.querySelector('#activity-list'),
+        announcement: document.querySelector('#dashboard-announcement')
+      };
+
+      let selectedPointIndex = null;
+      let resizeTimer = null;
+
+      function getMonthLabel(period) {
+        return period === 'april' ? 'April' : 'May';
+      }
+
+      function buildProductList(products) {
+        if (!elements.products) return;
+        elements.products.replaceChildren();
+        if (!Array.isArray(products) || products.length === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.textContent = 'No product sales yet for this period.';
+          elements.products.append(emptyItem);
+          return;
+        }
+        const fragment = document.createDocumentFragment();
+        products.forEach(([name, category, units], index) => {
+          const item = document.createElement('li');
+          item.className = 'product-list__item';
+          item.innerHTML = `<span class="product-list__rank" aria-label="Rank ${index + 1}">${index + 1}</span><span><strong class="product-list__name">${name}</strong><span class="product-list__category">${category}</span></span><span class="product-list__units"><strong>${units}</strong>units sold</span>`;
+          fragment.append(item);
+        });
+        elements.products.append(fragment);
+      }
+
+      function getActivityIcon(type) {
+        const icons = { order: '↓', refund: '↩', review: '★' };
+        return icons[type] || '•';
+      }
+
+      function getActivityLabel(type) {
+        const labels = { order: 'New order', refund: 'Refund', review: 'Review' };
+        return labels[type] || 'Activity';
+      }
+
+      function buildActivityFeed() {
+        if (!elements.activity) return;
+        elements.activity.replaceChildren();
+        const fragment = document.createDocumentFragment();
+        activities.slice(0, 8).forEach(([type, message, detail]) => {
+          const item = document.createElement('li');
+          item.className = 'activity-list__item';
+          item.innerHTML = `<span class="activity-list__icon activity-list__icon--${type}" aria-label="${getActivityLabel(type)}">${getActivityIcon(type)}</span><span class="activity-list__content"><p class="activity-list__text">${message}</p><time class="activity-list__time">${detail}</time></span>`;
+          fragment.append(item);
+        });
+        elements.activity.append(fragment);
+      }
+
+      function getChartDimensions(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const width = Math.max(rect.width, 280);
+        const height = Math.max(rect.height, 260);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        const context = canvas.getContext('2d');
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        return { context, width, height };
+      }
+
+      function drawChart(period) {
+        if (!elements.canvas || !shopData[period]) return;
+        const { context, width, height } = getChartDimensions(elements.canvas);
+        const values = shopData[period].chart;
+        const padding = { top: 18, right: 12, bottom: 34, left: 48 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+        const maximumValue = Math.ceil(Math.max(...values) / 250) * 250;
+        const gridSteps = 4;
+        const xForIndex = (index) => padding.left + (plotWidth * index) / Math.max(values.length - 1, 1);
+        const yForValue = (value) => padding.top + plotHeight - (value / maximumValue) * plotHeight;
+
+        context.clearRect(0, 0, width, height);
+        context.font = '12px system-ui, sans-serif';
+        context.textAlign = 'right';
+        context.textBaseline = 'middle';
+        for (let step = 0; step <= gridSteps; step += 1) {
+          const value = (maximumValue / gridSteps) * step;
+          const y = yForValue(value);
+          context.strokeStyle = '#d8dfeb';
+          context.lineWidth = 1;
+          context.beginPath();
+          context.moveTo(padding.left, y);
+          context.lineTo(width - padding.right, y);
+          context.stroke();
+          context.fillStyle = '#526178';
+          context.fillText(`$${Math.round(value / 1000)}k`, padding.left - 8, y);
+        }
+
+        const gradient = context.createLinearGradient(0, padding.top, 0, padding.top + plotHeight);
+        gradient.addColorStop(0, 'rgba(36, 87, 214, 0.23)');
+        gradient.addColorStop(1, 'rgba(36, 87, 214, 0.01)');
+        context.beginPath();
+        values.forEach((value, index) => {
+          const x = xForIndex(index);
+          const y = yForValue(value);
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.lineTo(xForIndex(values.length - 1), padding.top + plotHeight);
+        context.lineTo(xForIndex(0), padding.top + plotHeight);
+        context.closePath();
+        context.fillStyle = gradient;
+        context.fill();
+
+        context.beginPath();
+        values.forEach((value, index) => {
+          const x = xForIndex(index);
+          const y = yForValue(value);
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.strokeStyle = '#2457d6';
+        context.lineWidth = 2.5;
+        context.lineJoin = 'round';
+        context.lineCap = 'round';
+        context.stroke();
+
+        context.textAlign = 'center';
+        context.textBaseline = 'top';
+        context.fillStyle = '#526178';
+        [0, 7, 14, 21, 29].forEach((index) => {
+          context.fillText(chartDates[index].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), xForIndex(index), height - 20);
+        });
+
+        if (selectedPointIndex !== null && values[selectedPointIndex] !== undefined) {
+          const x = xForIndex(selectedPointIndex);
+          const y = yForValue(values[selectedPointIndex]);
+          context.beginPath();
+          context.arc(x, y, 5, 0, Math.PI * 2);
+          context.fillStyle = '#ffffff';
+          context.fill();
+          context.lineWidth = 3;
+          context.strokeStyle = '#2457d6';
+          context.stroke();
+        }
+      }
+
+      function showPoint(index, period) {
+        const values = shopData[period]?.chart;
+        if (!values || index < 0 || index >= values.length || !elements.canvas || !elements.tooltip) return;
+        selectedPointIndex = index;
+        drawChart(period);
+        const rect = elements.canvas.getBoundingClientRect();
+        const padding = { right: 12, left: 48 };
+        const x = padding.left + ((rect.width - padding.left - padding.right) * index) / Math.max(values.length - 1, 1);
+        const maximumValue = Math.ceil(Math.max(...values) / 250) * 250;
+        const plotHeight = rect.height - 18 - 34;
+        const y = 18 + plotHeight - (values[index] / maximumValue) * plotHeight;
+        elements.tooltip.style.display = 'block';
+        elements.tooltip.style.left = `${x}px`;
+        elements.tooltip.style.top = `${y}px`;
+        elements.tooltip.textContent = `${chartDates[index].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${currencyFormatter.format(values[index])}`;
+      }
+
+      function hidePoint(period) {
+        selectedPointIndex = null;
+        if (elements.tooltip) elements.tooltip.style.display = 'none';
+        drawChart(period);
+      }
+
+      function updateDashboard(period) {
+        const data = shopData[period];
+        if (!data) return;
+        const month = getMonthLabel(period);
+        if (elements.revenue) elements.revenue.textContent = currencyFormatter.format(data.revenue);
+        if (elements.revenueChange) elements.revenueChange.textContent = `↑ ${data.revenueChange}%`;
+        if (elements.revenueNote) elements.revenueNote.textContent = `vs. ${period === 'may' ? 'April' : 'March'}`;
+        if (elements.orders) elements.orders.textContent = data.orders.toLocaleString('en-US');
+        if (elements.averageOrderValue) elements.averageOrderValue.textContent = currencyFormatter.format(data.averageOrderValue);
+        if (elements.chartTotal) elements.chartTotal.textContent = compactCurrencyFormatter.format(data.revenue);
+        if (elements.chartDescription) elements.chartDescription.textContent = `Daily revenue for ${month} 2025, totaling ${currencyFormatter.format(data.revenue)} across 30 days.`;
+        buildProductList(data.products);
+        hidePoint(period);
+        if (elements.announcement) elements.announcement.textContent = `${month} 2025 dashboard data loaded.`;
+      }
+
+      function getClosestPointIndex(event, period) {
+        if (!elements.canvas || !shopData[period]) return null;
+        const rect = elements.canvas.getBoundingClientRect();
+        const relativeX = event.clientX - rect.left;
+        const paddingLeft = 48;
+        const paddingRight = 12;
+        const plotWidth = rect.width - paddingLeft - paddingRight;
+        if (plotWidth <= 0) return null;
+        const rawIndex = Math.round(((relativeX - paddingLeft) / plotWidth) * (shopData[period].chart.length - 1));
+        return Math.max(0, Math.min(shopData[period].chart.length - 1, rawIndex));
+      }
+
+      function initialiseInteractions() {
+        if (elements.period) {
+          elements.period.addEventListener('change', (event) => updateDashboard(event.target.value));
+        }
+        if (elements.chart) {
+          elements.chart.addEventListener('pointermove', (event) => {
+            const period = elements.period?.value || 'may';
+            const index = getClosestPointIndex(event, period);
+            if (index !== null) showPoint(index, period);
+          });
+          elements.chart.addEventListener('pointerleave', () => hidePoint(elements.period?.value || 'may'));
+          elements.chart.addEventListener('keydown', (event) => {
+            const period = elements.period?.value || 'may';
+            const totalPoints = shopData[period].chart.length;
+            if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') return;
+            event.preventDefault();
+            const current = selectedPointIndex === null ? 0 : selectedPointIndex;
+            const next = event.key === 'ArrowRight' ? Math.min(current + 1, totalPoints - 1) : event.key === 'ArrowLeft' ? Math.max(current - 1, 0) : event.key === 'Home' ? 0 : totalPoints - 1;
+            showPoint(next, period);
+          });
+          elements.chart.addEventListener('blur', () => hidePoint(elements.period?.value || 'may'));
+        }
+        window.addEventListener('resize', () => {
+          window.clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => drawChart(elements.period?.value || 'may'), 120);
+        }, { passive: true });
+      }
+
+      buildActivityFeed();
+      updateDashboard('may');
+      initialiseInteractions();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luna — Store Analytics</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #7d879b;
+      --line: #e9edf4;
+      --purple: #6254e7;
+      --purple-soft: #efedff;
+      --green: #22a06b;
+      --green-soft: #e8f7f0;
+      --orange: #e88b39;
+      --orange-soft: #fff3e7;
+      --red: #de6874;
+      --red-soft: #fff0f2;
+      --shadow: 0 8px 30px rgba(33, 43, 70, .05);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .app { display: flex; min-height: 100vh; }
+    aside { width: 238px; background: #fff; border-right: 1px solid var(--line); padding: 25px 16px; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 13px 35px; font-size: 18px; font-weight: 750; letter-spacing: -.4px; }
+    .brand-mark { width: 29px; height: 29px; border-radius: 9px; background: var(--purple); color: #fff; display:grid; place-items:center; font-weight: 800; font-size: 15px; box-shadow: 0 5px 12px rgba(98,84,231,.25); }
+    nav { display: grid; gap: 6px; }
+    .nav-item { color: #929bad; display: flex; align-items: center; gap: 13px; padding: 11px 13px; border-radius: 9px; text-decoration: none; font-weight: 600; }
+    .nav-item.active { color: var(--purple); background: var(--purple-soft); }
+    .nav-item svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .side-bottom { margin-top: auto; border-top: 1px solid var(--line); padding: 20px 13px 0; color: var(--muted); font-size: 12px; }
+    .side-bottom strong { display:block; color: var(--ink); font-size: 13px; margin-bottom: 4px; }
+    main { flex: 1; min-width: 0; padding: 31px 38px 48px; max-width: 1530px; margin: 0 auto; width: 100%; }
+    header { display:flex; align-items: flex-start; justify-content:space-between; margin-bottom: 29px; }
+    h1 { margin: 0 0 5px; font-size: 25px; letter-spacing: -.65px; }
+    .subtitle { color: var(--muted); }
+    .header-actions { display:flex; align-items:center; gap: 17px; }
+    .range { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; color: #536078; font-size: 13px; box-shadow: var(--shadow); }
+    .avatar { width: 35px; height: 35px; border-radius: 50%; background: #f0d6bb; color: #805335; display:grid; place-items:center; font-weight: 700; }
+    .stats { display:grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 21px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+    .stat-card { padding: 20px 21px 18px; min-height: 136px; }
+    .stat-top { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size: 13px; font-weight: 600; }
+    .stat-icon { width: 29px; height: 29px; display:grid; place-items:center; border-radius: 8px; background: var(--purple-soft); color: var(--purple); }
+    .stat-icon.green { background: var(--green-soft); color:var(--green); }
+    .stat-icon.orange { background: var(--orange-soft); color:var(--orange); }
+    .stat-icon svg { width: 15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .stat-value { font-size: 28px; font-weight: 750; margin: 14px 0 6px; letter-spacing:-.7px; }
+    .change { font-size: 12px; color: var(--muted); }
+    .up { color: var(--green); font-weight:700; } .down { color:var(--red); font-weight:700; }
+    .layout { display:grid; grid-template-columns: minmax(0, 1.6fr) minmax(320px, .9fr); gap: 20px; align-items:start; }
+    .panel-head { padding: 21px 22px 15px; display:flex; align-items:center; justify-content:space-between; }
+    .panel-title { margin:0; font-size:15px; font-weight:750; letter-spacing:-.1px; }
+    .panel-note { color:var(--muted); font-size:12px; }
+    .chart-panel { min-height: 382px; }
+    .chart-wrap { position:relative; height: 292px; margin: 2px 21px 18px; }
+    canvas { width:100%; height:100%; display:block; }
+    .legend { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:11px; }
+    .legend-dot { width:7px; height:7px; border-radius:50%; background:var(--purple); }
+    .products { min-height:382px; }
+    .products-list { padding: 0 22px 15px; }
+    .product { display:grid; grid-template-columns: 35px 1fr auto; align-items:center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #f0f2f6; }
+    .product:last-child { border-bottom:0; }
+    .product-image { width:35px; height:35px; border-radius:9px; display:grid; place-items:center; font-size:17px; background: #f3f0ff; }
+    .product-image.blue { background:#eaf5fb; } .product-image.peach { background:#fff0e5; } .product-image.yellow { background:#fff8db; } .product-image.green { background:#e8f7ed; }
+    .product-name { font-weight: 650; font-size:13px; margin-bottom:2px; } .product-meta { color:var(--muted); font-size:11px; }
+    .units { font-weight:750; font-size:13px; text-align:right; } .units span { display:block; font-size:11px; color:var(--muted); font-weight:500; margin-top:1px; }
+    .activity { margin-top:20px; }
+    .activity-list { padding: 0 22px 10px; }
+    .event { display:grid; grid-template-columns: 31px 1fr auto; gap: 12px; align-items:start; padding: 13px 0; border-bottom:1px solid #f0f2f6; }
+    .event:last-child { border:0; }
+    .event-icon { width:31px; height:31px; border-radius:50%; display:grid; place-items:center; background:var(--green-soft); color:var(--green); }
+    .event-icon.refund { background:var(--red-soft); color:var(--red); } .event-icon.review { background:var(--orange-soft); color:var(--orange); }
+    .event-icon svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .event-text { font-size:12px; color:#4f5b70; padding-top:1px; } .event-text strong { color:var(--ink); font-weight:700; } .event-time { color:#a0a8b7; font-size:11px; white-space:nowrap; padding-top:2px; }
+    @media (max-width: 950px) { aside { width: 70px; padding:22px 10px; } .brand { padding:0 10px 35px; } .brand span, .nav-item span, .side-bottom { display:none; } .nav-item { justify-content:center; padding:12px; } main { padding:25px 22px 40px; } }
+    @media (max-width: 700px) { .stats, .layout { grid-template-columns:1fr; } header { gap:15px; flex-direction:column; } .header-actions { align-self:stretch; justify-content:space-between; } main { padding:22px 14px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand"><div class="brand-mark">L</div><span>Luna shop</span></div>
+      <nav>
+        <a class="nav-item active" href="#"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Overview</span></a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg><span>Orders</span></a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></svg><span>Products</span></a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 16 4-5 3 3 5-7"/></svg><span>Analytics</span></a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0-15.5-3M4 4v4h4M4 13a8.1 8.1 0 0 0 15.5 3M20 20v-4h-4"/></svg><span>Marketing</span></a>
+      </nav>
+      <div class="side-bottom"><strong>Need help?</strong>Visit our help center<br>or contact support.</div>
+    </aside>
+    <main>
+      <header>
+        <div><h1>Good morning, Jashwanth</h1><div class="subtitle">Here's what's happening with your store today.</div></div>
+        <div class="header-actions"><div class="range">May 01 – May 31, 2024&nbsp;⌄</div><div class="avatar">JY</div></div>
+      </header>
+      <section class="stats">
+        <div class="card stat-card"><div class="stat-top"><span>Total revenue</span><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.7-2.2-3-5-3s-5 1.3-5 3 1.7 2.6 5 3 5 1.3 5 3-2.2 3-5 3-5-1.3-5-3"/></svg></div></div><div class="stat-value">$24,680.50</div><div class="change"><span class="up">↑ 12.8%</span> vs. last month</div></div>
+        <div class="card stat-card"><div class="stat-top"><span>Orders this week</span><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg></div></div><div class="stat-value">186</div><div class="change"><span class="up">↑ 8.4%</span> vs. last week</div></div>
+        <div class="card stat-card"><div class="stat-top"><span>Average order value</span><div class="stat-icon orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M15 9.2c-.7-.6-1.7-1-3-1-1.7 0-3 .8-3 2s1.3 1.8 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.4-3-1"/></svg></div></div><div class="stat-value">$132.69</div><div class="change"><span class="down">↓ 2.1%</span> vs. last month</div></div>
+      </section>
+      <section class="layout">
+        <div class="card chart-panel"><div class="panel-head"><div><h2 class="panel-title">Revenue overview</h2><div class="panel-note">Daily revenue for the selected period</div></div><div class="legend"><i class="legend-dot"></i> Revenue</div></div><div class="chart-wrap"><canvas id="revenueChart" aria-label="Revenue over the last 30 days" role="img"></canvas></div></div>
+        <div class="card products"><div class="panel-head"><div><h2 class="panel-title">Top products</h2><div class="panel-note">Best sellers this month</div></div><div class="panel-note">Units sold</div></div><div class="products-list">
+          <div class="product"><div class="product-image">☕</div><div><div class="product-name">Stoneware Mug</div><div class="product-meta">Home &amp; living</div></div><div class="units">248<span>units</span></div></div>
+          <div class="product"><div class="product-image blue">🧴</div><div><div class="product-name">Daily Ritual Bottle</div><div class="product-meta">Accessories</div></div><div class="units">193<span>units</span></div></div>
+          <div class="product"><div class="product-image peach">🕯️</div><div><div class="product-name">Cedar + Fig Candle</div><div class="product-meta">Home &amp; living</div></div><div class="units">174<span>units</span></div></div>
+          <div class="product"><div class="product-image yellow">📓</div><div><div class="product-name">Linen Notebook</div><div class="product-meta">Stationery</div></div><div class="units">129<span>units</span></div></div>
+          <div class="product"><div class="product-image green">🧦</div><div><div class="product-name">Everyday Crew Socks</div><div class="product-meta">Apparel</div></div><div class="units">105<span>units</span></div></div>
+        </div></div>
+      </section>
+      <section class="card activity"><div class="panel-head"><div><h2 class="panel-title">Recent activity</h2><div class="panel-note">Latest updates from your store</div></div><a href="#" style="color:var(--purple);font-size:12px;font-weight:700;text-decoration:none">View all</a></div><div class="activity-list">
+        <div class="event"><div class="event-icon"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg></div><div class="event-text"><strong>New order</strong> from Olivia Martin <span>·</span> $86.00</div><div class="event-time">8 min ago</div></div>
+        <div class="event"><div class="event-icon review"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></div><div class="event-text"><strong>New 5-star review</strong> on Stoneware Mug</div><div class="event-time">42 min ago</div></div>
+        <div class="event"><div class="event-icon"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg></div><div class="event-text"><strong>New order</strong> from Theo Garcia <span>·</span> $142.50</div><div class="event-time">1 hr ago</div></div>
+        <div class="event"><div class="event-icon refund"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v1"/></svg></div><div class="event-text"><strong>Refund issued</strong> to Mia Chen <span>·</span> $38.00</div><div class="event-time">2 hrs ago</div></div>
+        <div class="event"><div class="event-icon"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg></div><div class="event-text"><strong>New order</strong> from Noah Williams <span>·</span> $219.00</div><div class="event-time">3 hrs ago</div></div>
+        <div class="event"><div class="event-icon review"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></div><div class="event-text"><strong>New 4-star review</strong> on Daily Ritual Bottle</div><div class="event-time">5 hrs ago</div></div>
+        <div class="event"><div class="event-icon"><svg viewBox="0 0 24 24"><path d="M6 7h15l-1 11H7L5 4H2"/><path d="M9 21h.01M18 21h.01"/></svg></div><div class="event-text"><strong>New order</strong> from Emma Johnson <span>·</span> $64.00</div><div class="event-time">6 hrs ago</div></div>
+        <div class="event"><div class="event-icon refund"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v1"/></svg></div><div class="event-text"><strong>Refund issued</strong> to Lucas Brown <span>·</span> $22.00</div><div class="event-time">Yesterday</div></div>
+      </div></section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      const canvas = document.getElementById('revenueChart');
+      const ctx = canvas.getContext('2d');
+      const data = [490, 620, 570, 720, 680, 790, 710, 850, 760, 820, 940, 880, 1020, 960, 1100, 1050, 1210, 1130, 1270, 1180, 1360, 1290, 1410, 1320, 1510, 1450, 1580, 1510, 1690, 1770];
+      const labels = ['May 1','May 5','May 10','May 15','May 20','May 25','May 31'];
+      function draw() {
+        const rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+        const w = rect.width, h = rect.height, left = 42, right = 10, top = 10, bottom = 31, cw = w-left-right, ch = h-top-bottom;
+        ctx.clearRect(0,0,w,h); ctx.font = '11px system-ui, sans-serif'; ctx.lineWidth = 1;
+        const max = 1800, ticks = [0, 600, 1200, 1800];
+        ticks.forEach(v => { const y = top + ch - (v/max)*ch; ctx.strokeStyle='#eef1f6'; ctx.beginPath(); ctx.moveTo(left,y+.5); ctx.lineTo(w-right,y+.5); ctx.stroke(); ctx.fillStyle='#9aa3b3'; ctx.textAlign='right'; ctx.fillText(v === 0 ? '$0' : '$' + (v/1000).toFixed(1) + 'k', left-10, y+4); });
+        ctx.textAlign='center'; labels.forEach((label,i) => { const x=left+(i/(labels.length-1))*cw; ctx.fillStyle='#9aa3b3'; ctx.fillText(label,x,h-8); });
+        const points=data.map((v,i)=>({x:left+(i/(data.length-1))*cw,y:top+ch-(v/max)*ch}));
+        const gradient=ctx.createLinearGradient(0,top,0,top+ch); gradient.addColorStop(0,'rgba(98,84,231,.22)'); gradient.addColorStop(1,'rgba(98,84,231,0)');
+        ctx.beginPath(); ctx.moveTo(points[0].x,top+ch); points.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.lineTo(points[points.length-1].x,top+ch); ctx.closePath(); ctx.fillStyle=gradient; ctx.fill();
+        ctx.beginPath(); points.forEach((p,i)=>{ if(i===0)ctx.moveTo(p.x,p.y); else { const prev=points[i-1], mx=(prev.x+p.x)/2; ctx.bezierCurveTo(mx,prev.y,mx,p.y,p.x,p.y); }}); ctx.strokeStyle='#6254e7'; ctx.lineWidth=2.5; ctx.stroke();
+        points.forEach((p,i)=>{ if(i===data.length-1){ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#6254e7';ctx.lineWidth=2;ctx.stroke();} });
+      }
+      draw(); window.addEventListener('resize', draw);
+    })();
+  </script>
+</body>
+</html>

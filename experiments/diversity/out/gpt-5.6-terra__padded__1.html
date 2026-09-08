@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Northstar Supply shop performance dashboard">
+  <title>Northstar Supply — Analytics</title>
+  <style>
+    :root {
+      --canvas: #f5f7f5;
+      --surface: #ffffff;
+      --surface-muted: #f0f4f1;
+      --ink: #18231d;
+      --muted: #5b6860;
+      --line: #d8e0da;
+      --green: #176b4b;
+      --green-dark: #0e4b34;
+      --green-pale: #dcefe5;
+      --blue: #176a9b;
+      --red: #a33a32;
+      --amber: #8a5b06;
+      --radius: 1rem;
+      --shadow: 0 0.5rem 1.5rem rgb(24 35 29 / 7%);
+      --space-1: .5rem;
+      --space-2: .75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --space-6: 3rem;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button, select, canvas { outline-offset: .2rem; }
+    button:focus-visible, select:focus-visible, canvas:focus-visible { outline: .2rem solid #0b69a3; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .6; }
+    .shell { width: min(100% - 2rem, 82rem); margin-inline: auto; }
+    .site-header { border-bottom: 1px solid var(--line); background: var(--surface); }
+    .site-header__inner { min-height: 4.8rem; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .brand { display: flex; align-items: center; gap: .7rem; color: var(--ink); text-decoration: none; font-weight: 750; letter-spacing: -.02em; }
+    .brand__mark { width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: .6rem; background: var(--green); color: white; font-weight: 800; }
+    .header-actions { display: flex; align-items: center; gap: var(--space-2); }
+    .period { color: var(--muted); font-size: .875rem; }
+    .button { border: 1px solid var(--line); border-radius: .55rem; padding: .55rem .8rem; background: var(--surface); color: var(--ink); font-weight: 650; font-size: .875rem; }
+    .button:hover { border-color: var(--green); background: var(--green-pale); }
+    main { padding-block: var(--space-5) var(--space-6); }
+    .page-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: .3rem; font-size: clamp(1.7rem, 4vw, 2.35rem); letter-spacing: -.045em; line-height: 1.1; }
+    h2 { font-size: 1.05rem; letter-spacing: -.015em; margin-bottom: 0; }
+    h3 { font-size: .95rem; margin-bottom: .18rem; }
+    .lede { margin-bottom: 0; color: var(--muted); }
+    .field { display: flex; align-items: center; gap: var(--space-2); }
+    .field label { color: var(--muted); font-size: .875rem; font-weight: 650; }
+    .field select { padding: .52rem 2.2rem .52rem .7rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); }
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-4); }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .metric { padding: var(--space-4); }
+    .metric__label { color: var(--muted); font-size: .88rem; font-weight: 650; }
+    .metric__value { margin: .35rem 0 .4rem; font-size: clamp(1.65rem, 4vw, 2.15rem); line-height: 1.15; letter-spacing: -.04em; }
+    .metric__detail { margin: 0; color: var(--muted); font-size: .875rem; }
+    .trend { display: inline-flex; align-items: center; gap: .25rem; color: var(--green-dark); font-weight: 750; }
+    .trend--negative { color: var(--red); }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 1fr); gap: var(--space-4); }
+    .chart-card { padding: var(--space-4); }
+    .card-heading { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); margin-bottom: var(--space-3); }
+    .card-heading p { margin: .25rem 0 0; color: var(--muted); font-size: .875rem; }
+    .chart-total { text-align: right; color: var(--green-dark); font-size: .875rem; font-weight: 750; white-space: nowrap; }
+    .chart-wrap { position: relative; height: 19rem; }
+    .revenue-chart { display: block; width: 100%; height: 100%; border-radius: .5rem; }
+    .chart-tooltip { position: absolute; z-index: 1; display: none; max-width: 10rem; padding: .45rem .6rem; border-radius: .45rem; background: #18231d; color: #fff; font-size: .78rem; pointer-events: none; transform: translate(-50%, calc(-100% - .5rem)); }
+    .chart-tooltip[data-show="true"] { display: block; }
+    .list-card { padding: var(--space-4); }
+    .product-list, .activity-list { padding: 0; margin: var(--space-3) 0 0; list-style: none; }
+    .product-list { display: grid; gap: .9rem; }
+    .product { display: grid; grid-template-columns: 1.8rem minmax(0, 1fr) auto; align-items: center; gap: .7rem; }
+    .product__rank { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--green-pale); color: var(--green-dark); font-size: .78rem; font-weight: 800; }
+    .product__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: .9rem; }
+    .product__units { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+    .activity-section { margin-top: var(--space-4); }
+    .activity-card { padding: var(--space-4); }
+    .activity-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
+    .activity { position: relative; min-width: 0; padding-left: 1rem; border-left: .2rem solid var(--line); }
+    .activity--order { border-color: var(--green); }
+    .activity--refund { border-color: var(--red); }
+    .activity--review { border-color: var(--blue); }
+    .activity__type { margin-bottom: .25rem; color: var(--muted); font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .activity__text { margin: 0; font-size: .86rem; overflow-wrap: break-word; }
+    .activity__time { display: block; margin-top: .35rem; color: var(--muted); font-size: .76rem; }
+    footer { border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .82rem; }
+    .site-footer__inner { padding-block: 1.15rem; display: flex; justify-content: space-between; gap: var(--space-3); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 52rem) { .dashboard-grid { grid-template-columns: 1fr; } .activity-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 38rem) { .metric-grid { grid-template-columns: 1fr; } .period { display: none; } .chart-wrap { height: 16rem; } }
+    @media (max-width: 28rem) { .activity-list { grid-template-columns: 1fr; } .site-footer__inner { flex-direction: column; } .card-heading { flex-direction: column; } .chart-total { text-align: left; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell site-header__inner">
+      <a class="brand" href="#overview" aria-label="Northstar Supply analytics home"><span class="brand__mark" aria-hidden="true">N</span>Northstar Supply</a>
+      <div class="header-actions"><span class="period">Updated 12 Mar 2025, 9:41 AM</span><button class="button" type="button" id="refresh-button">Refresh data</button></div>
+    </div>
+  </header>
+  <main class="shell" id="overview">
+    <section aria-labelledby="dashboard-title">
+      <header class="page-heading">
+        <div><h1 id="dashboard-title">Shop performance</h1><p class="lede">A clear view of sales, orders, and customer moments.</p></div>
+        <div class="field"><label for="period-select">Reporting period</label><select id="period-select"><option value="march" selected>March 2025</option><option value="february">February 2025</option></select></div>
+      </header>
+      <section class="metric-grid" aria-label="Key performance indicators">
+        <article class="card metric"><span class="metric__label">Revenue this month</span><h2 class="metric__value" id="revenue-value">$24,860</h2><p class="metric__detail"><span class="trend">↑ 12.8%</span> versus February</p></article>
+        <article class="card metric"><span class="metric__label">Orders this week</span><h2 class="metric__value" id="order-value">186</h2><p class="metric__detail"><span class="trend">↑ 8.1%</span> versus last week</p></article>
+        <article class="card metric"><span class="metric__label">Average order value</span><h2 class="metric__value" id="aov-value">$68.11</h2><p class="metric__detail"><span class="trend trend--negative">↓ 2.4%</span> versus February</p></article>
+      </section>
+      <section class="dashboard-grid" aria-label="Sales detail">
+        <article class="card chart-card" aria-labelledby="revenue-title">
+          <header class="card-heading"><div><h2 id="revenue-title">Revenue over time</h2><p>Daily gross sales for the last 30 days</p></div><span class="chart-total">30-day total: $24,860</span></header>
+          <div class="chart-wrap"><canvas class="revenue-chart" id="revenue-chart" tabindex="0" role="img" aria-label="Line chart showing daily revenue for the last 30 days. Use left and right arrow keys to inspect a day."></canvas><output class="chart-tooltip" id="chart-tooltip" aria-hidden="true"></output></div>
+          <p class="sr-only" id="chart-announcement" aria-live="polite"></p>
+        </article>
+        <aside class="card list-card" aria-labelledby="products-title"><h2 id="products-title">Best-selling products</h2><ol class="product-list" id="product-list"></ol></aside>
+      </section>
+      <section class="activity-section" aria-labelledby="activity-title"><article class="card activity-card"><header class="card-heading"><div><h2 id="activity-title">Recent activity</h2><p>The eight latest orders, refunds, and reviews.</p></div></header><ol class="activity-list" id="activity-list"></ol></article></section>
+    </section>
+  </main>
+  <footer><div class="shell site-footer__inner"><span>Northstar Supply · Internal analytics</span><span id="refresh-status" aria-live="polite">All figures are sample data.</span></div></footer>
+  <script>
+    (() => {
+      'use strict';
+      const DASHBOARD_DATA = {
+        products: [
+          { name: 'Canvas Market Tote', units: 148 }, { name: 'Cedar Desk Stand', units: 127 }, { name: 'Orbit Water Bottle', units: 109 }, { name: 'Wool Cabin Socks', units: 94 }, { name: 'Everyday Notebook Set', units: 82 }
+        ],
+        activity: [
+          { type: 'order', text: 'Order #1842 placed by Mia Foster — $86.00', time: '12 minutes ago' }, { type: 'review', text: 'Jon Bell left a 5-star review for Cedar Desk Stand', time: '34 minutes ago' }, { type: 'order', text: 'Order #1841 placed by Samira Khan — $124.50', time: '1 hour ago' }, { type: 'refund', text: 'Refund issued for order #1816 — $32.00', time: '2 hours ago' }, { type: 'order', text: 'Order #1840 placed by Lucas Meyer — $58.00', time: '3 hours ago' }, { type: 'review', text: 'Aria Chen left a 4-star review for Wool Cabin Socks', time: '4 hours ago' }, { type: 'order', text: 'Order #1839 placed by Nina Patel — $73.25', time: '5 hours ago' }, { type: 'order', text: 'Order #1838 placed by Owen Price — $41.00', time: '6 hours ago' }
+        ],
+        revenue: [560, 690, 620, 740, 680, 815, 870, 760, 715, 830, 925, 880, 790, 845, 960, 1015, 890, 850, 980, 1090, 1035, 940, 1020, 1120, 1075, 995, 1140, 1095, 1020, 1205],
+        dates: ['Feb 11','Feb 12','Feb 13','Feb 14','Feb 15','Feb 16','Feb 17','Feb 18','Feb 19','Feb 20','Feb 21','Feb 22','Feb 23','Feb 24','Feb 25','Feb 26','Feb 27','Feb 28','Mar 1','Mar 2','Mar 3','Mar 4','Mar 5','Mar 6','Mar 7','Mar 8','Mar 9','Mar 10','Mar 11','Mar 12']
+      };
+      const productList = document.getElementById('product-list');
+      const activityList = document.getElementById('activity-list');
+      const canvas = document.getElementById('revenue-chart');
+      const tooltip = document.getElementById('chart-tooltip');
+      const announcement = document.getElementById('chart-announcement');
+      const refreshButton = document.getElementById('refresh-button');
+      const refreshStatus = document.getElementById('refresh-status');
+      const periodSelect = document.getElementById('period-select');
+      let selectedPoint = null;
+
+      const currency = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+      const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+      function renderLists() {
+        if (productList) productList.innerHTML = DASHBOARD_DATA.products.map((product, index) => `<li class="product"><span class="product__rank">${index + 1}</span><span class="product__name">${escapeHtml(product.name)}</span><span class="product__units">${product.units} units</span></li>`).join('');
+        if (activityList) activityList.innerHTML = DASHBOARD_DATA.activity.map(item => `<li class="activity activity--${item.type}"><div class="activity__type">${item.type}</div><p class="activity__text">${escapeHtml(item.text)}</p><time class="activity__time">${item.time}</time></li>`).join('');
+      }
+      function getChartMetrics() {
+        const rect = canvas.getBoundingClientRect();
+        const pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.round(rect.width * pixelRatio));
+        canvas.height = Math.max(1, Math.round(rect.height * pixelRatio));
+        const context = canvas.getContext('2d');
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        return { context, width: rect.width, height: rect.height, padding: { top: 18, right: 16, bottom: 32, left: 48 } };
+      }
+      function drawChart() {
+        if (!canvas || !canvas.getContext) return;
+        const { context, width, height, padding } = getChartMetrics();
+        if (!context || width < 1 || height < 1) return;
+        const values = DASHBOARD_DATA.revenue;
+        const maxValue = Math.ceil(Math.max(...values) / 250) * 250;
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        const pointFor = (value, index) => ({ x: padding.left + chartWidth * index / (values.length - 1), y: padding.top + chartHeight * (1 - value / maxValue) });
+        context.clearRect(0, 0, width, height);
+        context.font = '12px system-ui, sans-serif'; context.fillStyle = '#5b6860'; context.strokeStyle = '#d8e0da'; context.lineWidth = 1;
+        [0, .25, .5, .75, 1].forEach(ratio => { const y = padding.top + chartHeight * ratio; context.beginPath(); context.moveTo(padding.left, y); context.lineTo(width - padding.right, y); context.stroke(); context.textAlign = 'right'; context.textBaseline = 'middle'; context.fillText(currency(maxValue * (1 - ratio)), padding.left - 8, y); });
+        [0, 7, 14, 21, 29].forEach(index => { const point = pointFor(values[index], index); context.textAlign = index === 29 ? 'right' : 'center'; context.textBaseline = 'top'; context.fillText(DASHBOARD_DATA.dates[index], point.x, height - padding.bottom + 9); });
+        const points = values.map(pointFor);
+        const gradient = context.createLinearGradient(0, padding.top, 0, height - padding.bottom); gradient.addColorStop(0, 'rgba(23, 107, 75, .24)'); gradient.addColorStop(1, 'rgba(23, 107, 75, 0)');
+        context.beginPath(); context.moveTo(points[0].x, height - padding.bottom); points.forEach(point => context.lineTo(point.x, point.y)); context.lineTo(points.at(-1).x, height - padding.bottom); context.closePath(); context.fillStyle = gradient; context.fill();
+        context.beginPath(); points.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y)); context.strokeStyle = '#176b4b'; context.lineWidth = 2.5; context.stroke();
+        if (selectedPoint !== null && points[selectedPoint]) { const point = points[selectedPoint]; context.beginPath(); context.arc(point.x, point.y, 5, 0, Math.PI * 2); context.fillStyle = '#fff'; context.fill(); context.strokeStyle = '#0e4b34'; context.lineWidth = 2.5; context.stroke(); }
+      }
+      function showPoint(index, announce) {
+        const safeIndex = Math.max(0, Math.min(DASHBOARD_DATA.revenue.length - 1, index));
+        selectedPoint = safeIndex; drawChart();
+        const rect = canvas.getBoundingClientRect(); const paddingLeft = 48; const chartWidth = rect.width - paddingLeft - 16;
+        const x = paddingLeft + chartWidth * safeIndex / (DASHBOARD_DATA.revenue.length - 1);
+        const value = DASHBOARD_DATA.revenue[safeIndex];
+        tooltip.textContent = `${DASHBOARD_DATA.dates[safeIndex]}: ${currency(value)}`; tooltip.style.left = `${x}px`; tooltip.style.top = `${18 + (rect.height - 18 - 32) * (1 - value / 1250)}px`; tooltip.dataset.show = 'true'; tooltip.setAttribute('aria-hidden', 'false');
+        if (announce && announcement) announcement.textContent = `${DASHBOARD_DATA.dates[safeIndex]}, revenue ${currency(value)}.`;
+      }
+      function hidePoint() { selectedPoint = null; tooltip.dataset.show = 'false'; tooltip.setAttribute('aria-hidden', 'true'); drawChart(); }
+      function pointFromPointer(event) { const rect = canvas.getBoundingClientRect(); const relativeX = Math.max(0, Math.min(rect.width, event.clientX - rect.left)); return Math.round((relativeX - 48) / (rect.width - 48 - 16) * (DASHBOARD_DATA.revenue.length - 1)); }
+      canvas?.addEventListener('pointermove', event => showPoint(pointFromPointer(event), false));
+      canvas?.addEventListener('pointerleave', hidePoint);
+      canvas?.addEventListener('focus', () => showPoint(selectedPoint === null ? DASHBOARD_DATA.revenue.length - 1 : selectedPoint, true));
+      canvas?.addEventListener('blur', hidePoint);
+      canvas?.addEventListener('keydown', event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); const step = event.key === 'ArrowLeft' ? -1 : 1; showPoint((selectedPoint ?? DASHBOARD_DATA.revenue.length - 1) + step, true); } });
+      refreshButton?.addEventListener('click', () => { refreshButton.disabled = true; refreshButton.textContent = 'Refreshing…'; window.setTimeout(() => { refreshButton.disabled = false; refreshButton.textContent = 'Refresh data'; if (refreshStatus) refreshStatus.textContent = 'Dashboard refreshed just now.'; }, 450); });
+      periodSelect?.addEventListener('change', () => { const isMarch = periodSelect.value === 'march'; document.getElementById('revenue-value').textContent = isMarch ? '$24,860' : '$22,040'; document.getElementById('order-value').textContent = isMarch ? '186' : '172'; document.getElementById('aov-value').textContent = isMarch ? '$68.11' : '$69.79'; if (refreshStatus) refreshStatus.textContent = `Showing ${periodSelect.options[periodSelect.selectedIndex].text}.`; });
+      renderLists(); drawChart();
+      window.addEventListener('resize', (() => { let resizeTimer; return () => { window.clearTimeout(resizeTimer); resizeTimer = window.setTimeout(drawChart, 120); }; })());
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Northstar Shop · Analytics</title>
+  <style>
+    :root{--ink:#192420;--muted:#708078;--line:#dfe7e1;--paper:#f7f9f6;--card:#fff;--pine:#176b54;--lime:#d9f2a1;--amber:#e9a93b;--rose:#ce5e62;--shadow:0 10px 30px rgba(25,36,32,.06)}
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .shell{max-width:1240px;margin:auto;padding:28px 30px 42px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:18px;letter-spacing:-.4px}.mark{width:30px;height:30px;border-radius:9px;background:var(--pine);position:relative}.mark:after{content:"";position:absolute;width:12px;height:12px;border:3px solid var(--lime);border-top:0;border-left:0;transform:rotate(45deg);left:7px;top:5px}.period{border:1px solid var(--line);background:white;border-radius:9px;padding:8px 12px;color:#435249;font-weight:600}.eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-size:11px;font-weight:750;margin:0 0 5px}.headline{display:flex;align-items:end;justify-content:space-between;margin-bottom:20px}.headline h1{font-size:28px;letter-spacing:-1px;margin:0}.updated{color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.metric{grid-column:span 4;padding:20px}.label{color:var(--muted);font-weight:650;font-size:12px}.metric-value{font-size:28px;font-weight:780;letter-spacing:-1px;margin:8px 0 9px}.delta{font-size:12px;font-weight:700;color:var(--pine);background:#e5f5ed;border-radius:20px;padding:4px 8px}.subtle{color:var(--muted);font-size:12px;margin-left:5px}.chart{grid-column:span 8;padding:20px 20px 13px}.chart-head,.panel-head{display:flex;align-items:start;justify-content:space-between}.chart h2,.panel h2{font-size:16px;margin:0;letter-spacing:-.25px}.chart-total{font-size:19px;font-weight:760}.legend{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px;margin-top:3px}.dot{width:8px;height:8px;background:var(--pine);border-radius:50%}.chart svg{display:block;width:100%;height:248px;margin-top:7px;overflow:visible}.axis{fill:#8a9890;font-size:10px}.gridline{stroke:#e5ebe6;stroke-width:1}.area{fill:url(#fade)}.line{fill:none;stroke:var(--pine);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.point{fill:#fff;stroke:var(--pine);stroke-width:3}.products{grid-column:span 4;padding:20px}.product{display:grid;grid-template-columns:31px 1fr auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.product:last-child{border:0;padding-bottom:0}.rank{height:27px;width:27px;background:#edf3ee;border-radius:8px;display:grid;place-items:center;color:var(--pine);font-weight:800;font-size:12px}.product-name{font-weight:700;font-size:13px}.product-cat{color:var(--muted);font-size:11px;margin-top:1px}.units{font-weight:760;font-size:13px;text-align:right}.units small{display:block;color:var(--muted);font-size:10px;font-weight:600}.activity{grid-column:span 8;padding:20px}.feed{margin-top:5px}.event{display:grid;grid-template-columns:30px 1fr auto;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);align-items:center}.event:last-child{border:0}.icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:14px;font-weight:900}.order{background:#e5f5ed;color:var(--pine)}.refund{background:#fcebec;color:var(--rose)}.review{background:#fff3d9;color:#a66a08}.event-title{font-size:13px;font-weight:680}.event-desc{font-size:11px;color:var(--muted);margin-top:1px}.time{font-size:11px;color:var(--muted);white-space:nowrap}.note{grid-column:span 4;background:var(--pine);color:white;padding:20px;border-radius:14px;box-shadow:var(--shadow)}.note .eyebrow{color:#b4d8c5}.note h2{font-size:18px;line-height:1.3;margin:5px 0 14px;letter-spacing:-.35px}.goal{height:8px;background:rgba(255,255,255,.23);border-radius:8px;overflow:hidden}.goal div{height:100%;width:82%;background:var(--lime);border-radius:inherit}.goal-row{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:#d4e9dc}@media(max-width:800px){.shell{padding:20px}.grid{gap:13px}.metric,.chart,.products,.activity,.note{grid-column:span 12}.top{margin-bottom:22px}.headline{display:block}.updated{margin-top:7px}.chart svg{height:210px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top"><div class="brand"><span class="mark"></span>Northstar Shop</div><div class="period">April 1–30, 2025 ▾</div></header>
+    <div class="headline"><div><p class="eyebrow">Overview</p><h1>Good morning, Maya.</h1></div><div class="updated">Last updated today at 9:42 AM</div></div>
+    <section class="grid" aria-label="Shop analytics">
+      <article class="card metric"><div class="label">Total revenue</div><div class="metric-value">$28,460.80</div><span class="delta">↑ 12.4%</span><span class="subtle">vs. March</span></article>
+      <article class="card metric"><div class="label">Orders this week</div><div class="metric-value">186</div><span class="delta">↑ 8.1%</span><span class="subtle">vs. last week</span></article>
+      <article class="card metric"><div class="label">Average order value</div><div class="metric-value">$74.52</div><span class="delta">↑ 3.6%</span><span class="subtle">vs. March</span></article>
+
+      <article class="card chart">
+        <div class="chart-head"><div><p class="eyebrow">Revenue</p><h2>Last 30 days</h2></div><div><div class="chart-total">$28.5k</div><div class="legend"><span class="dot"></span>Daily sales</div></div></div>
+        <svg viewBox="0 0 720 260" role="img" aria-label="Revenue over the past thirty days, generally trending upward">
+          <defs><linearGradient id="fade" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7ec9a8" stop-opacity=".35"/><stop offset="1" stop-color="#7ec9a8" stop-opacity="0"/></linearGradient></defs>
+          <line class="gridline" x1="38" x2="704" y1="30" y2="30"/><line class="gridline" x1="38" x2="704" y1="84" y2="84"/><line class="gridline" x1="38" x2="704" y1="138" y2="138"/><line class="gridline" x1="38" x2="704" y1="192" y2="192"/>
+          <text class="axis" x="0" y="34">$1.5k</text><text class="axis" x="4" y="88">$1.0k</text><text class="axis" x="4" y="142">$500</text><text class="axis" x="13" y="196">$0</text>
+          <path class="area" d="M38 170 L61 152 84 159 107 139 130 149 153 125 176 143 199 105 222 119 245 111 268 128 291 92 314 106 337 85 360 102 383 73 406 91 429 80 452 97 475 60 498 74 521 54 544 70 567 42 590 58 613 48 636 62 659 35 682 47 704 27 L704 192 L38 192 Z"/>
+          <path class="line" d="M38 170 L61 152 84 159 107 139 130 149 153 125 176 143 199 105 222 119 245 111 268 128 291 92 314 106 337 85 360 102 383 73 406 91 429 80 452 97 475 60 498 74 521 54 544 70 567 42 590 58 613 48 636 62 659 35 682 47 704 27"/>
+          <circle class="point" cx="704" cy="27" r="5"/><text class="axis" x="38" y="222">Apr 1</text><text class="axis" x="188" y="222">Apr 8</text><text class="axis" x="350" y="222">Apr 15</text><text class="axis" x="510" y="222">Apr 22</text><text class="axis" x="674" y="222">Apr 30</text>
+        </svg>
+      </article>
+
+      <article class="card products panel"><div class="panel-head"><div><p class="eyebrow">Performance</p><h2>Best-selling products</h2></div><span class="subtle">This month</span></div>
+        <div class="product"><span class="rank">1</span><div><div class="product-name">Linen Market Tote</div><div class="product-cat">Accessories</div></div><div class="units">142<small>units</small></div></div>
+        <div class="product"><span class="rank">2</span><div><div class="product-name">Hearth Mug Set</div><div class="product-cat">Homeware</div></div><div class="units">118<small>units</small></div></div>
+        <div class="product"><span class="rank">3</span><div><div class="product-name">Everyday Crewneck</div><div class="product-cat">Apparel</div></div><div class="units">97<small>units</small></div></div>
+        <div class="product"><span class="rank">4</span><div><div class="product-name">Cedar Soy Candle</div><div class="product-cat">Homeware</div></div><div class="units">81<small>units</small></div></div>
+        <div class="product"><span class="rank">5</span><div><div class="product-name">Studio Water Bottle</div><div class="product-cat">Accessories</div></div><div class="units">76<small>units</small></div></div>
+      </article>
+
+      <article class="card activity panel"><div class="panel-head"><div><p class="eyebrow">Live feed</p><h2>Recent activity</h2></div><span class="subtle">Last 8 events</span></div><div class="feed">
+        <div class="event"><span class="icon order">↗</span><div><div class="event-title">New order #NS-1842</div><div class="event-desc">Elena Rodriguez · $126.00</div></div><time class="time">2 min ago</time></div>
+        <div class="event"><span class="icon review">★</span><div><div class="event-title">New 5-star review</div><div class="event-desc">“Beautifully made and arrived quickly.”</div></div><time class="time">18 min ago</time></div>
+        <div class="event"><span class="icon order">↗</span><div><div class="event-title">New order #NS-1841</div><div class="event-desc">Marcus Chen · $72.50</div></div><time class="time">34 min ago</time></div>
+        <div class="event"><span class="icon refund">↩</span><div><div class="event-title">Refund issued for #NS-1819</div><div class="event-desc">$34.00 returned to Priya Shah</div></div><time class="time">1 hr ago</time></div>
+        <div class="event"><span class="icon order">↗</span><div><div class="event-title">New order #NS-1840</div><div class="event-desc">Avery Williams · $189.00</div></div><time class="time">1 hr ago</time></div>
+        <div class="event"><span class="icon review">★</span><div><div class="event-title">New 4-star review</div><div class="event-desc">Studio Water Bottle · by Noah Kim</div></div><time class="time">2 hrs ago</time></div>
+        <div class="event"><span class="icon order">↗</span><div><div class="event-title">New order #NS-1839</div><div class="event-desc">Isabelle Martin · $58.00</div></div><time class="time">3 hrs ago</time></div>
+        <div class="event"><span class="icon refund">↩</span><div><div class="event-title">Refund issued for #NS-1812</div><div class="event-desc">$22.00 returned to Oliver Green</div></div><time class="time">4 hrs ago</time></div>
+      </div></article>
+      <aside class="note"><p class="eyebrow">Monthly goal</p><h2>$28,460 of $35,000 revenue target</h2><div class="goal"><div></div></div><div class="goal-row"><span>81% achieved</span><span>$6,539 to go</span></div></aside>
+    </section>
+  </main>
+</body>
+</html>

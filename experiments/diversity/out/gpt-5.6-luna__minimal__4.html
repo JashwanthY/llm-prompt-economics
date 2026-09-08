@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northstar — Store analytics</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #7c879c;
+      --line: #e8edf5;
+      --navy: #182441;
+      --blue: #5a6ff0;
+      --blue-soft: #eef0ff;
+      --green: #26a875;
+      --green-soft: #e9f8f1;
+      --orange: #df8d3d;
+      --orange-soft: #fff4e8;
+      --red: #d65d69;
+      --red-soft: #fff0f1;
+      --shadow: 0 8px 24px rgba(32, 47, 82, .05);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: -.01em;
+    }
+    .shell { display: flex; min-height: 100vh; }
+    aside {
+      width: 236px; background: var(--navy); color: #fff; padding: 28px 16px;
+      display: flex; flex-direction: column; flex-shrink: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 12px 34px; font-weight: 700; font-size: 18px; letter-spacing: -.03em; }
+    .brand-mark { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, #8292ff, #4f61d9); display: grid; place-items: center; font-size: 14px; box-shadow: 0 5px 12px rgba(91,111,240,.35); }
+    nav { display: grid; gap: 5px; }
+    nav a { color: #9ba8c7; text-decoration: none; padding: 12px 13px; border-radius: 9px; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; }
+    nav a.active, nav a:hover { color: #fff; background: rgba(255,255,255,.1); }
+    .icon { width: 18px; text-align: center; font-size: 15px; opacity: .9; }
+    .side-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,.1); padding: 22px 12px 0; color: #9ba8c7; font-size: 12px; }
+    .profile { display: flex; gap: 10px; align-items: center; color: #eef1ff; font-size: 12px; font-weight: 600; }
+    .avatar { width: 29px; height: 29px; border-radius: 50%; display: grid; place-items: center; background: #ecb28f; color: #6e3d2c; font-size: 11px; }
+    main { flex: 1; padding: 31px 42px 42px; max-width: 1440px; margin: auto; width: 100%; }
+    header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 31px; }
+    h1 { margin: 0 0 7px; font-size: 26px; letter-spacing: -.04em; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+    .header-actions { display: flex; align-items: center; gap: 15px; }
+    .date-button, .notification { border: 1px solid var(--line); background: var(--panel); color: #59657a; border-radius: 8px; height: 37px; padding: 0 13px; font-size: 12px; font-weight: 600; box-shadow: var(--shadow); }
+    .notification { width: 38px; padding: 0; font-size: 15px; position: relative; }
+    .notification:after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--red); position: absolute; top: 8px; right: 9px; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 20px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow); }
+    .metric { padding: 21px 23px 20px; min-height: 139px; position: relative; overflow: hidden; }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 11px; }
+    .metric-value { font-size: 29px; letter-spacing: -.05em; font-weight: 750; margin-bottom: 9px; }
+    .trend { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+    .up { color: var(--green); } .down { color: var(--red); }
+    .metric .mini-bars { position: absolute; right: 24px; bottom: 20px; height: 48px; display: flex; align-items: end; gap: 4px; opacity: .8; }
+    .mini-bars i { display: block; width: 5px; border-radius: 3px 3px 0 0; background: #cdd4ff; }
+    .mini-bars i:last-child { background: var(--blue); }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.56fr) minmax(320px, .84fr); gap: 20px; }
+    .chart-card { padding: 22px 23px 15px; min-height: 389px; }
+    .card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .card-title { font-size: 14px; font-weight: 750; }
+    .card-note { color: var(--muted); font-size: 11px; margin-top: 5px; }
+    .range { display: flex; gap: 4px; background: #f5f6fa; border-radius: 7px; padding: 3px; }
+    .range button { border: 0; background: none; color: var(--muted); padding: 6px 9px; font-size: 10px; font-weight: 700; border-radius: 5px; cursor: pointer; }
+    .range button.selected { color: var(--blue); background: #fff; box-shadow: 0 2px 5px rgba(30,40,80,.08); }
+    .chart-wrap { height: 275px; position: relative; margin-top: 7px; }
+    .y-labels { position: absolute; left: 0; top: 5px; bottom: 25px; width: 32px; display: flex; flex-direction: column; justify-content: space-between; color: #a7afbf; font-size: 10px; }
+    svg.chart { position: absolute; left: 41px; right: 0; top: 0; width: calc(100% - 41px); height: 250px; overflow: visible; }
+    .x-labels { position: absolute; left: 42px; right: 0; bottom: 0; display: flex; justify-content: space-between; color: #a7afbf; font-size: 10px; }
+    .legend { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+    .products { padding: 22px 22px 11px; }
+    .product-row { display: flex; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); gap: 11px; }
+    .product-row:last-child { border-bottom: 0; }
+    .product-thumb { width: 37px; height: 37px; border-radius: 9px; display: grid; place-items: center; font-size: 17px; flex-shrink: 0; }
+    .t1 { background: #fcebdc; } .t2 { background: #e7efff; } .t3 { background: #e8f7ef; } .t4 { background: #f3eafa; } .t5 { background: #fff2d8; }
+    .product-name { font-size: 12px; font-weight: 700; flex: 1; }
+    .product-type { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .units { font-size: 12px; font-weight: 750; text-align: right; }
+    .units span { display: block; color: var(--muted); font-size: 10px; font-weight: 500; margin-top: 3px; }
+    .activity { margin-top: 20px; padding: 22px 23px 9px; }
+    .activity-list { display: grid; }
+    .event { display: flex; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+    .event:last-child { border-bottom: 0; }
+    .event-dot { width: 29px; height: 29px; border-radius: 9px; display: grid; place-items: center; font-size: 13px; flex-shrink: 0; }
+    .event-copy { flex: 1; min-width: 0; }
+    .event-main { font-size: 12px; color: #374158; line-height: 1.45; }
+    .event-main strong { color: var(--text); font-weight: 750; }
+    .event-time { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .event-amount { font-size: 12px; font-weight: 750; color: var(--green); white-space: nowrap; padding-top: 2px; }
+    .event-amount.refund { color: var(--red); }
+    @media (max-width: 980px) { aside { width: 74px; padding-left: 10px; padding-right: 10px; } .brand { padding-left: 12px; } .brand span, nav a span, .side-bottom { display: none; } nav a { justify-content: center; } main { padding: 28px 24px; } }
+    @media (max-width: 720px) { .metrics, .content-grid { grid-template-columns: 1fr; } header { gap: 20px; flex-direction: column; } .header-actions { align-self: stretch; justify-content: space-between; } main { padding: 23px 15px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="brand-mark">N</div><span>northstar</span></div>
+      <nav>
+        <a class="active" href="#"><span class="icon">▦</span><span>Overview</span></a>
+        <a href="#"><span class="icon">◒</span><span>Analytics</span></a>
+        <a href="#"><span class="icon">⌑</span><span>Orders</span></a>
+        <a href="#"><span class="icon">♧</span><span>Products</span></a>
+        <a href="#"><span class="icon">◌</span><span>Customers</span></a>
+      </nav>
+      <div class="side-bottom">
+        <div class="profile"><div class="avatar">JM</div><span>Jules Morgan<br><small style="color:#7f8eae;font-weight:500">Store owner</small></span></div>
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div><h1>Good morning, Jules</h1><div class="subtitle">Here’s what’s happening with your store today.</div></div>
+        <div class="header-actions"><button class="date-button">Jun 01 — Jun 30, 2024&nbsp;⌄</button><button class="notification">♧</button></div>
+      </header>
+      <section class="metrics">
+        <div class="card metric"><div class="metric-label">Total revenue</div><div class="metric-value">$48,294.20</div><div class="trend up">↗ 12.8% <span style="color:var(--muted);font-weight:500">vs. last month</span></div><div class="mini-bars"><i style="height:18px"></i><i style="height:25px"></i><i style="height:20px"></i><i style="height:33px"></i><i style="height:28px"></i><i style="height:40px"></i></div></div>
+        <div class="card metric"><div class="metric-label">Orders this week</div><div class="metric-value">186</div><div class="trend up">↗ 8.4% <span style="color:var(--muted);font-weight:500">vs. last week</span></div><div class="mini-bars"><i style="height:23px"></i><i style="height:35px"></i><i style="height:29px"></i><i style="height:38px"></i><i style="height:30px"></i><i style="height:44px"></i></div></div>
+        <div class="card metric"><div class="metric-label">Average order value</div><div class="metric-value">$72.43</div><div class="trend down">↘ 2.1% <span style="color:var(--muted);font-weight:500">vs. last month</span></div><div class="mini-bars"><i style="height:37px"></i><i style="height:32px"></i><i style="height:42px"></i><i style="height:28px"></i><i style="height:32px"></i><i style="height:26px"></i></div></div>
+      </section>
+      <section class="content-grid">
+        <div class="card chart-card">
+          <div class="card-title-row"><div><div class="card-title">Revenue over time</div><div class="card-note">Daily revenue for the last 30 days</div></div><div class="range"><button>7D</button><button class="selected">30D</button><button>90D</button></div></div>
+          <div class="chart-wrap">
+            <div class="y-labels"><span>$3k</span><span>$2k</span><span>$1k</span><span>$0</span></div>
+            <svg class="chart" viewBox="0 0 700 250" preserveAspectRatio="none" aria-label="Revenue chart" role="img">
+              <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6879f4" stop-opacity=".2"/><stop offset="1" stop-color="#6879f4" stop-opacity="0"/></linearGradient></defs>
+              <g stroke="#edf0f6" stroke-width="1"><line x1="0" y1="8" x2="700" y2="8"/><line x1="0" y1="84" x2="700" y2="84"/><line x1="0" y1="160" x2="700" y2="160"/><line x1="0" y1="236" x2="700" y2="236"/></g>
+              <path d="M0 182 C18 175 26 151 48 158 S77 185 96 165 S125 126 143 146 S169 173 190 129 S218 115 238 138 S263 151 285 119 S313 83 334 103 S360 132 381 111 S409 82 429 92 S456 130 477 99 S503 69 524 83 S551 99 572 67 S602 46 620 75 S650 53 668 61 S688 33 700 40 L700 236 L0 236Z" fill="url(#fill)"/>
+              <path d="M0 182 C18 175 26 151 48 158 S77 185 96 165 S125 126 143 146 S169 173 190 129 S218 115 238 138 S263 151 285 119 S313 83 334 103 S360 132 381 111 S409 82 429 92 S456 130 477 99 S503 69 524 83 S551 99 572 67 S602 46 620 75 S650 53 668 61 S688 33 700 40" fill="none" stroke="#6172ed" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="620" cy="75" r="4" fill="#fff" stroke="#6172ed" stroke-width="2"/><g><rect x="585" y="20" width="70" height="25" rx="5" fill="#182441"/><text x="620" y="36" fill="#fff" font-size="10" text-anchor="middle">$2,480</text></g>
+            </svg>
+            <div class="x-labels"><span>Jun 01</span><span>Jun 07</span><span>Jun 14</span><span>Jun 21</span><span>Jun 30</span></div>
+          </div>
+          <div class="legend"><span class="legend-dot"></span> Revenue <span style="margin-left:8px;color:#a7afbf">•</span><span>Compared with previous period</span></div>
+        </div>
+        <div class="card products"><div class="card-title-row"><div><div class="card-title">Best-selling products</div><div class="card-note">Top products by units sold</div></div><span style="font-size:17px;color:#a1aabb">⋯</span></div>
+          <div class="product-row"><div class="product-thumb t1">👜</div><div class="product-name">Solstice Tote<div class="product-type">Accessories</div></div><div class="units">342<span>units</span></div></div>
+          <div class="product-row"><div class="product-thumb t2">👟</div><div class="product-name">Everyday Runner<div class="product-type">Footwear</div></div><div class="units">286<span>units</span></div></div>
+          <div class="product-row"><div class="product-thumb t3">🧴</div><div class="product-name">Cedar + Sage Set<div class="product-type">Home &amp; living</div></div><div class="units">219<span>units</span></div></div>
+          <div class="product-row"><div class="product-thumb t4">🧥</div><div class="product-name">Cloudline Overshirt<div class="product-type">Apparel</div></div><div class="units">187<span>units</span></div></div>
+          <div class="product-row"><div class="product-thumb t5">☕</div><div class="product-name">Morning Ritual Mug<div class="product-type">Home &amp; living</div></div><div class="units">164<span>units</span></div></div>
+        </div>
+      </section>
+      <section class="card activity"><div class="card-title-row"><div><div class="card-title">Recent activity</div><div class="card-note">The latest events from your store</div></div><a href="#" style="font-size:11px;color:var(--blue);font-weight:700;text-decoration:none">View all</a></div>
+        <div class="activity-list">
+          <div class="event"><div class="event-dot" style="background:var(--green-soft);color:var(--green)">✓</div><div class="event-copy"><div class="event-main"><strong>New order</strong> from Maya Chen</div><div class="event-time">Order #NS-10482 · 8 minutes ago</div></div><div class="event-amount">+$128.00</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--orange-soft);color:var(--orange)">↩</div><div class="event-copy"><div class="event-main"><strong>Refund issued</strong> to Liam Foster</div><div class="event-time">Order #NS-10476 · 34 minutes ago</div></div><div class="event-amount refund">−$64.50</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--blue-soft);color:var(--blue)">★</div><div class="event-copy"><div class="event-main"><strong>New 5-star review</strong> for Solstice Tote</div><div class="event-time">From Priya Shah · 1 hour ago</div></div><div class="event-amount" style="color:var(--muted)">Review</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--green-soft);color:var(--green)">✓</div><div class="event-copy"><div class="event-main"><strong>New order</strong> from Noah Williams</div><div class="event-time">Order #NS-10471 · 2 hours ago</div></div><div class="event-amount">+$92.00</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--green-soft);color:var(--green)">✓</div><div class="event-copy"><div class="event-main"><strong>New order</strong> from Olivia Martin</div><div class="event-time">Order #NS-10466 · 3 hours ago</div></div><div class="event-amount">+$216.40</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--blue-soft);color:var(--blue)">★</div><div class="event-copy"><div class="event-main"><strong>New 4-star review</strong> for Everyday Runner</div><div class="event-time">From Theo Adams · 5 hours ago</div></div><div class="event-amount" style="color:var(--muted)">Review</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--orange-soft);color:var(--orange)">↩</div><div class="event-copy"><div class="event-main"><strong>Refund issued</strong> to Emma Brooks</div><div class="event-time">Order #NS-10442 · 6 hours ago</div></div><div class="event-amount refund">−$38.00</div></div>
+          <div class="event"><div class="event-dot" style="background:var(--green-soft);color:var(--green)">✓</div><div class="event-copy"><div class="event-main"><strong>New order</strong> from Daniel Kim</div><div class="event-time">Order #NS-10439 · 8 hours ago</div></div><div class="event-amount">+$74.00</div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

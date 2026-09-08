@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop Analytics Dashboard</title>
+  <style>
+    :root {
+      --navy: #17324d;
+      --navy-dark: #10263b;
+      --blue: #2f6f9f;
+      --blue-light: #eaf2f8;
+      --text: #243444;
+      --muted: #66788a;
+      --border: #d9e1e8;
+      --surface: #ffffff;
+      --background: #f4f6f8;
+      --green: #2c7a57;
+      --green-bg: #e8f4ed;
+      --red: #a64b4b;
+      --red-bg: #f8ebeb;
+      --amber: #9a6b22;
+      --amber-bg: #fbf3e3;
+      --shadow: 0 1px 2px rgba(25, 45, 65, .06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .app { min-height: 100vh; }
+    .topbar {
+      height: 64px;
+      background: var(--navy);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 29px; height: 29px; border: 2px solid #c8d9e7; border-radius: 4px;
+      display: grid; place-items: center; font-weight: 700; font-size: 13px;
+    }
+    .brand-name { font-size: 16px; font-weight: 600; letter-spacing: .1px; }
+    .topbar-right { display: flex; align-items: center; gap: 18px; color: #dbe7f0; }
+    .store-label { font-size: 13px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; background: #dce8f0; color: var(--navy);
+      display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    }
+    .layout { display: flex; min-height: calc(100vh - 64px); }
+    .sidebar {
+      width: 220px; background: #fff; border-right: 1px solid var(--border); padding: 22px 14px;
+      flex: 0 0 220px;
+    }
+    .nav-section { margin-bottom: 26px; }
+    .nav-heading {
+      padding: 0 12px 8px; color: #8593a1; text-transform: uppercase; font-size: 10px;
+      font-weight: 700; letter-spacing: .08em;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px; padding: 10px 12px; color: #536575;
+      border-radius: 4px; margin: 2px 0; font-size: 13px;
+    }
+    .nav-item.active { background: var(--blue-light); color: var(--navy); font-weight: 600; }
+    .nav-icon { width: 16px; text-align: center; font-size: 14px; color: #718394; }
+    .nav-item.active .nav-icon { color: var(--blue); }
+    main { flex: 1; padding: 28px 32px 40px; min-width: 0; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    h1 { margin: 0 0 4px; color: var(--navy-dark); font-size: 23px; font-weight: 650; letter-spacing: -.01em; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+    .controls { display: flex; gap: 10px; align-items: center; }
+    select, button {
+      font: inherit; color: var(--text); background: #fff; border: 1px solid #cbd5de; border-radius: 4px;
+      height: 36px; padding: 0 11px;
+    }
+    button { cursor: pointer; font-weight: 600; color: var(--navy); }
+    button:hover { background: #f5f8fa; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+    .card, .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; box-shadow: var(--shadow); }
+    .metric-card { padding: 18px 20px; min-height: 131px; }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+    .metric-value { font-size: 27px; line-height: 1.1; font-weight: 650; color: var(--navy-dark); }
+    .metric-foot { margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .pill { padding: 3px 7px; border-radius: 3px; font-weight: 650; }
+    .positive { color: var(--green); background: var(--green-bg); }
+    .neutral { color: var(--muted); background: #f0f3f5; }
+    .muted { color: var(--muted); }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, 1fr); gap: 22px; align-items: start; }
+    .panel-header { min-height: 61px; padding: 17px 20px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+    .panel-title { margin: 0; font-size: 15px; font-weight: 650; color: var(--navy-dark); }
+    .panel-note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .chart-wrap { padding: 17px 18px 14px; }
+    .chart-legend { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; margin: 0 0 8px 38px; }
+    .legend-line { width: 18px; height: 3px; background: var(--blue); border-radius: 2px; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .gridline { stroke: #e6ebef; stroke-width: 1; }
+    .axis-label { fill: #7b8b99; font-size: 11px; }
+    .line-fill { fill: rgba(47,111,159,.08); }
+    .line { fill: none; stroke: var(--blue); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+    .point { fill: #fff; stroke: var(--blue); stroke-width: 2; }
+    .table-wrap { padding: 5px 20px 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { color: #758493; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; text-align: left; padding: 11px 0 9px; }
+    th:last-child, td:last-child { text-align: right; }
+    td { padding: 12px 0; border-top: 1px solid #edf0f2; font-size: 13px; }
+    .product { display: flex; align-items: center; gap: 10px; }
+    .product-code { width: 30px; height: 30px; border: 1px solid #d9e1e7; border-radius: 4px; background: #f4f7f9; color: var(--blue); display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+    .product-name { color: var(--navy-dark); font-weight: 600; }
+    .product-sub { display: block; color: var(--muted); font-size: 11px; font-weight: 400; margin-top: 1px; }
+    .units { font-weight: 650; color: var(--navy-dark); }
+    .activity { margin-top: 22px; }
+    .activity-list { list-style: none; margin: 0; padding: 4px 20px 8px; }
+    .activity-item { display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid #edf0f2; }
+    .activity-item:last-child { border-bottom: 0; }
+    .event-icon { width: 29px; height: 29px; flex: 0 0 29px; display: grid; place-items: center; border-radius: 50%; font-size: 12px; font-weight: 700; }
+    .event-order { background: var(--blue-light); color: var(--blue); }
+    .event-refund { background: var(--red-bg); color: var(--red); }
+    .event-review { background: var(--amber-bg); color: var(--amber); }
+    .event-body { min-width: 0; flex: 1; }
+    .event-text { color: var(--text); font-size: 13px; }
+    .event-text strong { color: var(--navy-dark); font-weight: 650; }
+    .event-time { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .event-amount { text-align: right; color: var(--navy-dark); font-size: 12px; font-weight: 650; white-space: nowrap; }
+    @media (max-width: 1000px) {
+      .sidebar { width: 188px; flex-basis: 188px; }
+      main { padding: 24px; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .topbar { padding: 0 18px; }
+      .store-label { display: none; }
+      .layout { display: block; }
+      .sidebar { width: 100%; height: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 10px 12px; }
+      .nav-section { margin: 0; display: flex; align-items: center; gap: 4px; overflow-x: auto; }
+      .nav-heading { display: none; }
+      .nav-item { white-space: nowrap; }
+      .nav-section + .nav-section { display: none; }
+      main { padding: 20px 16px 30px; }
+      .page-header { display: block; }
+      .controls { margin-top: 14px; }
+      .cards { grid-template-columns: 1fr; gap: 12px; }
+      .metric-card { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">N</div><div class="brand-name">Northstar Goods</div></div>
+      <div class="topbar-right"><span class="store-label">Operations dashboard</span><div class="avatar" aria-label="Account: JL">JL</div></div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="nav-section">
+          <div class="nav-heading">Workspace</div>
+          <div class="nav-item active"><span class="nav-icon">▦</span>Overview</div>
+          <div class="nav-item"><span class="nav-icon">▤</span>Orders</div>
+          <div class="nav-item"><span class="nav-icon">□</span>Products</div>
+          <div class="nav-item"><span class="nav-icon">◫</span>Customers</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-heading">Management</div>
+          <div class="nav-item"><span class="nav-icon">◒</span>Reports</div>
+          <div class="nav-item"><span class="nav-icon">⚙</span>Settings</div>
+        </div>
+      </aside>
+      <main>
+        <div class="page-header">
+          <div><h1>Overview</h1><div class="subtitle">Monitor sales performance and recent store activity.</div></div>
+          <div class="controls"><select aria-label="Reporting period"><option>Last 30 days</option><option>This month</option><option>Last 7 days</option></select><button type="button" onclick="window.print()">Export report</button></div>
+        </div>
+        <section class="cards" aria-label="Key metrics">
+          <article class="card metric-card"><div class="metric-label">TOTAL REVENUE</div><div class="metric-value">$48,290.00</div><div class="metric-foot"><span class="pill positive">↑ 12.8%</span><span class="muted">vs. last month</span></div></article>
+          <article class="card metric-card"><div class="metric-label">ORDERS THIS WEEK</div><div class="metric-value">186</div><div class="metric-foot"><span class="pill positive">↑ 8.1%</span><span class="muted">vs. prior week</span></div></article>
+          <article class="card metric-card"><div class="metric-label">AVERAGE ORDER VALUE</div><div class="metric-value">$74.36</div><div class="metric-foot"><span class="pill neutral">— 0.4%</span><span class="muted">vs. last month</span></div></article>
+        </section>
+        <div class="content-grid">
+          <section class="panel" aria-labelledby="revenue-title">
+            <div class="panel-header"><div><h2 class="panel-title" id="revenue-title">Revenue over time</h2><div class="panel-note">Daily gross revenue · May 1–30, 2025</div></div></div>
+            <div class="chart-wrap">
+              <div class="chart-legend"><span class="legend-line"></span>Revenue</div>
+              <svg viewBox="0 0 760 300" role="img" aria-label="Line chart showing revenue increasing from May 1 through May 30, with a peak near May 27">
+                <line class="gridline" x1="55" y1="30" x2="742" y2="30"></line><line class="gridline" x1="55" y1="88" x2="742" y2="88"></line><line class="gridline" x1="55" y1="146" x2="742" y2="146"></line><line class="gridline" x1="55" y1="204" x2="742" y2="204"></line><line class="gridline" x1="55" y1="262" x2="742" y2="262"></line>
+                <text class="axis-label" x="4" y="34">$3,000</text><text class="axis-label" x="4" y="92">$2,250</text><text class="axis-label" x="15" y="150">$1,500</text><text class="axis-label" x="22" y="208">$750</text><text class="axis-label" x="30" y="266">$0</text>
+                <path class="line-fill" d="M55 226 L79 213 L103 221 L127 188 L151 197 L175 180 L199 193 L223 165 L247 175 L271 150 L295 160 L319 143 L343 153 L367 126 L391 134 L415 116 L439 128 L463 104 L487 112 L511 91 L535 101 L559 78 L583 84 L607 67 L631 55 L655 72 L679 48 L703 61 L727 40 L742 45 L742 262 L55 262 Z"></path>
+                <path class="line" d="M55 226 L79 213 L103 221 L127 188 L151 197 L175 180 L199 193 L223 165 L247 175 L271 150 L295 160 L319 143 L343 153 L367 126 L391 134 L415 116 L439 128 L463 104 L487 112 L511 91 L535 101 L559 78 L583 84 L607 67 L631 55 L655 72 L679 48 L703 61 L727 40 L742 45"></path>
+                <circle class="point" cx="55" cy="226" r="3.5"></circle><circle class="point" cx="271" cy="150" r="3.5"></circle><circle class="point" cx="487" cy="112" r="3.5"></circle><circle class="point" cx="679" cy="48" r="3.5"></circle><circle class="point" cx="742" cy="45" r="3.5"></circle>
+                <text class="axis-label" x="52" y="284">May 1</text><text class="axis-label" x="225" y="284">May 8</text><text class="axis-label" x="395" y="284">May 15</text><text class="axis-label" x="566" y="284">May 22</text><text class="axis-label" x="705" y="284">May 30</text>
+              </svg>
+            </div>
+          </section>
+          <section class="panel" aria-labelledby="products-title">
+            <div class="panel-header"><div><h2 class="panel-title" id="products-title">Best-selling products</h2><div class="panel-note">Units sold in the selected period</div></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Product</th><th>Units</th></tr></thead><tbody>
+              <tr><td><div class="product"><span class="product-code">01</span><span><span class="product-name">Canvas Weekender</span><span class="product-sub">Travel accessories</span></span></div></td><td class="units">248</td></tr>
+              <tr><td><div class="product"><span class="product-code">02</span><span><span class="product-name">Insulated Bottle</span><span class="product-sub">Kitchen &amp; dining</span></span></div></td><td class="units">219</td></tr>
+              <tr><td><div class="product"><span class="product-code">03</span><span><span class="product-name">Linen Utility Shirt</span><span class="product-sub">Apparel</span></span></div></td><td class="units">187</td></tr>
+              <tr><td><div class="product"><span class="product-code">04</span><span><span class="product-name">Everyday Tote</span><span class="product-sub">Bags</span></span></div></td><td class="units">164</td></tr>
+              <tr><td><div class="product"><span class="product-code">05</span><span><span class="product-name">Oak Desk Organizer</span><span class="product-sub">Home office</span></span></div></td><td class="units">141</td></tr>
+            </tbody></table></div>
+          </section>
+        </div>
+        <section class="panel activity" aria-labelledby="activity-title">
+          <div class="panel-header"><div><h2 class="panel-title" id="activity-title">Recent activity</h2><div class="panel-note">Latest orders, refunds, and customer reviews</div></div><span class="muted" style="font-size:12px">Last 8 events</span></div>
+          <ul class="activity-list">
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-body"><div class="event-text"><strong>Order #10482</strong> was placed by Priya Shah</div><div class="event-time">Today, 10:42 AM</div></div><div class="event-amount">$128.00</div></li>
+            <li class="activity-item"><span class="event-icon event-review">★</span><div class="event-body"><div class="event-text"><strong>New 5-star review</strong> for Insulated Bottle</div><div class="event-time">Today, 9:18 AM</div></div><div class="event-amount">★★★★★</div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-body"><div class="event-text"><strong>Order #10481</strong> was placed by Marcus Lee</div><div class="event-time">Today, 8:56 AM</div></div><div class="event-amount">$74.00</div></li>
+            <li class="activity-item"><span class="event-icon event-refund">↩</span><div class="event-body"><div class="event-text"><strong>Refund issued</strong> for Order #10477</div><div class="event-time">Yesterday, 4:31 PM</div></div><div class="event-amount" style="color:var(--red)">−$42.00</div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-body"><div class="event-text"><strong>Order #10476</strong> was placed by Elena Garcia</div><div class="event-time">Yesterday, 2:07 PM</div></div><div class="event-amount">$96.00</div></li>
+            <li class="activity-item"><span class="event-icon event-review">★</span><div class="event-body"><div class="event-text"><strong>New 4-star review</strong> for Canvas Weekender</div><div class="event-time">Yesterday, 11:23 AM</div></div><div class="event-amount">★★★★☆</div></li>
+            <li class="activity-item"><span class="event-icon event-order">$</span><div class="event-body"><div class="event-text"><strong>Order #10473</strong> was placed by Noah Williams</div><div class="event-time">May 28, 5:45 PM</div></div><div class="event-amount">$215.00</div></li>
+            <li class="activity-item"><span class="event-icon event-refund">↩</span><div class="event-body"><div class="event-text"><strong>Refund issued</strong> for Order #10469</div><div class="event-time">May 28, 1:10 PM</div></div><div class="event-amount" style="color:var(--red)">−$28.00</div></li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

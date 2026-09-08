@@ -90,12 +90,49 @@ claim(sum(sum(x[k] for x in ms) == 0
       "three rules never broken at any dose")
 
 runs = {d: json.load(open(ROOT / d / "runlog.json"))
-        for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol")}
+        for d in ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard",
+                  "poscontrol", "diversity")}
 total = sum(len(v) for v in runs.values())
-claim(total == 132, f"132 runs total ({total})")
+claim(total == 168, f"168 runs total ({total})")
 spend = sum(r.get("in_tokens", 0) for v in runs.values() for r in v) / 1e6 * 1.25 \
       + sum(r.get("out_tokens", 0) for v in runs.values() for r in v) / 1e6 * 10
-claim(abs(spend - 9.56) < 0.02, f"total spend $9.56 (${spend:.2f})")
+claim(abs(spend - 14.37) < 0.02, f"total spend $14.37 (${spend:.2f})")
+
+# diversity: pre-registered tests, the exploratory collapse, and the cost split
+sys.path.insert(0, str(ROOT / "diversity"))
+import analyze as dv
+dfe = [json.loads(l) for l in open(ROOT / "diversity/features.jsonl")]
+dg = collections.defaultdict(list)
+for f in dfe:
+    dg[(f["arm"], f["model"])].append(f)
+claim(all(len(v) == 6 for v in dg.values()) and len(dg) == 6, "diversity: 6 runs x 3 arms x 2 models")
+for arm, model, want in (("minimal", "gpt-5.6-luna", .578), ("minimal", "gpt-5.6-terra", .306),
+                         ("padded", "gpt-5.6-luna", .473), ("padded", "gpt-5.6-terra", .457),
+                         ("conservative", "gpt-5.6-luna", .478), ("conservative", "gpt-5.6-terra", .402)):
+    got = dv.group_homogeneity(dg[(arm, model)])[0]
+    claim(abs(got - want) < .0015, f"diversity homogeneity {arm}/{model.split('-')[-1]} = {want:.3f} ({got:.3f})")
+import math
+def fisher(arm):
+    ps = []
+    for m in ("gpt-5.6-luna", "gpt-5.6-terra"):
+        ps.append(dv.permutation_p(dg[(arm, m)], dg[("minimal", m)], n=10000)[1])
+    chi = -2 * sum(math.log(max(p, 1e-12)) for p in ps)
+    return ps, math.exp(-chi / 2) * (1 + chi / 2)
+ps, fp = fisher("conservative")
+claim(abs(fp - .463) < .01 and fp > .05, f"diversity validation Fisher p = .46, not supported ({fp:.3f})")
+ps, fp = fisher("padded")
+claim(abs(fp - .222) < .01 and fp > .05, f"diversity H1 Fisher p = .22, not supported ({fp:.3f})")
+for arm, want in (("minimal", 5), ("padded", 2), ("conservative", 2)):
+    got = dv.distinct(dg[(arm, "gpt-5.6-terra")])["accent_hues"]
+    claim(got == want, f"terra distinct accent hues, {arm} = {want} ({got})")
+dl = runs["diversity"]
+def arm_mean(arm, k): return st.mean(r[k] for r in dl if r["arm"] == arm)
+o0, s0 = arm_mean("minimal", "out_tokens"), arm_mean("minimal", "secs")
+claim(abs(arm_mean("padded", "out_tokens") / o0 - 1.70) < .01, "diversity bulk +70% output tokens")
+claim(abs(arm_mean("padded", "secs") / s0 - 2.04) < .01, "diversity bulk +104% latency")
+claim(abs(arm_mean("conservative", "out_tokens") / o0 - 0.97) < .01, "diversity restriction -3% output tokens")
+claim(abs(arm_mean("conservative", "secs") / s0 - 1.02) < .01, "diversity restriction +2% latency")
+claim(abs(arm_mean("padded", "chars") / arm_mean("minimal", "chars") - 1.76) < .01, "diversity bulk +76% HTML size")
 
 # positive control: criterion met, and for the predicted reason
 pc = [json.loads(l) for l in open(ROOT / "poscontrol/grades.jsonl")]

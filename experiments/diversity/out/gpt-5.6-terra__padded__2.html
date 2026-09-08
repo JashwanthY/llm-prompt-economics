@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A responsive analytics dashboard for Moss & Maple online shop.">
+  <title>Moss &amp; Maple — Shop analytics</title>
+  <style>
+    :root {
+      --color-ink: #15251f;
+      --color-muted: #5a6b63;
+      --color-surface: #ffffff;
+      --color-page: #f4f6f2;
+      --color-line: #dbe3dd;
+      --color-brand: #176b50;
+      --color-brand-dark: #0d4936;
+      --color-brand-pale: #e2f3ea;
+      --color-success: #166534;
+      --color-warning: #92400e;
+      --color-danger: #a12622;
+      --color-danger-pale: #fbe9e7;
+      --shadow: 0 0.5rem 1.5rem rgb(21 37 31 / 8%);
+      --radius: 0.875rem;
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2rem;
+      --space-6: 3rem;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--color-ink);
+      background: var(--color-page);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 20rem; background: var(--color-page); }
+    button, select { font: inherit; }
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 0.2rem solid #155fda;
+      outline-offset: 0.2rem;
+    }
+    .skip-link { position: absolute; left: var(--space-3); top: -4rem; padding: var(--space-2) var(--space-3); border-radius: 0 0 var(--radius) var(--radius); background: var(--color-ink); color: #fff; z-index: 2; }
+    .skip-link:focus { top: 0; }
+
+    .site-header { border-bottom: 1px solid var(--color-line); background: var(--color-surface); }
+    .header__inner { width: min(100% - 2rem, 82rem); min-height: 4.75rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .brand { display: flex; align-items: center; gap: var(--space-2); color: var(--color-ink); text-decoration: none; font-weight: 800; letter-spacing: -0.03em; }
+    .brand__mark { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; color: #fff; background: var(--color-brand); border-radius: 50% 50% 50% 0; transform: rotate(-18deg); }
+    .brand__mark span { transform: rotate(18deg); font-size: 1.2rem; }
+    .header__account { display: flex; align-items: center; gap: var(--space-2); color: var(--color-muted); font-size: 0.875rem; }
+    .avatar { width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; background: #e5e7eb; color: var(--color-ink); font-weight: 700; }
+
+    .dashboard { width: min(100% - 2rem, 82rem); margin: 0 auto; padding: var(--space-5) 0 var(--space-6); }
+    .dashboard__intro { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: var(--space-1); font-size: clamp(1.7rem, 4vw, 2.35rem); letter-spacing: -0.045em; }
+    h2 { margin-bottom: 0; font-size: 1.1rem; letter-spacing: -0.02em; }
+    h3 { margin-bottom: 0.2rem; font-size: 0.95rem; }
+    .eyebrow { margin-bottom: var(--space-1); color: var(--color-brand-dark); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.09em; }
+    .intro__copy { margin-bottom: 0; color: var(--color-muted); }
+    .period-control { display: grid; gap: 0.3rem; flex: 0 0 auto; color: var(--color-muted); font-size: 0.8rem; font-weight: 700; }
+    .period-control select { min-width: 10rem; padding: 0.55rem 2rem 0.55rem 0.65rem; border: 1px solid #a8b7ae; border-radius: 0.45rem; background: var(--color-surface); color: var(--color-ink); }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-5); }
+    .card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .metric { padding: var(--space-4); }
+    .metric__label { margin-bottom: var(--space-2); color: var(--color-muted); font-size: 0.875rem; font-weight: 700; }
+    .metric__value { margin-bottom: var(--space-2); font-size: clamp(1.55rem, 3vw, 2rem); font-weight: 800; letter-spacing: -0.05em; }
+    .metric__detail { margin: 0; font-size: 0.83rem; color: var(--color-muted); }
+    .trend { display: inline-flex; align-items: center; gap: 0.25rem; color: var(--color-success); font-weight: 800; }
+    .trend--neutral { color: var(--color-muted); }
+
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(19rem, 1fr); gap: var(--space-4); align-items: start; }
+    .chart-card { padding: var(--space-4); }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .section-heading__meta { margin: 0; color: var(--color-muted); font-size: 0.82rem; }
+    .segmented-control { display: flex; padding: 0.2rem; border-radius: 0.55rem; background: #edf1ee; }
+    .segmented-control button { padding: 0.38rem 0.7rem; border: 0; border-radius: 0.38rem; color: var(--color-muted); background: transparent; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+    .segmented-control button[aria-pressed="true"] { color: var(--color-brand-dark); background: var(--color-surface); box-shadow: 0 0.1rem 0.25rem rgb(21 37 31 / 12%); }
+    .chart { position: relative; min-height: 17rem; }
+    .chart svg { display: block; width: 100%; height: 17rem; overflow: visible; }
+    .chart__summary { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: var(--space-2) 0 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: 0.82rem; }
+    .chart__summary strong { color: var(--color-ink); }
+    .chart__tooltip { position: absolute; z-index: 1; padding: 0.45rem 0.6rem; border-radius: 0.4rem; color: #fff; background: var(--color-ink); font-size: 0.75rem; font-weight: 700; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); transition: opacity 120ms ease; white-space: nowrap; }
+    .chart__tooltip.is-visible { opacity: 1; }
+
+    .side-stack { display: grid; gap: var(--space-4); }
+    .list-card { padding: var(--space-4); }
+    .product-list, .activity-list { padding: 0; margin: 0; list-style: none; }
+    .product-list { counter-reset: product; }
+    .product { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--color-line); }
+    .product:first-child { padding-top: 0; border-top: 0; }
+    .product:last-child { padding-bottom: 0; }
+    .product::before { content: counter(product); counter-increment: product; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; color: var(--color-brand-dark); background: var(--color-brand-pale); font-size: 0.72rem; font-weight: 800; }
+    .product__name { font-size: 0.88rem; font-weight: 750; overflow-wrap: anywhere; }
+    .product__units { color: var(--color-muted); font-size: 0.78rem; white-space: nowrap; }
+    .activity { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) 0; border-top: 1px solid var(--color-line); }
+    .activity:first-child { padding-top: 0; border-top: 0; }
+    .activity:last-child { padding-bottom: 0; }
+    .activity__icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-brand-pale); color: var(--color-brand-dark); font-size: 0.95rem; font-weight: 800; }
+    .activity__icon--refund { color: var(--color-danger); background: var(--color-danger-pale); }
+    .activity__icon--review { color: var(--color-warning); background: #fdf3dd; }
+    .activity__title { margin-bottom: 0.15rem; font-size: 0.84rem; font-weight: 700; line-height: 1.35; }
+    .activity__time { color: var(--color-muted); font-size: 0.75rem; }
+    .site-footer { width: min(100% - 2rem, 82rem); margin: 0 auto; padding: var(--space-4) 0 var(--space-5); border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: 0.78rem; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 52rem) { .content-grid { grid-template-columns: 1fr; } .side-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 38rem) { .dashboard { padding-top: var(--space-4); } .dashboard__intro { align-items: start; flex-direction: column; margin-bottom: var(--space-4); } .metric-grid { grid-template-columns: 1fr; } .side-stack { grid-template-columns: 1fr; } .section-heading { align-items: start; flex-direction: column; } .header__account span { display: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#dashboard-content">Skip to dashboard content</a>
+  <header class="site-header">
+    <div class="header__inner">
+      <a class="brand" href="#dashboard-content" aria-label="Moss and Maple dashboard home"><span class="brand__mark" aria-hidden="true"><span>⌁</span></span>Moss &amp; Maple</a>
+      <div class="header__account"><span>Shop analytics</span><span class="avatar" aria-label="Signed in as Jamie Lee">JL</span></div>
+    </div>
+  </header>
+
+  <main class="dashboard" id="dashboard-content">
+    <header class="dashboard__intro">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h1>Good morning, Jamie</h1>
+        <p class="intro__copy">Here is how Moss &amp; Maple is growing this month.</p>
+      </div>
+      <div class="period-control">
+        <label for="date-range">Reporting period</label>
+        <select id="date-range" aria-describedby="period-message">
+          <option value="march" selected>March 1–30, 2025</option>
+          <option value="february">February 1–28, 2025</option>
+        </select>
+        <span id="period-message" class="visually-hidden" aria-live="polite"></span>
+      </div>
+    </header>
+
+    <section class="metric-grid" aria-label="Key metrics">
+      <article class="card metric">
+        <p class="metric__label">Total revenue</p>
+        <p class="metric__value">$25,599.70</p>
+        <p class="metric__detail"><span class="trend">↑ 12.8%</span> versus last month</p>
+      </article>
+      <article class="card metric">
+        <p class="metric__label">Orders this week</p>
+        <p class="metric__value">184</p>
+        <p class="metric__detail"><span class="trend">↑ 8.3%</span> versus prior week</p>
+      </article>
+      <article class="card metric">
+        <p class="metric__label">Average order value</p>
+        <p class="metric__value">$58.45</p>
+        <p class="metric__detail"><span class="trend trend--neutral">→ 1.1%</span> versus last month</p>
+      </article>
+    </section>
+
+    <section class="content-grid" aria-label="Performance details">
+      <section class="card chart-card" aria-labelledby="revenue-heading">
+        <header class="section-heading">
+          <div><h2 id="revenue-heading">Revenue over time</h2><p class="section-heading__meta">Gross sales, before refunds</p></div>
+          <div class="segmented-control" aria-label="Chart range">
+            <button type="button" data-chart-days="7" aria-pressed="false">7 days</button>
+            <button type="button" data-chart-days="30" aria-pressed="true">30 days</button>
+          </div>
+        </header>
+        <div class="chart" id="revenue-chart" role="img" aria-label="Line chart showing daily revenue for the last 30 days">
+          <svg viewBox="0 0 700 272" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="chart__tooltip" aria-hidden="true"></div>
+        </div>
+        <p class="chart__summary"><span><strong id="chart-total">$25,599.70</strong> total</span><span><strong id="chart-average">$853.32</strong> daily average</span><span>Updated today at 9:42 AM</span></p>
+      </section>
+
+      <aside class="side-stack" aria-label="Sales and activity">
+        <section class="card list-card" aria-labelledby="products-heading">
+          <header class="section-heading"><h2 id="products-heading">Best-selling products</h2><p class="section-heading__meta">This month</p></header>
+          <ol class="product-list">
+            <li class="product"><span class="product__name">Cedar &amp; Sage Candle</span><span class="product__units">142 units</span></li>
+            <li class="product"><span class="product__name">Linen Market Tote</span><span class="product__units">118 units</span></li>
+            <li class="product"><span class="product__name">Stoneware Pour-Over Set</span><span class="product__units">96 units</span></li>
+            <li class="product"><span class="product__name">Botanical Print No. 4</span><span class="product__units">87 units</span></li>
+            <li class="product"><span class="product__name">Wildflower Tea Towel</span><span class="product__units">74 units</span></li>
+          </ol>
+        </section>
+
+        <section class="card list-card" aria-labelledby="activity-heading">
+          <header class="section-heading"><h2 id="activity-heading">Recent activity</h2><p class="section-heading__meta">Last 8 events</p></header>
+          <ol class="activity-list">
+            <li class="activity"><span class="activity__icon" aria-label="Order">↗</span><div><p class="activity__title">Order #MM-10482 placed for $78.00</p><time class="activity__time" datetime="2025-03-30T09:36">6 minutes ago</time></div></li>
+            <li class="activity"><span class="activity__icon activity__icon--review" aria-label="Review">★</span><div><p class="activity__title">New 5-star review for Cedar &amp; Sage Candle</p><time class="activity__time" datetime="2025-03-30T09:21">21 minutes ago</time></div></li>
+            <li class="activity"><span class="activity__icon" aria-label="Order">↗</span><div><p class="activity__title">Order #MM-10481 placed for $124.50</p><time class="activity__time" datetime="2025-03-30T08:54">48 minutes ago</time></div></li>
+            <li class="activity"><span class="activity__icon activity__icon--refund" aria-label="Refund">←</span><div><p class="activity__title">Refund issued for order #MM-10463, $32.00</p><time class="activity__time" datetime="2025-03-30T08:15">1 hour ago</time></div></li>
+            <li class="activity"><span class="activity__icon" aria-label="Order">↗</span><div><p class="activity__title">Order #MM-10480 placed for $56.00</p><time class="activity__time" datetime="2025-03-30T07:48">2 hours ago</time></div></li>
+            <li class="activity"><span class="activity__icon activity__icon--review" aria-label="Review">★</span><div><p class="activity__title">New 4-star review for Linen Market Tote</p><time class="activity__time" datetime="2025-03-30T07:09">3 hours ago</time></div></li>
+            <li class="activity"><span class="activity__icon" aria-label="Order">↗</span><div><p class="activity__title">Order #MM-10479 placed for $89.00</p><time class="activity__time" datetime="2025-03-30T06:32">3 hours ago</time></div></li>
+            <li class="activity"><span class="activity__icon activity__icon--refund" aria-label="Refund">←</span><div><p class="activity__title">Refund issued for order #MM-10451, $18.50</p><time class="activity__time" datetime="2025-03-30T05:57">4 hours ago</time></div></li>
+          </ol>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <footer class="site-footer">Moss &amp; Maple internal analytics · All amounts shown in USD</footer>
+
+  <script>
+    (() => {
+      'use strict';
+      const dailyRevenue = [510.2, 634.5, 590.1, 720.8, 680.35, 748.2, 693.45, 779.6, 731.2, 805.75, 772.4, 841.9, 799.3, 862.6, 816.25, 900.8, 854.7, 925.4, 881.6, 953.35, 917.2, 988.8, 946.55, 1012.4, 970.8, 1048.6, 995.2, 1084.75, 1038.5, 1094.45];
+      const chartContainer = document.getElementById('revenue-chart');
+      const chartSvg = chartContainer ? chartContainer.querySelector('svg') : null;
+      const tooltip = chartContainer ? chartContainer.querySelector('.chart__tooltip') : null;
+      const totalElement = document.getElementById('chart-total');
+      const averageElement = document.getElementById('chart-average');
+      const rangeButtons = Array.from(document.querySelectorAll('[data-chart-days]'));
+      const dateRange = document.getElementById('date-range');
+      const periodMessage = document.getElementById('period-message');
+      const chartWidth = 700;
+      const chartHeight = 272;
+      const padding = { top: 18, right: 12, bottom: 32, left: 54 };
+      const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+      function formatCurrency(value) { return currencyFormatter.format(value); }
+      function formatDay(index, days) { const day = 31 - days + index; return `Mar ${day}`; }
+
+      function buildChart(days) {
+        if (!chartSvg || !tooltip || !totalElement || !averageElement) return;
+        const values = dailyRevenue.slice(-days);
+        if (values.length === 0) return;
+        const minimum = Math.floor(Math.min(...values) / 100) * 100 - 100;
+        const maximum = Math.ceil(Math.max(...values) / 100) * 100 + 100;
+        const plotWidth = chartWidth - padding.left - padding.right;
+        const plotHeight = chartHeight - padding.top - padding.bottom;
+        const xFor = index => padding.left + (values.length === 1 ? plotWidth / 2 : (index / (values.length - 1)) * plotWidth);
+        const yFor = value => padding.top + ((maximum - value) / (maximum - minimum)) * plotHeight;
+        const points = values.map((value, index) => `${xFor(index).toFixed(1)},${yFor(value).toFixed(1)}`);
+        const areaPoints = `${padding.left},${chartHeight - padding.bottom} ${points.join(' ')} ${chartWidth - padding.right},${chartHeight - padding.bottom}`;
+        const gridLines = [0, 1, 2, 3].map(index => {
+          const value = minimum + ((maximum - minimum) / 3) * index;
+          const y = yFor(value);
+          return `<line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" stroke="#dbe3dd" stroke-width="1"/><text x="${padding.left - 9}" y="${y + 4}" text-anchor="end" fill="#5a6b63" font-size="11">$${Math.round(value / 100) * 100}</text>`;
+        }).join('');
+        const labelIndexes = days === 7 ? [0, 2, 4, 6] : [0, 9, 19, 29];
+        const xLabels = labelIndexes.map(index => `<text x="${xFor(index)}" y="${chartHeight - 9}" text-anchor="middle" fill="#5a6b63" font-size="11">${formatDay(index, days)}</text>`).join('');
+        const dots = values.map((value, index) => `<circle class="chart-dot" data-index="${index}" cx="${xFor(index)}" cy="${yFor(value)}" r="9" fill="transparent" tabindex="0"><title>${formatDay(index, days)}: ${formatCurrency(value)}</title></circle><circle cx="${xFor(index)}" cy="${yFor(value)}" r="3.5" fill="#176b50" stroke="#ffffff" stroke-width="2" pointer-events="none"/>`).join('');
+        chartSvg.innerHTML = `<defs><linearGradient id="revenue-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#176b50" stop-opacity="0.22"/><stop offset="100%" stop-color="#176b50" stop-opacity="0"/></linearGradient></defs>${gridLines}<polygon points="${areaPoints}" fill="url(#revenue-fill)"/><polyline points="${points.join(' ')}" fill="none" stroke="#176b50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${xLabels}`;
+        const total = values.reduce((sum, value) => sum + value, 0);
+        totalElement.textContent = formatCurrency(total);
+        averageElement.textContent = `${formatCurrency(total / values.length)} daily average`;
+        chartContainer.setAttribute('aria-label', `Line chart showing daily revenue for the last ${days} days. Total ${formatCurrency(total)}.`);
+        const chartDots = Array.from(chartSvg.querySelectorAll('.chart-dot'));
+        chartDots.forEach(dot => {
+          const showTooltip = event => {
+            const index = Number(event.currentTarget.dataset.index);
+            const bounds = chartSvg.getBoundingClientRect();
+            const x = (xFor(index) / chartWidth) * bounds.width;
+            const y = (yFor(values[index]) / chartHeight) * bounds.height;
+            tooltip.textContent = `${formatDay(index, days)} · ${formatCurrency(values[index])}`;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.classList.add('is-visible');
+          };
+          dot.addEventListener('mouseenter', showTooltip);
+          dot.addEventListener('focus', showTooltip);
+          dot.addEventListener('mouseleave', () => tooltip.classList.remove('is-visible'));
+          dot.addEventListener('blur', () => tooltip.classList.remove('is-visible'));
+        });
+      }
+
+      function selectRange(days) {
+        rangeButtons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.chartDays) === days)));
+        buildChart(days);
+      }
+
+      rangeButtons.forEach(button => button.addEventListener('click', () => selectRange(Number(button.dataset.chartDays))));
+      if (dateRange && periodMessage) {
+        dateRange.addEventListener('change', event => {
+          const selectedText = event.target.options[event.target.selectedIndex].text;
+          periodMessage.textContent = `Reporting period changed to ${selectedText}. Dashboard sample data remains set to March.`;
+        });
+      }
+      selectRange(30);
+    })();
+  </script>
+</body>
+</html>

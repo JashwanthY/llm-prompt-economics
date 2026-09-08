@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northstar Goods — Analytics</title>
+  <style>
+    :root { --ink:#172033; --muted:#6c768a; --line:#e7ebf2; --paper:#fff; --wash:#f6f8fb; --green:#17845f; --blue:#3a63e8; --orange:#df7a32; --purple:#7159cf; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .app { max-width:1440px; min-height:100vh; margin:auto; display:grid; grid-template-columns:226px 1fr; }
+    aside { background:#192337; color:#c7cfdd; padding:30px 18px; }
+    .brand { display:flex; gap:10px; align-items:center; color:white; font-size:17px; font-weight:750; letter-spacing:-.3px; margin:0 10px 38px; }
+    .mark { display:grid; place-items:center; width:30px; height:30px; border-radius:9px; background:#456ce7; color:#fff; font-size:17px; }
+    .nav-label { color:#7f8aa0; font-size:10px; letter-spacing:1.1px; font-weight:800; margin:22px 10px 8px; }
+    nav a { color:inherit; display:flex; gap:12px; align-items:center; text-decoration:none; border-radius:8px; padding:10px; margin:2px 0; }
+    nav a.active { color:white; background:#2b3a59; font-weight:700; }
+    .icon { width:18px; text-align:center; font-size:16px; }
+    main { padding:30px 36px 45px; }
+    .top { display:flex; justify-content:space-between; gap:20px; align-items:start; margin-bottom:26px; }
+    h1 { font-size:25px; line-height:1.1; letter-spacing:-.8px; margin:2px 0 7px; }
+    .sub { color:var(--muted); margin:0; }
+    .range { background:white; border:1px solid var(--line); border-radius:8px; padding:9px 12px; color:#465168; font-weight:600; white-space:nowrap; }
+    .metrics { display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:20px; box-shadow:0 2px 5px rgba(26,39,65,.025); }
+    .card-label { color:var(--muted); font-size:12px; font-weight:750; }
+    .metric { margin:8px 0 4px; font-size:28px; font-weight:780; letter-spacing:-1px; }
+    .change { color:var(--green); font-size:12px; font-weight:700; }
+    .change span { color:var(--muted); font-weight:500; margin-left:4px; }
+    .orders-detail { color:var(--muted); font-size:12px; }
+    .spark { height:4px; background:#dce9e4; border-radius:10px; margin-top:18px; overflow:hidden; }
+    .spark i { display:block; width:72%; height:100%; background:var(--green); border-radius:inherit; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(300px,.85fr); gap:20px; }
+    .chart-card { padding:20px 20px 13px; }
+    .card-head { display:flex; justify-content:space-between; align-items:start; gap:15px; }
+    h2 { font-size:15px; letter-spacing:-.2px; margin:0 0 3px; }
+    .hint { font-size:12px; color:var(--muted); margin:0; }
+    .chart-total { text-align:right; font-size:20px; font-weight:750; letter-spacing:-.5px; }
+    .chart-total small { display:block; color:var(--green); font-size:11px; letter-spacing:0; }
+    canvas { display:block; width:100%; height:260px; margin-top:14px; }
+    .legend { border-top:1px solid var(--line); padding:13px 3px 0; color:var(--muted); font-size:12px; }
+    .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--blue); margin-right:6px; }
+    .products { margin-top:20px; }
+    .products ol { padding:0; margin:14px 0 0; list-style:none; counter-reset:products; }
+    .products li { counter-increment:products; display:grid; grid-template-columns:28px 38px 1fr auto; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
+    .products li::before { content:counter(products); color:#9aa4b5; font-size:12px; font-weight:700; }
+    .product-art { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; font-size:17px; }
+    .a1{background:#e8edff}.a2{background:#fff0e5}.a3{background:#e3f6ee}.a4{background:#f1ebff}.a5{background:#fff7d9}
+    .pname { font-size:13px; font-weight:700; }.sku { color:var(--muted); font-size:11px; }
+    .units { font-size:12px; font-weight:750; text-align:right; }.units small { display:block; color:var(--muted); font-weight:500; }
+    .activity { margin-top:20px; }
+    .feed { list-style:none; padding:0; margin:10px 0 0; }
+    .feed li { display:grid; grid-template-columns:9px 1fr auto; align-items:start; gap:10px; padding:11px 0; border-top:1px solid var(--line); }
+    .feed-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; background:var(--blue); }.refund{background:var(--orange)}.review{background:var(--purple)}
+    .event { font-size:12px; color:#3c475c; }.event strong { color:var(--ink); }.time { color:#99a2b3; font-size:11px; white-space:nowrap; }
+    @media (max-width:950px) { .app { grid-template-columns:1fr; } aside { display:none; } main { padding:24px 18px; } .layout { grid-template-columns:1fr; } }
+    @media (max-width:580px) { .top { display:block; }.range { display:inline-block; margin-top:16px; }.metrics { grid-template-columns:1fr; } .metric { font-size:25px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand"><span class="mark">N</span>Northstar Goods</div>
+      <nav>
+        <div class="nav-label">OVERVIEW</div>
+        <a class="active" href="#dashboard"><span class="icon">▦</span>Dashboard</a>
+        <a href="#revenue"><span class="icon">↗</span>Analytics</a>
+        <div class="nav-label">STORE</div>
+        <a href="#products"><span class="icon">□</span>Products</a>
+        <a href="#activity"><span class="icon">◷</span>Orders</a>
+        <a href="#activity"><span class="icon">♙</span>Customers</a>
+      </nav>
+    </aside>
+    <main id="dashboard">
+      <header class="top">
+        <div><h1>Good morning, Maya</h1><p class="sub">Here is how Northstar Goods is performing this month.</p></div>
+        <div class="range">June 1 – June 30, 2024 &nbsp;⌄</div>
+      </header>
+      <section class="metrics" aria-label="Key performance indicators">
+        <article class="card"><div class="card-label">TOTAL REVENUE</div><div class="metric">$31,842.60</div><div class="change">↑ 12.4% <span>vs. May 2024</span></div></article>
+        <article class="card"><div class="card-label">ORDERS THIS WEEK</div><div class="metric">186</div><div class="orders-detail">$6,487.20 in gross sales</div><div class="spark"><i></i></div></article>
+        <article class="card"><div class="card-label">AVERAGE ORDER VALUE</div><div class="metric">$48.32</div><div class="change">↑ 4.1% <span>vs. last month</span></div></article>
+      </section>
+      <section class="layout">
+        <div>
+          <article class="card chart-card" id="revenue">
+            <div class="card-head"><div><h2>Revenue over time</h2><p class="hint">Daily gross revenue for the last 30 days</p></div><div class="chart-total">$31.8k<small>↑ 12.4% from prior period</small></div></div>
+            <canvas id="revenueChart" role="img" aria-label="Line chart showing revenue over the past 30 days"></canvas>
+            <div class="legend"><span class="dot"></span>Revenue &nbsp; · &nbsp; June 1–30, 2024</div>
+          </article>
+          <article class="card products" id="products">
+            <div class="card-head"><div><h2>Best-selling products</h2><p class="hint">By units sold this month</p></div><span class="hint">Top 5</span></div>
+            <ol>
+              <li><span class="product-art a1">☕</span><div><div class="pname">Ridgeway Stoneware Mug</div><div class="sku">Home · STN-MUG-04</div></div><div class="units">286<small>units sold</small></div></li>
+              <li><span class="product-art a2">🕯</span><div><div class="pname">Cedar &amp; Amber Candle</div><div class="sku">Home · CAN-CE-08</div></div><div class="units">241<small>units sold</small></div></li>
+              <li><span class="product-art a3">◒</span><div><div class="pname">Everyday Canvas Tote</div><div class="sku">Accessories · TOT-EC-01</div></div><div class="units">198<small>units sold</small></div></li>
+              <li><span class="product-art a4">⌁</span><div><div class="pname">Linen Desk Journal</div><div class="sku">Stationery · JNL-LN-03</div></div><div class="units">174<small>units sold</small></div></li>
+              <li><span class="product-art a5">◉</span><div><div class="pname">Brass Keychain</div><div class="sku">Accessories · KEY-BR-02</div></div><div class="units">152<small>units sold</small></div></li>
+            </ol>
+          </article>
+        </div>
+        <article class="card activity" id="activity">
+          <h2>Recent activity</h2><p class="hint">Latest store events</p>
+          <ul class="feed">
+            <li><i class="feed-dot"></i><div class="event"><strong>New order #10482</strong><br>Amelia Hart placed an order for $84.00</div><time class="time">8 min</time></li>
+            <li><i class="feed-dot review"></i><div class="event"><strong>New 5-star review</strong><br>“Beautifully made and arrived quickly.”</div><time class="time">26 min</time></li>
+            <li><i class="feed-dot"></i><div class="event"><strong>New order #10481</strong><br>Marcus Chen placed an order for $46.50</div><time class="time">49 min</time></li>
+            <li><i class="feed-dot refund"></i><div class="event"><strong>Refund issued for #10421</strong><br>$32.00 returned to Sofia Reyes</div><time class="time">1 hr</time></li>
+            <li><i class="feed-dot"></i><div class="event"><strong>New order #10480</strong><br>Priya Shah placed an order for $112.00</div><time class="time">2 hr</time></li>
+            <li><i class="feed-dot review"></i><div class="event"><strong>New 4-star review</strong><br>Liam O’Connor reviewed Cedar &amp; Amber Candle</div><time class="time">3 hr</time></li>
+            <li><i class="feed-dot"></i><div class="event"><strong>New order #10479</strong><br>Noah Williams placed an order for $59.00</div><time class="time">4 hr</time></li>
+            <li><i class="feed-dot refund"></i><div class="event"><strong>Refund issued for #10412</strong><br>$18.50 returned to Evelyn King</div><time class="time">5 hr</time></li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      const canvas = document.getElementById('revenueChart'), ctx = canvas.getContext('2d');
+      const data = [740,820,685,910,960,1080,770,890,1020,1150,1060,930,1180,1280,1040,970,1110,1260,1380,1220,1080,1190,1320,1450,1280,1170,1360,1510,1420,1585];
+      function draw() {
+        const dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w*dpr; canvas.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+        const pad={l:45,r:12,t:16,b:30}, cw=w-pad.l-pad.r, ch=h-pad.t-pad.b, min=500, max=1800;
+        const y=v=>pad.t+(max-v)/(max-min)*ch, x=i=>pad.l+i*cw/(data.length-1);
+        ctx.font='11px system-ui, sans-serif'; ctx.fillStyle='#98a2b3'; ctx.strokeStyle='#e8ecf3'; ctx.lineWidth=1;
+        [500,1000,1500].forEach(v=>{ const yy=y(v); ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.textAlign='right';ctx.fillText('$'+(v/1000).toFixed(1)+'k',pad.l-8,yy+4); });
+        [['Jun 1',0],['Jun 8',7],['Jun 15',14],['Jun 22',21],['Jun 30',29]].forEach(a=>{ctx.textAlign='center';ctx.fillText(a[0],x(a[1]),h-8);});
+        const grad=ctx.createLinearGradient(0,pad.t,0,h-pad.b); grad.addColorStop(0,'rgba(58,99,232,.24)');grad.addColorStop(1,'rgba(58,99,232,0)');
+        ctx.beginPath(); data.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.lineTo(x(29),h-pad.b);ctx.lineTo(x(0),h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+        ctx.beginPath(); data.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.strokeStyle='#3a63e8';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+        const lx=x(29),ly=y(data[29]);ctx.beginPath();ctx.arc(lx,ly,4.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#3a63e8';ctx.lineWidth=2.5;ctx.stroke();
+      }
+      addEventListener('resize',draw); draw();
+    })();
+  </script>
+</body>
+</html>

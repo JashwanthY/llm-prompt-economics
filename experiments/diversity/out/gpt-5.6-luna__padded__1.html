@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Northstar Goods — Shop analytics</title>
+  <style>
+    :root {
+      --color-ink: #17233c;
+      --color-muted: #647089;
+      --color-subtle: #647089;
+      --color-border: #e3e8f0;
+      --color-surface: #ffffff;
+      --color-canvas: #f5f7fb;
+      --color-navy: #16294f;
+      --color-blue: #2364d2;
+      --color-blue-soft: #e9f0ff;
+      --color-mint: #16836c;
+      --color-mint-soft: #e5f6f1;
+      --color-amber: #a45a08;
+      --color-amber-soft: #fff3df;
+      --color-red: #b43d4c;
+      --color-red-soft: #ffeaee;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --radius-sm: 0.5rem;
+      --radius-md: 0.875rem;
+      --radius-lg: 1.25rem;
+      --shadow-card: 0 0.25rem 1.5rem rgba(30, 50, 85, 0.06);
+      --focus-ring: 0 0 0 0.2rem rgba(35, 100, 210, 0.26);
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: 100%; }
+    body {
+      margin: 0;
+      min-width: 20rem;
+      color: var(--color-ink);
+      background: var(--color-canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 0.15rem solid var(--color-blue); outline-offset: 0.18rem; box-shadow: var(--focus-ring); }
+    .app-shell { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { padding: var(--space-6) var(--space-4); color: #eaf0ff; background: var(--color-navy); }
+    .brand { display: flex; gap: var(--space-3); align-items: center; padding: 0 var(--space-2) var(--space-8); }
+    .brand__mark { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; color: var(--color-navy); background: #9ce5d1; border-radius: 0.7rem; font-weight: 800; }
+    .brand__name { font-weight: 750; letter-spacing: -0.02em; }
+    .sidebar__label { margin: 0 var(--space-2) var(--space-2); color: #9eacc9; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .nav { display: grid; gap: var(--space-1); }
+    .nav__link { display: flex; align-items: center; gap: var(--space-3); padding: 0.68rem var(--space-3); color: #c2cce0; border-radius: var(--radius-sm); text-decoration: none; font-size: 0.9rem; }
+    .nav__link:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .nav__link--active { color: #fff; background: #294778; font-weight: 700; }
+    .nav__icon { display: inline-grid; place-items: center; width: 1.15rem; color: #9ce5d1; font-size: 1rem; }
+    .sidebar__footer { margin-top: auto; padding: var(--space-8) var(--space-2) 0; color: #aebad1; font-size: 0.78rem; }
+    .sidebar__footer strong { display: block; margin-bottom: var(--space-1); color: #fff; font-size: 0.85rem; }
+    .main-content { min-width: 0; padding: var(--space-8) clamp(1rem, 3vw, 3.5rem); }
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-8); }
+    .eyebrow { margin: 0 0 var(--space-1); color: var(--color-blue); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: var(--space-2); font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.15; letter-spacing: -0.035em; }
+    h2 { margin-bottom: var(--space-1); font-size: 1.05rem; letter-spacing: -0.015em; }
+    h3 { margin-bottom: var(--space-1); font-size: 0.93rem; }
+    .page-intro { margin: 0; color: var(--color-muted); font-size: 0.92rem; }
+    .topbar__actions { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .control-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .select-control, .button { min-height: 2.6rem; padding: 0.55rem 0.8rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-ink); font-size: 0.84rem; }
+    .select-control { padding-right: 2rem; cursor: pointer; }
+    .button { display: inline-flex; align-items: center; gap: var(--space-2); color: #fff; background: var(--color-blue); border-color: var(--color-blue); font-weight: 700; cursor: pointer; }
+    .button:hover { background: #1b51ad; border-color: #1b51ad; }
+    .button--quiet { color: var(--color-blue); background: transparent; border-color: transparent; }
+    .button--quiet:hover { background: var(--color-blue-soft); border-color: var(--color-blue-soft); }
+    .metric-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-4); margin-bottom: var(--space-4); }
+    .metric-card { grid-column: span 4; min-width: 0; padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-card); }
+    .metric-card__header { display: flex; justify-content: space-between; gap: var(--space-3); color: var(--color-muted); font-size: 0.82rem; font-weight: 650; }
+    .metric-card__icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-sm); font-size: 1rem; }
+    .metric-card__icon--blue { color: var(--color-blue); background: var(--color-blue-soft); }
+    .metric-card__icon--mint { color: var(--color-mint); background: var(--color-mint-soft); }
+    .metric-card__icon--amber { color: var(--color-amber); background: var(--color-amber-soft); }
+    .metric-card__value { margin: var(--space-4) 0 var(--space-2); font-size: clamp(1.65rem, 3vw, 2.1rem); font-weight: 780; letter-spacing: -0.05em; line-height: 1; }
+    .metric-card__detail { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: 0.78rem; }
+    .trend { display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 750; }
+    .trend--positive { color: var(--color-mint); }
+    .trend--neutral { color: var(--color-amber); }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(19rem, 0.9fr); gap: var(--space-4); }
+    .card { min-width: 0; padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-card); }
+    .card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+    .card__subtitle { margin: 0.2rem 0 0; color: var(--color-muted); font-size: 0.8rem; }
+    .chart-card { grid-column: 1 / -1; }
+    .chart-wrap { position: relative; min-height: 18rem; }
+    .chart { display: block; width: 100%; height: 18rem; overflow: visible; }
+    .chart__gridline { stroke: var(--color-border); stroke-width: 1; stroke-dasharray: 3 4; }
+    .chart__axis-label { fill: var(--color-subtle); font-size: 0.7rem; }
+    .chart__area { fill: url(#areaFill); }
+    .chart__line { fill: none; stroke: var(--color-blue); stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+    .chart__point { fill: var(--color-surface); stroke: var(--color-blue); stroke-width: 2; }
+    .chart__point:hover, .chart__point:focus { fill: var(--color-blue); outline: none; }
+    .chart-tooltip { position: absolute; display: none; min-width: 7.5rem; padding: var(--space-2) var(--space-3); color: #fff; background: var(--color-navy); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); font-size: 0.74rem; pointer-events: none; transform: translate(-50%, -115%); }
+    .chart-tooltip strong { display: block; font-size: 0.85rem; }
+    .chart-legend { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); color: var(--color-muted); font-size: 0.75rem; }
+    .chart-legend__swatch { width: 0.7rem; height: 0.7rem; background: var(--color-blue); border-radius: 50%; }
+    .product-list, .activity-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+    .product-item { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); }
+    .product-item__image { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; color: var(--color-blue); background: var(--color-blue-soft); border-radius: var(--radius-sm); font-size: 1.1rem; }
+    .product-item__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.83rem; font-weight: 700; }
+    .product-item__meta { margin: 0.1rem 0 0; color: var(--color-muted); font-size: 0.72rem; }
+    .product-item__units { color: var(--color-ink); font-size: 0.83rem; font-weight: 750; text-align: right; }
+    .activity-card { grid-column: span 5; }
+    .products-card { grid-column: span 7; }
+    .activity-item { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; }
+    .activity-item__icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; font-size: 0.9rem; }
+    .activity-item__icon--order { color: var(--color-blue); background: var(--color-blue-soft); }
+    .activity-item__icon--refund { color: var(--color-red); background: var(--color-red-soft); }
+    .activity-item__icon--review { color: var(--color-amber); background: var(--color-amber-soft); }
+    .activity-item__title { margin: 0; font-size: 0.79rem; font-weight: 720; }
+    .activity-item__detail, .activity-item__time { margin: 0.1rem 0 0; color: var(--color-muted); font-size: 0.72rem; }
+    .activity-item__time { white-space: nowrap; text-align: right; }
+    .card__footer { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+    .empty-state { padding: var(--space-6); color: var(--color-muted); text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .status-message { min-height: 1.3rem; margin: var(--space-3) 0 0; color: var(--color-mint); font-size: 0.8rem; font-weight: 650; }
+    @media (max-width: 60rem) {
+      .app-shell { grid-template-columns: 4.4rem minmax(0, 1fr); }
+      .sidebar { padding: var(--space-5) var(--space-2); }
+      .brand { justify-content: center; padding-bottom: var(--space-6); }
+      .brand__name, .sidebar__label, .sidebar__footer, .nav__link span:not(.nav__icon) { display: none; }
+      .nav__link { justify-content: center; padding: 0.75rem; }
+    }
+    @media (max-width: 47rem) {
+      .main-content { padding: var(--space-6) var(--space-4); }
+      .topbar { flex-direction: column; margin-bottom: var(--space-6); }
+      .topbar__actions { width: 100%; }
+      .topbar__actions > * { flex: 1; }
+      .metric-card { grid-column: span 12; }
+      .content-grid { grid-template-columns: 1fr; }
+      .chart-card, .activity-card, .products-card { grid-column: 1; }
+      .card { padding: var(--space-5); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand"><span class="brand__mark" aria-hidden="true">N</span><span class="brand__name">Northstar Goods</span></div>
+      <p class="sidebar__label">Workspace</p>
+      <nav class="nav" aria-label="Shop sections">
+        <a class="nav__link nav__link--active" href="#overview" aria-current="page"><span class="nav__icon" aria-hidden="true">⌂</span><span>Overview</span></a>
+        <a class="nav__link" href="#orders"><span class="nav__icon" aria-hidden="true">▤</span><span>Orders</span></a>
+        <a class="nav__link" href="#products"><span class="nav__icon" aria-hidden="true">◇</span><span>Products</span></a>
+        <a class="nav__link" href="#customers"><span class="nav__icon" aria-hidden="true">♧</span><span>Customers</span></a>
+      </nav>
+      <div class="sidebar__footer"><strong>Store status</strong><span>All systems operational</span></div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Tuesday, October 24, 2023</p>
+          <h1>Good morning, Jashwanth</h1>
+          <p class="page-intro">Here is how your shop is performing this month.</p>
+        </div>
+        <div class="topbar__actions">
+          <label class="control-label" for="period-select">Reporting period</label>
+          <select class="select-control" id="period-select" name="period">
+            <option value="month">October 2023</option>
+            <option value="quarter">Q4 2023</option>
+            <option value="year">2023</option>
+          </select>
+          <button class="button" id="export-button" type="button"><span aria-hidden="true">↓</span> Export report</button>
+        </div>
+      </header>
+
+      <section class="metric-grid" aria-label="Key performance indicators">
+        <article class="metric-card">
+          <div class="metric-card__header"><span>Total revenue</span><span class="metric-card__icon metric-card__icon--blue" aria-hidden="true">$</span></div>
+          <p class="metric-card__value">$48,296.40</p>
+          <p class="metric-card__detail"><span class="trend trend--positive"><span aria-hidden="true">↗</span> 12.8%</span><span>vs. $42,812.15 last month</span></p>
+        </article>
+        <article class="metric-card" id="orders">
+          <div class="metric-card__header"><span>Orders this week</span><span class="metric-card__icon metric-card__icon--mint" aria-hidden="true">▤</span></div>
+          <p class="metric-card__value">186</p>
+          <p class="metric-card__detail"><span class="trend trend--positive"><span aria-hidden="true">↗</span> 8.4%</span><span>vs. 171 last week</span></p>
+        </article>
+        <article class="metric-card">
+          <div class="metric-card__header"><span>Average order value</span><span class="metric-card__icon metric-card__icon--amber" aria-hidden="true">◈</span></div>
+          <p class="metric-card__value">$71.82</p>
+          <p class="metric-card__detail"><span class="trend trend--neutral"><span aria-hidden="true">→</span> 0.6%</span><span>vs. $71.39 last month</span></p>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="card chart-card" aria-labelledby="revenue-heading">
+          <div class="card__header">
+            <div><h2 id="revenue-heading">Revenue over time</h2><p class="card__subtitle">Daily net revenue · last 30 days</p></div>
+            <span class="trend trend--positive" aria-label="Revenue is up 12.8 percent">↗ 12.8%</span>
+          </div>
+          <div class="chart-wrap">
+            <svg class="chart" id="revenue-chart" viewBox="0 0 900 288" role="img" aria-labelledby="chart-title chart-description" preserveAspectRatio="none">
+              <title id="chart-title">Daily revenue for October 2023</title>
+              <desc id="chart-description">An interactive line chart showing daily revenue across the last 30 days.</desc>
+              <defs><linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#2364d2" stop-opacity="0.2"></stop><stop offset="100%" stop-color="#2364d2" stop-opacity="0"></stop></linearGradient></defs>
+              <g id="chart-grid" aria-hidden="true"></g><path class="chart__area" id="chart-area" aria-hidden="true"></path><path class="chart__line" id="chart-line" aria-hidden="true"></path><g id="chart-labels" aria-hidden="true"></g><g id="chart-points"></g>
+            </svg>
+            <div class="chart-tooltip" id="chart-tooltip" aria-hidden="true"></div>
+          </div>
+          <div class="chart-legend"><span class="chart-legend__swatch" aria-hidden="true"></span><span>Net revenue</span></div>
+          <p class="sr-only" id="chart-data-summary">Use the chart points to inspect each day's revenue.</p>
+        </section>
+
+        <section class="card products-card" id="products" aria-labelledby="products-heading">
+          <div class="card__header"><div><h2 id="products-heading">Best-selling products</h2><p class="card__subtitle">Units sold this month</p></div><button class="button button--quiet" id="view-products" type="button">View all <span aria-hidden="true">→</span></button></div>
+          <ol class="product-list" id="product-list"></ol>
+          <p class="status-message" id="product-status" aria-live="polite"></p>
+        </section>
+
+        <section class="card activity-card" aria-labelledby="activity-heading">
+          <div class="card__header"><div><h2 id="activity-heading">Recent activity</h2><p class="card__subtitle">The latest events from your store</p></div><span class="metric-card__icon metric-card__icon--mint" aria-hidden="true">●</span></div>
+          <ol class="activity-list" id="activity-list"></ol>
+          <div class="card__footer"><button class="button button--quiet" id="view-activity" type="button">View activity log <span aria-hidden="true">→</span></button></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const numberFormatter = new Intl.NumberFormat('en-US');
+      const chartDimensions = { width: 900, height: 288, left: 48, right: 18, top: 18, bottom: 34 };
+      const revenueData = [1420, 1685, 1510, 2030, 2190, 1875, 2460, 2310, 2580, 2390, 2785, 3110, 2950, 3340, 3180, 3525, 3690, 3410, 3890, 4045, 3780, 4260, 4515, 4380, 4620, 4890, 4710, 5125, 5360, 5485];
+      const products = [
+        { name: 'Aurora Ceramic Mug', category: 'Kitchen · $24', units: 384, symbol: '☕' },
+        { name: 'Field Notes Journal', category: 'Stationery · $18', units: 291, symbol: '▤' },
+        { name: 'Linen Market Tote', category: 'Accessories · $32', units: 244, symbol: '♧' },
+        { name: 'Cedar & Sage Candle', category: 'Home · $28', units: 198, symbol: '✦' },
+        { name: 'Alpine Wool Throw', category: 'Home · $86', units: 126, symbol: '▧' }
+      ];
+      const activities = [
+        { type: 'order', icon: '＋', title: 'New order #1048', detail: 'Maya Chen · $86.00', time: '12 min ago' },
+        { type: 'review', icon: '★', title: 'New 5-star review', detail: 'Aurora Ceramic Mug', time: '34 min ago' },
+        { type: 'order', icon: '＋', title: 'New order #1047', detail: 'Noah Williams · $42.00', time: '1 hr ago' },
+        { type: 'refund', icon: '↩', title: 'Refund processed', detail: 'Order #1041 · $28.00', time: '2 hrs ago' },
+        { type: 'order', icon: '＋', title: 'New order #1046', detail: 'Priya Shah · $118.00', time: '3 hrs ago' },
+        { type: 'review', icon: '★', title: 'New 4-star review', detail: 'Linen Market Tote', time: '5 hrs ago' },
+        { type: 'order', icon: '＋', title: 'New order #1045', detail: 'Liam O’Connor · $64.00', time: '6 hrs ago' },
+        { type: 'refund', icon: '↩', title: 'Refund processed', detail: 'Order #1039 · $18.00', time: 'Yesterday' }
+      ];
+
+      const elements = {
+        chart: document.getElementById('revenue-chart'),
+        grid: document.getElementById('chart-grid'),
+        area: document.getElementById('chart-area'),
+        line: document.getElementById('chart-line'),
+        labels: document.getElementById('chart-labels'),
+        points: document.getElementById('chart-points'),
+        tooltip: document.getElementById('chart-tooltip'),
+        products: document.getElementById('product-list'),
+        activities: document.getElementById('activity-list'),
+        status: document.getElementById('product-status'),
+        exportButton: document.getElementById('export-button'),
+        periodSelect: document.getElementById('period-select'),
+        viewProducts: document.getElementById('view-products'),
+        viewActivity: document.getElementById('view-activity')
+      };
+
+      const safeText = (value, fallback) => typeof value === 'string' && value.trim() ? value : fallback;
+      const formatCurrency = value => currencyFormatter.format(Number.isFinite(value) ? value : 0);
+
+      function renderProducts(items) {
+        if (!elements.products) return;
+        if (!Array.isArray(items) || items.length === 0) {
+          elements.products.innerHTML = '<li class="empty-state">No product sales recorded for this period.</li>';
+          return;
+        }
+        elements.products.innerHTML = items.map((product, index) => `
+          <li class="product-item">
+            <span class="product-item__image" aria-hidden="true">${safeText(product.symbol, '•')}</span>
+            <span><span class="product-item__name">${safeText(product.name, 'Unnamed product')}</span><span class="product-item__meta">${safeText(product.category, 'Product')}</span></span>
+            <span class="product-item__units"><span class="sr-only">Rank ${index + 1}, </span>${numberFormatter.format(Number(product.units) || 0)} units</span>
+          </li>`).join('');
+      }
+
+      function renderActivities(items) {
+        if (!elements.activities) return;
+        if (!Array.isArray(items) || items.length === 0) {
+          elements.activities.innerHTML = '<li class="empty-state">No recent activity.</li>';
+          return;
+        }
+        elements.activities.innerHTML = items.slice(0, 8).map(activity => `
+          <li class="activity-item">
+            <span class="activity-item__icon activity-item__icon--${safeText(activity.type, 'order')}" aria-hidden="true">${safeText(activity.icon, '•')}</span>
+            <span><span class="activity-item__title">${safeText(activity.title, 'Store update')}</span><span class="activity-item__detail">${safeText(activity.detail, 'No details available')}</span></span>
+            <time class="activity-item__time">${safeText(activity.time, 'Recently')}</time>
+          </li>`).join('');
+      }
+
+      function getChartPoints(values) {
+        const { width, height, left, right, top, bottom } = chartDimensions;
+        const plotWidth = width - left - right;
+        const plotHeight = height - top - bottom;
+        const maxValue = Math.max(...values, 1);
+        const roundedMax = Math.ceil(maxValue / 1000) * 1000;
+        return values.map((value, index) => ({
+          x: left + (index / Math.max(values.length - 1, 1)) * plotWidth,
+          y: top + plotHeight - (value / roundedMax) * plotHeight,
+          value,
+          date: `Oct ${index + 1}`
+        }));
+      }
+
+      function renderChart(values) {
+        if (!elements.chart || !elements.grid || !elements.area || !elements.line || !elements.labels || !elements.points || !Array.isArray(values) || values.length === 0) return;
+        const { width, height, left, right, top, bottom } = chartDimensions;
+        const points = getChartPoints(values);
+        const plotHeight = height - top - bottom;
+        const roundedMax = Math.ceil(Math.max(...values, 1) / 1000) * 1000;
+        const gridSteps = 4;
+        const gridLines = Array.from({ length: gridSteps + 1 }, (_, index) => {
+          const y = top + (plotHeight / gridSteps) * index;
+          const value = roundedMax - (roundedMax / gridSteps) * index;
+          return `<line class="chart__gridline" x1="${left}" x2="${width - right}" y1="${y}" y2="${y}"></line><text class="chart__axis-label" x="${left - 8}" y="${y + 4}" text-anchor="end">${formatCurrency(value).replace('.00', '')}</text>`;
+        }).join('');
+        elements.grid.innerHTML = gridLines;
+        const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
+        const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${height - bottom} L ${points[0].x.toFixed(2)} ${height - bottom} Z`;
+        elements.line.setAttribute('d', linePath);
+        elements.area.setAttribute('d', areaPath);
+        elements.labels.innerHTML = points.map((point, index) => index % 4 === 0 || index === points.length - 1 ? `<text class="chart__axis-label" x="${point.x}" y="${height - 8}" text-anchor="middle">${point.date}</text>` : '').join('');
+        elements.points.innerHTML = points.map((point, index) => `<circle class="chart__point" cx="${point.x}" cy="${point.y}" r="4.5" tabindex="0" role="img" aria-label="${point.date}: ${formatCurrency(point.value)}" data-index="${index}"></circle>`).join('');
+        elements.points.querySelectorAll('.chart__point').forEach(point => {
+          point.addEventListener('mouseenter', showTooltip);
+          point.addEventListener('focus', showTooltip);
+          point.addEventListener('mouseleave', hideTooltip);
+          point.addEventListener('blur', hideTooltip);
+        });
+      }
+
+      function showTooltip(event) {
+        const point = getChartPoints(revenueData)[Number(event.currentTarget.dataset.index)];
+        if (!point || !elements.tooltip || !elements.chart) return;
+        const chartRect = elements.chart.getBoundingClientRect();
+        const scaleX = chartRect.width / chartDimensions.width;
+        elements.tooltip.innerHTML = `<strong>${formatCurrency(point.value)}</strong><span>${point.date}, 2023</span>`;
+        elements.tooltip.style.display = 'block';
+        elements.tooltip.style.left = `${point.x * scaleX}px`;
+        elements.tooltip.style.top = `${point.y * (chartRect.height / chartDimensions.height)}px`;
+        elements.tooltip.setAttribute('aria-hidden', 'false');
+      }
+
+      function hideTooltip() {
+        if (!elements.tooltip) return;
+        elements.tooltip.style.display = 'none';
+        elements.tooltip.setAttribute('aria-hidden', 'true');
+      }
+
+      function announce(message) {
+        if (!elements.status) return;
+        elements.status.textContent = message;
+        window.setTimeout(() => { if (elements.status) elements.status.textContent = ''; }, 3500);
+      }
+
+      function bindInteractions() {
+        elements.exportButton?.addEventListener('click', () => announce('Report ready to download.'));
+        elements.viewProducts?.addEventListener('click', () => announce('Showing all products is not available in this sample view.'));
+        elements.viewActivity?.addEventListener('click', () => announce('You are viewing the eight most recent events.'));
+        elements.periodSelect?.addEventListener('change', event => announce(`Reporting period changed to ${event.target.options[event.target.selectedIndex].text}.`));
+      }
+
+      renderProducts(products);
+      renderActivities(activities);
+      renderChart(revenueData);
+      bindInteractions();
+    })();
+  </script>
+</body>
+</html>

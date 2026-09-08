@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Northstar — Shop analytics</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #fbfcfd;
+      --ink: #20252d;
+      --muted: #737b87;
+      --faint: #aeb5bf;
+      --line: #e8ebef;
+      --accent: #335cff;
+      --accent-soft: #edf1ff;
+      --green: #17966a;
+      --green-soft: #e9f8f1;
+      --orange: #d9822b;
+      --orange-soft: #fff4e8;
+      --red: #d65663;
+      --red-soft: #fff0f1;
+      --shadow: 0 10px 30px rgba(26, 37, 56, .045), 0 2px 7px rgba(26, 37, 56, .025);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .shell { display: flex; min-height: 100vh; }
+    aside {
+      width: 232px;
+      background: #fff;
+      border-right: 1px solid var(--line);
+      padding: 25px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand { display:flex; align-items:center; gap: 10px; padding: 0 12px 34px; font-weight: 700; letter-spacing: -.03em; font-size: 17px; }
+    .brand-mark { width: 27px; height: 27px; border-radius: 8px; background: var(--accent); display:grid; place-items:center; color:#fff; font-size: 15px; font-weight: 800; box-shadow: 0 4px 10px rgba(51,92,255,.22); }
+    nav { display: grid; gap: 5px; }
+    .nav-item { display:flex; align-items:center; gap: 12px; color: var(--muted); padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; }
+    .nav-item.active { color: var(--accent); background: var(--accent-soft); font-weight: 650; }
+    .nav-item svg { width: 17px; height:17px; stroke: currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .sidebar-bottom { margin-top:auto; border-top: 1px solid var(--line); padding: 17px 9px 0; }
+    .store { display:flex; align-items:center; gap: 10px; }
+    .store-avatar { width: 32px; height:32px; border-radius: 50%; background:#ffe7c8; color:#a8601d; display:grid; place-items:center; font-weight:700; font-size:12px; }
+    .store-name { font-size: 12px; font-weight: 650; }
+    .store-role { font-size:11px; color:var(--muted); margin-top:2px; }
+    main { flex:1; padding: 29px 38px 45px; max-width: 1500px; margin:0 auto; width:100%; }
+    .topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom: 27px; }
+    h1 { font-size: 25px; line-height:1.15; margin:0 0 6px; letter-spacing:-.045em; }
+    .subtitle { color:var(--muted); font-size:13px; }
+    .top-actions { display:flex; gap:9px; align-items:center; }
+    button { font:inherit; cursor:pointer; }
+    .period { background:var(--surface); border:1px solid var(--line); border-radius:7px; padding:9px 12px; color:#515963; font-size:12px; display:flex; align-items:center; gap:18px; }
+    .period svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:1.7; }
+    .export { border:0; border-radius:7px; background:var(--accent); color:#fff; padding:10px 14px; font-size:12px; font-weight:600; box-shadow:0 4px 10px rgba(51,92,255,.14); }
+    .metrics { display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom: 19px; }
+    .card { background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); }
+    .metric { min-height: 130px; padding: 19px 20px; display:flex; flex-direction:column; justify-content:space-between; }
+    .metric-label { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; font-weight:550; }
+    .metric-label svg { width:16px; height:16px; stroke:var(--faint); fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+    .metric-value { font-size:26px; line-height:1; letter-spacing:-.04em; font-weight:700; }
+    .metric-foot { font-size:11px; color:var(--muted); }
+    .up { color:var(--green); font-weight:650; margin-right:5px; }
+    .neutral { color:var(--accent); font-weight:650; margin-right:5px; }
+    .content-grid { display:grid; grid-template-columns: minmax(0, 1.5fr) minmax(310px, .85fr); gap:19px; align-items:start; }
+    .chart-card { padding: 20px 20px 16px; min-height:370px; }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 16px; }
+    .card-title { font-size:14px; font-weight:700; letter-spacing:-.01em; margin:0; }
+    .card-note { color:var(--muted); font-size:11px; margin-top:4px; }
+    .legend { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:11px; }
+    .legend-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); }
+    .chart-wrap { height:275px; position:relative; }
+    canvas { width:100%; height:100%; display:block; }
+    .products { padding:20px; min-height:370px; }
+    .view-all { color:var(--accent); text-decoration:none; font-size:11px; font-weight:600; }
+    .product-list { display:grid; gap: 2px; margin-top: 9px; }
+    .product { display:grid; grid-template-columns: 32px 1fr auto; gap:11px; align-items:center; padding: 10px 0; }
+    .product-rank { color:var(--faint); font-size:11px; text-align:center; }
+    .product-icon { width:32px; height:32px; border-radius:8px; display:grid; place-items:center; font-size:16px; background:#f1f2f5; }
+    .product:nth-child(2) .product-icon { background:#edf4fa; }
+    .product:nth-child(3) .product-icon { background:#fff2df; }
+    .product:nth-child(4) .product-icon { background:#f1ebf9; }
+    .product:nth-child(5) .product-icon { background:#eaf7f0; }
+    .product-name { font-weight:600; font-size:12px; }
+    .product-type { color:var(--muted); font-size:11px; margin-top:2px; }
+    .product-units { text-align:right; font-size:12px; font-weight:700; }
+    .product-units span { display:block; color:var(--muted); font-size:10px; font-weight:400; margin-top:2px; }
+    .bottom-grid { display:grid; grid-template-columns: minmax(0, 1.5fr) minmax(310px, .85fr); gap:19px; margin-top:19px; }
+    .activity { padding:20px; }
+    .activity-list { margin-top: 13px; display:grid; }
+    .activity-item { display:grid; grid-template-columns:30px 1fr auto; gap:11px; align-items:start; padding: 11px 0; border-bottom:1px solid #f0f1f3; }
+    .activity-item:last-child { border-bottom:0; padding-bottom:0; }
+    .activity-icon { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; }
+    .activity-icon svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .order { color:var(--accent); background:var(--accent-soft); } .refund { color:var(--red); background:var(--red-soft); } .review { color:var(--orange); background:var(--orange-soft); }
+    .activity-main { font-size:12px; color:#363d47; }
+    .activity-main strong { font-weight:650; }
+    .activity-sub { color:var(--muted); font-size:10.5px; margin-top:3px; }
+    .activity-time { color:var(--faint); font-size:10px; white-space:nowrap; padding-top:2px; }
+    .insights { padding:20px; }
+    .insight-box { background:var(--surface-soft); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:14px; }
+    .insight-top { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:650; }
+    .insight-badge { width:22px; height:22px; display:grid; place-items:center; border-radius:6px; background:var(--green-soft); color:var(--green); }
+    .insight-badge svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .insight-text { color:var(--muted); font-size:11px; line-height:1.55; margin:10px 0 0 30px; }
+    .mini-stats { margin-top:18px; display:grid; gap:13px; }
+    .mini-row { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+    .mini-row strong { color:var(--ink); font-weight:650; }
+    .progress { height:5px; border-radius:4px; background:#edf0f3; overflow:hidden; margin-top:7px; }
+    .progress i { display:block; height:100%; border-radius:4px; background:var(--accent); }
+    .progress.green i { background:var(--green); }
+    @media (max-width: 1020px) { aside { width:194px; } main { padding:25px; } .content-grid, .bottom-grid { grid-template-columns:1fr; } }
+    @media (max-width: 680px) { aside { display:none; } main { padding:22px 16px 35px; } .topbar { display:block; } .top-actions { margin-top:18px; } .metrics { grid-template-columns:1fr; } .period { flex:1; justify-content:space-between; } .export { flex:1; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="brand-mark">N</div> northstar</div>
+      <nav aria-label="Main navigation">
+        <a class="nav-item active" href="#"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M6 5h12v16H6z"/><path d="M9 3h6v4H9zM9 11h6M9 15h6"/></svg>Orders <span style="margin-left:auto;font-size:10px;color:var(--faint)">128</span></a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M8 7a4 4 0 0 1 8 0M8 11h.01M16 11h.01"/></svg>Products</a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>Analytics</a>
+        <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 8-8c-2.2 0-4.2.9-5.7 2.3L4 8"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg>Customers</a>
+      </nav>
+      <div class="sidebar-bottom"><div class="store"><div class="store-avatar">JM</div><div><div class="store-name">Juniper &amp; Moss</div><div class="store-role">Owner account</div></div><span style="margin-left:auto;color:var(--faint);font-size:16px">···</span></div></div>
+    </aside>
+    <main>
+      <header class="topbar"><div><h1>Good morning, Jamie</h1><div class="subtitle">Here’s what’s happening with your store.</div></div><div class="top-actions"><button class="period">May 1 – May 31, 2024 <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><button class="export">Export report</button></div></header>
+      <section class="metrics" aria-label="Key metrics">
+        <div class="card metric"><div class="metric-label">Total revenue <svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.4-1.8-2.5-4-2.5S9 6.1 9 7.5 10.3 9.6 13 10s4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5"/></svg></div><div class="metric-value">$24,680.50</div><div class="metric-foot"><span class="up">↑ 18.4%</span>vs. last month</div></div>
+        <div class="card metric"><div class="metric-label">Orders this week <svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h3"/></svg></div><div class="metric-value">128</div><div class="metric-foot"><span class="up">↑ 12.3%</span>vs. last week</div></div>
+        <div class="card metric"><div class="metric-label">Average order value <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div><div class="metric-value">$86.42</div><div class="metric-foot"><span class="neutral">↑ 4.8%</span>vs. last month</div></div>
+      </section>
+      <section class="content-grid">
+        <div class="card chart-card"><div class="card-header"><div><h2 class="card-title">Revenue over time</h2><div class="card-note">Daily revenue for the last 30 days</div></div><div class="legend"><i class="legend-dot"></i>Revenue</div></div><div class="chart-wrap"><canvas id="revenueChart" aria-label="Revenue over the last 30 days"></canvas></div></div>
+        <div class="card products"><div class="card-header"><div><h2 class="card-title">Best-selling products</h2><div class="card-note">By units sold this month</div></div><a class="view-all" href="#">View all</a></div><div class="product-list">
+          <div class="product"><div class="product-rank">01</div><div class="product-icon">🕯️</div><div><div class="product-name">Cedar &amp; Saffron Candle</div><div class="product-type">Home fragrance</div></div><div class="product-units">284<span>units</span></div></div>
+          <div class="product"><div class="product-rank">02</div><div class="product-icon">🧴</div><div><div class="product-name">Botanical Hand Wash</div><div class="product-type">Bath &amp; body</div></div><div class="product-units">231<span>units</span></div></div>
+          <div class="product"><div class="product-rank">03</div><div class="product-icon">🧺</div><div><div class="product-name">Linen Market Tote</div><div class="product-type">Accessories</div></div><div class="product-units">198<span>units</span></div></div>
+          <div class="product"><div class="product-rank">04</div><div class="product-icon">🪴</div><div><div class="product-name">Stoneware Planter</div><div class="product-type">Living</div></div><div class="product-units">174<span>units</span></div></div>
+          <div class="product"><div class="product-rank">05</div><div class="product-icon">🧼</div><div><div class="product-name">Oat Milk Soap Set</div><div class="product-type">Bath &amp; body</div></div><div class="product-units">152<span>units</span></div></div>
+        </div></div>
+      </section>
+      <section class="bottom-grid">
+        <div class="card activity"><div class="card-header"><div><h2 class="card-title">Recent activity</h2><div class="card-note">The latest updates from your store</div></div><a class="view-all" href="#">See all activity</a></div><div class="activity-list">
+          <div class="activity-item"><div class="activity-icon order"><svg viewBox="0 0 24 24"><path d="M5 7h14v13H5zM8 7a4 4 0 0 1 8 0"/></svg></div><div class="activity-main"><strong>New order #1048</strong> from Alex Morgan<div class="activity-sub">3 items · $126.00</div></div><div class="activity-time">12 min ago</div></div>
+          <div class="activity-item"><div class="activity-icon review"><svg viewBox="0 0 24 24"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></svg></div><div class="activity-main"><strong>New 5-star review</strong> for Cedar &amp; Saffron Candle<div class="activity-sub">“Smells incredible and burns so evenly.”</div></div><div class="activity-time">34 min ago</div></div>
+          <div class="activity-item"><div class="activity-icon order"><svg viewBox="0 0 24 24"><path d="M5 7h14v13H5zM8 7a4 4 0 0 1 8 0"/></svg></div><div class="activity-main"><strong>New order #1047</strong> from Priya Shah<div class="activity-sub">2 items · $74.50</div></div><div class="activity-time">1 hr ago</div></div>
+          <div class="activity-item"><div class="activity-icon refund"><svg viewBox="0 0 24 24"><path d="M9 7 5 11l4 4"/><path d="M5 11h9a5 5 0 0 1 5 5v1"/></svg></div><div class="activity-main"><strong>Refund issued</strong> for order #1039<div class="activity-sub">Linen Market Tote · −$38.00</div></div><div class="activity-time">2 hrs ago</div></div>
+          <div class="activity-item"><div class="activity-icon order"><svg viewBox="0 0 24 24"><path d="M5 7h14v13H5zM8 7a4 4 0 0 1 8 0"/></svg></div><div class="activity-main"><strong>New order #1046</strong> from Thomas Reed<div class="activity-sub">1 item · $42.00</div></div><div class="activity-time">3 hrs ago</div></div>
+          <div class="activity-item"><div class="activity-icon review"><svg viewBox="0 0 24 24"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></svg></div><div class="activity-main"><strong>New 4-star review</strong> for Stoneware Planter<div class="activity-sub">“Beautiful finish, exactly as pictured.”</div></div><div class="activity-time">5 hrs ago</div></div>
+          <div class="activity-item"><div class="activity-icon order"><svg viewBox="0 0 24 24"><path d="M5 7h14v13H5zM8 7a4 4 0 0 1 8 0"/></svg></div><div class="activity-main"><strong>New order #1045</strong> from Mia Chen<div class="activity-sub">4 items · $158.00</div></div><div class="activity-time">6 hrs ago</div></div>
+          <div class="activity-item"><div class="activity-icon refund"><svg viewBox="0 0 24 24"><path d="M9 7 5 11l4 4"/><path d="M5 11h9a5 5 0 0 1 5 5v1"/></svg></div><div class="activity-main"><strong>Refund issued</strong> for order #1032<div class="activity-sub">Oat Milk Soap Set · −$24.00</div></div><div class="activity-time">Yesterday</div></div>
+        </div></div>
+        <div class="card insights"><div class="card-header"><div><h2 class="card-title">Store snapshot</h2><div class="card-note">A quick look at your performance</div></div></div><div class="insight-box"><div class="insight-top"><span class="insight-badge"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>Revenue is trending up</div><p class="insight-text">Your daily average is <strong>$822</strong>, 18% higher than the same period last month.</p></div><div class="mini-stats"><div><div class="mini-row"><span>Returning customers</span><strong>38%</strong></div><div class="progress"><i style="width:38%"></i></div></div><div><div class="mini-row"><span>Checkout conversion</span><strong>4.6%</strong></div><div class="progress green"><i style="width:46%"></i></div></div><div class="mini-row"><span>Average fulfillment time</span><strong>1.4 days</strong></div></div></div>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      const canvas = document.getElementById('revenueChart');
+      const ctx = canvas.getContext('2d');
+      const data = [540, 610, 575, 720, 680, 790, 845, 760, 690, 735, 810, 915, 870, 940, 805, 760, 820, 900, 985, 910, 1040, 970, 1130, 1080, 1185, 1030, 1120, 1210, 1140, 1270];
+      const labels = ['May 2', 'May 7', 'May 12', 'May 17', 'May 22', 'May 27', 'May 31'];
+      function draw() {
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * ratio; canvas.height = rect.height * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const w = rect.width, h = rect.height;
+        const pad = { left: 42, right: 12, top: 13, bottom: 31 };
+        const chartW = w - pad.left - pad.right, chartH = h - pad.top - pad.bottom;
+        const min = 400, max = 1400;
+        const x = i => pad.left + (i / (data.length - 1)) * chartW;
+        const y = v => pad.top + (1 - (v - min) / (max - min)) * chartH;
+        ctx.clearRect(0, 0, w, h);
+        ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+        ctx.fillStyle = '#9aa2ad'; ctx.textAlign = 'right';
+        [1400, 1100, 800, 500].forEach(v => { const yy = y(v); ctx.fillText('$' + (v / 1000).toFixed(1) + 'k', pad.left - 10, yy + 3); ctx.strokeStyle = '#eef0f3'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke(); });
+        ctx.textAlign = 'center'; ctx.fillStyle = '#9aa2ad';
+        labels.forEach((label, i) => { const xx = pad.left + (i / (labels.length - 1)) * chartW; ctx.fillText(label, xx, h - 9); });
+        ctx.beginPath(); data.forEach((v, i) => { const xx = x(i), yy = y(v); i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }); ctx.lineTo(x(data.length - 1), pad.top + chartH); ctx.lineTo(x(0), pad.top + chartH); ctx.closePath();
+        const gradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH); gradient.addColorStop(0, 'rgba(51,92,255,.18)'); gradient.addColorStop(1, 'rgba(51,92,255,.015)'); ctx.fillStyle = gradient; ctx.fill();
+        ctx.beginPath(); data.forEach((v, i) => { const xx = x(i), yy = y(v); i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }); ctx.strokeStyle = '#335cff'; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+        const lastX = x(data.length - 1), lastY = y(data[data.length - 1]); ctx.beginPath(); ctx.arc(lastX, lastY, 4, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#335cff'; ctx.lineWidth = 2; ctx.stroke();
+      }
+      draw(); window.addEventListener('resize', draw);
+    })();
+  </script>
+</body>
+</html>
