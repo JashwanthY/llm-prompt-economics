@@ -1,13 +1,19 @@
 """Diversity runner, through LangChain Deep Agents like every other experiment."""
-import json, os, pathlib, sys, time
+import json, os, os, pathlib, sys, time
 
-ENV = "/path/to/your/.env"
-for line in open(ENV, encoding="utf-8", errors="replace"):
-    line = line.strip().lstrip("﻿")
-    if line and not line.startswith("#") and "=" in line:
-        k, _, v = line.partition("=")
-        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-
+# Credentials come from OPENAI_API_KEY, or from a .env file named by
+# OPENAI_ENV_FILE. The loader strips CRLF, because a .env saved with Windows
+# line endings leaves a trailing \r on the key and the API rejects it with no
+# useful error.
+ENV = os.environ.get("OPENAI_ENV_FILE", "")
+if ENV and pathlib.Path(ENV).exists():
+    for line in open(ENV, encoding="utf-8", errors="replace"):
+        line = line.strip().lstrip("\ufeff")
+        if line and not line.startswith("#") and "=" in line:
+            k, _, v = line.partition("=")
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+if not os.environ.get("OPENAI_API_KEY"):
+    raise SystemExit("set OPENAI_API_KEY, or OPENAI_ENV_FILE to a .env containing it")
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE))
 from design import ARMS, MODELS, TRIALS, EFFORT, PROMPT   # noqa: E402
