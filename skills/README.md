@@ -18,6 +18,6 @@ That skill predates the others and rests on a different study. Two of its
 headline effect sizes should be treated as unreliable until re-derived: on
 inspection, one rule's control arm scored 0.000 on all 15 models measured, so
 its reported effect is determined by the arm's construction rather than by the
-model, and a second shows the same pattern on 9 of 15. The advice in it is
-mostly sound; the specific numbers are not, and are being repaired. Prefer
+model, and a second shows the same pattern on 9 of 15. Both effect sizes have now been withdrawn from the skill and marked
+directional; the advice they supported is retained on its own reasoning. Prefer
 `prompt-contract` for guidance on what to include.
