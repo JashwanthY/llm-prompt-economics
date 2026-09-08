@@ -114,10 +114,13 @@ for m, wo, ws in (("gpt-5.6-luna", .38, .38), ("gpt-5.6-terra", .19, .09)):
     claim(near(pct(A["out_tokens"], D["out_tokens"]), wo, .006) and near(pct(A["secs"], D["secs"]), ws, .006),
           f"skill pilot {m.split('-')[-1]}: tokens {wo:+.0%}, latency {ws:+.0%}")
     claim(A["in_tokens"] == 7293 and D["in_tokens"] == 19829, "skill pilot input tokens 7,293 -> 19,829")
-lines = lambda f: sum(1 for _ in open(ROOT / "skill-bloat/variants" / f))
-claim(lines("A_contracts.md") == 154 and lines("D_full.md") == 843, "skill variants are 154 and 843 lines")
-words = lambda f: len(open(ROOT / "skill-bloat/variants" / f).read().split())
-claim(words("D_full.md") == 6282, f"full skill is 6,282 words ({words('D_full.md')})")
+# The skill itself is third-party and not redistributed (see the paper's
+# data-availability section); its measured shape is recorded in PROFILE.json.
+prof = json.load(open(ROOT / "skill-bloat/variants/PROFILE.json"))
+claim(prof["A_contracts"]["lines"] == 154 and prof["D_full"]["lines"] == 843, "skill variants are 154 and 843 lines")
+claim(prof["D_full"]["words"] == 6282 and prof["A_contracts"]["words"] == 1355, "6,282 words full, 1,355 contracts-only")
+claim(prof["D_full"]["lines_in_code_fences"] == 458 and prof["D_full"]["headings"] == 16, "458 fenced lines, 16 headings")
+claim(sum(prof["D_full"]["pressure_words"].values()) == 30, f"30 imperative directives ({sum(prof['D_full']['pressure_words'].values())})")
 
 # ---------------------------------------------------------------- compliance
 cfiles = sorted((ROOT / "compliance/out").glob("*.html"))
