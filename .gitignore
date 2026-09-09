@@ -1,6 +1,4 @@
 
-# Third-party material: the production skill this study measures belongs to its
-# authors and is not redistributed here. Place local copies in private/.
 *.egg-info/
 *.py[cod]
 .DS_Store
@@ -10,8 +8,6 @@
 .venv/
 __pycache__/
 data/cache*/
-experiments/skill-bloat/variants/*.md
-!experiments/skill-bloat/variants/README.md
 node_modules/
 paper/*.aux
 paper/*.bbl
@@ -20,5 +16,4 @@ paper/*.log
 paper/*.out
 paper/*.xdv
 paper/figures/_review/
-private/
 venv/

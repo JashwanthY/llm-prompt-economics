@@ -1,0 +1,14 @@
+{
+  "full": {
+    "lines": 1138,
+    "words": 5840,
+    "lines_in_code_fences": 520,
+    "headings": 50
+  },
+  "contracts": {
+    "lines": 153,
+    "words": 1094,
+    "lines_in_code_fences": 0,
+    "headings": 13
+  }
+}

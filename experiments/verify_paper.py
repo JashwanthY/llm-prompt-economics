@@ -108,19 +108,28 @@ claim(all(4 <= t <= 6 for v in turns.values() for t in v) and len(da) == 20, "ag
 claim(len(json.load(open(ROOT / "bloat-pilot/runlog.json"))) == 16, "direct pilot n=4 per cell (16 runs)")
 bp = load("bloat_prompts", "bloat-pilot/prompts.py")
 claim(len(bp.PADDING.split()) == 429, f"pilot guidance is 429 words ({len(bp.PADDING.split())})")
-sk = {(r["model"], r["arm"]): r for r in json.load(open(ROOT / "skill-bloat/runlog.json"))}
-for m, wo, ws in (("gpt-5.6-luna", .38, .38), ("gpt-5.6-terra", .19, .09)):
-    A, D = sk[(m, "A_contracts")], sk[(m, "D_full")]
-    claim(near(pct(A["out_tokens"], D["out_tokens"]), wo, .006) and near(pct(A["secs"], D["secs"]), ws, .006),
-          f"skill pilot {m.split('-')[-1]}: tokens {wo:+.0%}, latency {ws:+.0%}")
-    claim(A["in_tokens"] == 7293 and D["in_tokens"] == 19829, "skill pilot input tokens 7,293 -> 19,829")
-# The skill itself is third-party and not redistributed (see the paper's
-# data-availability section); its measured shape is recorded in PROFILE.json.
-prof = json.load(open(ROOT / "skill-bloat/variants/PROFILE.json"))
-claim(prof["A_contracts"]["lines"] == 154 and prof["D_full"]["lines"] == 843, "skill variants are 154 and 843 lines")
-claim(prof["D_full"]["words"] == 6282 and prof["A_contracts"]["words"] == 1355, "6,282 words full, 1,355 contracts-only")
-claim(prof["D_full"]["lines_in_code_fences"] == 458 and prof["D_full"]["headings"] == 16, "458 fenced lines, 16 headings")
-claim(sum(prof["D_full"]["pressure_words"].values()) == 30, f"30 imperative directives ({sum(prof['D_full']['pressure_words'].values())})")
+# The third-party skill pilot is withdrawn; experiments/longskill replaces it
+# with an artifact composed for this study, at n=3 rather than n=1.
+ls_ = json.load(open(ROOT / "longskill/runlog.json"))
+lb = collections.defaultdict(list)
+for r in ls_:
+    lb[r["arm"]].append(r)
+claim(len(ls_) == 12 and all(len(lb[a]) == 6 for a in ("contracts", "full")),
+      "longskill: 12 interleaved runs, 6 per arm")
+lm = lambda a, k: st.mean(x[k] for x in lb[a])
+claim(near(pct(lm("contracts", "out_tokens"), lm("full", "out_tokens")), .04, .006), "skill scale +4% output tokens")
+claim(near(pct(lm("contracts", "secs"), lm("full", "secs")), .03, .006), "skill scale +3% latency")
+lp = {(x["arm"], x["model"], x["trial"]): x for x in ls_}
+lk = sorted({(m_, t) for (_, m_, t) in lp})
+claim(sum(lp[("full", *k)]["out_tokens"] > lp[("contracts", *k)]["out_tokens"] for k in lk) == 4,
+      "skill scale: output rose in 4 of 6 paired cells")
+for mod, want in (("gpt-5.6-luna", .11), ("gpt-5.6-terra", -.01)):
+    f = lambda a: st.mean(x["out_tokens"] for x in lb[a] if x["model"] == mod)
+    claim(near(pct(f("contracts"), f("full")), want, .006), f"skill scale {mod.split('-')[-1]} {want:+.0%}")
+_ld = load("longskill_design", "longskill/design.py")
+fw, cw = len(_ld.ARMS["full"].split()), len(_ld.ARMS["contracts"].split())
+claim(fw == 5840 and cw == 1094, f"skill arms 5,840 vs 1,094 words ({fw} vs {cw})")
+claim(_ld.TASK == dose_design.TASK_TABLE, "skill scale uses the dose table task verbatim")
 
 # ---------------------------------------------------------------- compliance
 cfiles = sorted((ROOT / "compliance/out").glob("*.html"))
@@ -269,11 +278,11 @@ claim(near(am("minimal", "out_tokens"), 5114, 1) and near(am("minimal", "secs"),
 
 # ---------------------------------------------------------------- totals
 runs = {d: json.load(open(ROOT / d / "runlog.json")) for d in
-        ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol", "diversity", "skill-bloat", "rulescost")}
+        ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol", "diversity", "rulescost", "longskill")}
 total = sum(len(v) for v in runs.values())
-claim(total == 190, f"190 runs total ({total})")
+claim(total == 198, f"198 runs total ({total})")
 spend = sum(r.get("in_tokens", 0) for v in runs.values() for r in v) / 1e6 * 1.25 + sum(r.get("out_tokens", 0) for v in runs.values() for r in v) / 1e6 * 10
-claim(near(spend, 16.28, .015), f"total spend $16.28 (${spend:.2f})")
+claim(near(spend, 18.12, .015), f"total spend $18.12 (${spend:.2f})")
 
 print(f"\n{len(fails)} mismatch(es)")
 sys.exit(1 if fails else 0)

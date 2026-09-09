@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Directory</title>
+  <style>
+    :root {
+      --ds-bg: #f4f7fb;
+      --ds-surface: #ffffff;
+      --ds-surface-muted: #eef3f8;
+      --ds-border: #d8e0ea;
+      --ds-text: #172231;
+      --ds-text-muted: #5d6b7a;
+      --ds-primary: #2457a6;
+      --ds-primary-dark: #173d78;
+      --ds-focus: #e3a008;
+      --ds-success: #176b43;
+      --ds-danger: #a63030;
+      --ds-shadow: 0 0.35rem 1.3rem rgba(23, 34, 49, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--ds-bg);
+      color: var(--ds-text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    main { width: min(76rem, calc(100% - 2rem)); margin: 2rem auto; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 0.35rem; font-size: clamp(1.55rem, 3vw, 2.25rem); }
+    .ds-page__intro { color: var(--ds-text-muted); margin-bottom: 1.5rem; }
+    .ds-stack { display: grid; gap: 1rem; }
+    .ds-toolbar, .ds-filterbar, .ds-grid, .ds-pager, .ds-export {
+      background: var(--ds-surface);
+      border: 1px solid var(--ds-border);
+      border-radius: 0.7rem;
+      box-shadow: var(--ds-shadow);
+    }
+    .ds-toolbar, .ds-filterbar { padding: 1rem 1.15rem; }
+    .ds-toolbar__head, .ds-filterbar__head, .ds-grid__head, .ds-pager__head, .ds-export__head {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .ds-toolbar__title, .ds-filterbar__title, .ds-grid__title, .ds-pager__title, .ds-export__title {
+      margin: 0; font-size: 1rem;
+    }
+    .ds-toolbar__body, .ds-filterbar__body { margin-top: 0.8rem; }
+    .ds-toolbar__actions, .ds-filterbar__actions, .ds-export__actions { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
+    label { font-weight: 600; }
+    input[type="search"] {
+      width: min(100%, 25rem); padding: 0.65rem 0.75rem; border: 1px solid var(--ds-border);
+      border-radius: 0.45rem; color: var(--ds-text); background: var(--ds-surface);
+      font: inherit;
+    }
+    input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--ds-primary); vertical-align: middle; }
+    button {
+      padding: 0.58rem 0.8rem; border: 1px solid var(--ds-primary); border-radius: 0.45rem;
+      background: var(--ds-primary); color: var(--ds-surface); cursor: pointer; font: inherit; font-weight: 650;
+    }
+    button:hover:not(:disabled) { background: var(--ds-primary-dark); }
+    button:disabled { cursor: not-allowed; opacity: 0.52; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--ds-focus); outline-offset: 2px; }
+    .ds-grid { overflow: hidden; }
+    .ds-grid__head { padding: 1rem 1.15rem; border-bottom: 1px solid var(--ds-border); }
+    .ds-grid__body { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 47rem; }
+    th, td { padding: 0.78rem 1rem; text-align: left; border-bottom: 1px solid var(--ds-border); white-space: nowrap; }
+    th { background: var(--ds-surface-muted); color: var(--ds-text); font-size: 0.9rem; }
+    th button { padding: 0; border: 0; background: transparent; color: var(--ds-primary-dark); font-weight: 750; }
+    th button:hover:not(:disabled) { background: transparent; text-decoration: underline; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--ds-surface-muted); }
+    .ds-grid__foot, .ds-pager, .ds-export { padding: 0.85rem 1.15rem; }
+    .ds-grid__foot { border-top: 1px solid var(--ds-border); color: var(--ds-text-muted); font-size: 0.92rem; }
+    .ds-pager__body { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+    .ds-pager__status { min-width: 7rem; text-align: center; color: var(--ds-text-muted); }
+    .ds-export { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .ds-export__body { color: var(--ds-text-muted); }
+    .ds-status--active { color: var(--ds-success); font-weight: 700; }
+    .ds-status--inactive { color: var(--ds-danger); font-weight: 700; }
+    .ds-empty { padding: 2rem 1rem; text-align: center; color: var(--ds-text-muted); }
+    .ds-empty__title { margin-bottom: 0.25rem; font-size: 1rem; color: var(--ds-text); }
+    .ds-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    @media (max-width: 38rem) {
+      main { width: min(100% - 1rem, 76rem); margin: 1rem auto; }
+      .ds-export { align-items: stretch; }
+      .ds-export button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Employee Directory</h1>
+    <p class="ds-page__intro">Browse employee details, filter the directory, and export the current results.</p>
+    <div class="ds-stack">
+      <section class="ds-toolbar" data-component="Toolbar" data-state="ready" aria-labelledby="ds-toolbar-title">
+        <header class="ds-toolbar__head">
+          <h2 class="ds-toolbar__title" id="ds-toolbar-title">Directory controls</h2>
+          <div class="ds-toolbar__actions" data-role="toolbar-actions"></div>
+        </header>
+        <div class="ds-toolbar__body" data-role="toolbar-actions">
+          <label for="ds-search">Search name or department</label>
+          <input id="ds-search" data-testid="employee-search" type="search" autocomplete="off" placeholder="e.g. Engineering">
+          <label><input id="ds-active-only" data-testid="active-only" type="checkbox"> Active only</label>
+        </div>
+        <p class="ds-live" aria-live="polite" hidden></p>
+      </section>
+
+      <section class="ds-grid" data-component="DataGrid" data-state="ready" aria-labelledby="ds-grid-title">
+        <header class="ds-grid__head">
+          <h2 class="ds-grid__title" id="ds-grid-title">Employees</h2>
+          <div class="ds-grid__actions" data-role="grid-actions"></div>
+        </header>
+        <div class="ds-grid__body" data-role="grid-rows">
+          <table>
+            <thead>
+              <tr id="ds-grid-header-row">
+                <th scope="col"><button data-testid="sort-name" data-sort="name" type="button">Name <span aria-hidden="true"></span></button></th>
+                <th scope="col"><button data-testid="sort-department" data-sort="department" type="button">Department <span aria-hidden="true"></span></button></th>
+                <th scope="col"><button data-testid="sort-salary" data-sort="salary" type="button">Salary <span aria-hidden="true"></span></button></th>
+                <th scope="col"><button data-testid="sort-start-date" data-sort="startDate" type="button">Start date <span aria-hidden="true"></span></button></th>
+                <th scope="col"><button data-testid="sort-active" data-sort="active" type="button">Status <span aria-hidden="true"></span></button></th>
+              </tr>
+            </thead>
+            <tbody id="ds-grid-table-body"></tbody>
+          </table>
+          <section class="ds-empty" data-component="EmptyState" data-state="empty" aria-labelledby="ds-empty-title" hidden>
+            <h3 class="ds-empty__title" id="ds-empty-title">No employees found</h3>
+            <div data-role="empty-message">Try changing the filters.</div>
+          </section>
+        </div>
+        <p class="ds-live" aria-live="polite" hidden></p>
+        <footer class="ds-grid__foot" id="ds-grid-count">Showing 0-0 of 0</footer>
+      </section>
+
+      <section class="ds-pager" data-component="Pager" data-state="ready" aria-labelledby="ds-pager-title">
+        <header class="ds-pager__head"><h2 class="ds-pager__title" id="ds-pager-title">Pagination</h2><div data-role="pager-actions"></div></header>
+        <div class="ds-pager__body" data-role="pager-pages">
+          <button data-testid="previous-page" id="ds-pager-previous" type="button">Previous</button>
+          <span class="ds-pager__status" id="ds-pager-status" aria-live="polite">Page 1 of 1</span>
+          <button data-testid="next-page" id="ds-pager-next" type="button">Next</button>
+        </div>
+        <p class="ds-live" aria-live="polite" hidden></p>
+      </section>
+
+      <section class="ds-export" data-component="ExportMenu" data-state="ready" aria-labelledby="ds-export-title">
+        <header class="ds-export__head"><h2 class="ds-export__title" id="ds-export-title">Export</h2><div class="ds-export__actions" data-role="export-actions"></div></header>
+        <div class="ds-export__body" data-role="export-formats">Exports all rows matching the current filters.</div>
+        <button data-testid="export-csv" id="ds-export-csv" type="button">Export CSV</button>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+    const employees = [
+      { name: 'Maya Patel', department: 'Engineering', salary: 128000, startDate: '2020-02-17', active: true },
+      { name: 'Liam Chen', department: 'Sales', salary: 97000, startDate: '2021-06-01', active: true },
+      { name: 'Sofia Martinez', department: 'Support', salary: 76000, startDate: '2019-09-23', active: true },
+      { name: 'Noah Williams', department: 'Design', salary: 104000, startDate: '2022-01-10', active: true },
+      { name: 'Ava Thompson', department: 'Engineering', salary: 139000, startDate: '2018-04-30', active: false },
+      { name: 'Ethan Brown', department: 'Sales', salary: 91000, startDate: '2023-03-13', active: true },
+      { name: 'Isabella Garcia', department: 'Support', salary: 82000, startDate: '2020-11-02', active: true },
+      { name: 'Oliver Davis', department: 'Design', salary: 112000, startDate: '2017-08-21', active: false },
+      { name: 'Amelia Wilson', department: 'Engineering', salary: 121000, startDate: '2021-10-18', active: true },
+      { name: 'James Anderson', department: 'Sales', salary: 108000, startDate: '2019-01-07', active: true },
+      { name: 'Harper Thomas', department: 'Support', salary: 73500, startDate: '2022-07-25', active: true },
+      { name: 'Benjamin Moore', department: 'Design', salary: 99000, startDate: '2020-05-11', active: true },
+      { name: 'Evelyn Jackson', department: 'Engineering', salary: 146000, startDate: '2016-12-05', active: false },
+      { name: 'Lucas Martin', department: 'Sales', salary: 88000, startDate: '2022-09-12', active: true },
+      { name: 'Camila Lee', department: 'Support', salary: 79500, startDate: '2021-02-08', active: true },
+      { name: 'Henry Perez', department: 'Design', salary: 117000, startDate: '2018-10-29', active: true },
+      { name: 'Elizabeth Harris', department: 'Engineering', salary: 133000, startDate: '2019-07-15', active: true },
+      { name: 'Alexander Clark', department: 'Sales', salary: 102000, startDate: '2020-08-24', active: false },
+      { name: 'Luna Lewis', department: 'Support', salary: 84500, startDate: '2023-01-16', active: true },
+      { name: 'Daniel Robinson', department: 'Design', salary: 108500, startDate: '2021-11-29', active: true },
+      { name: 'Mia Walker', department: 'Engineering', salary: 126500, startDate: '2022-04-04', active: true },
+      { name: 'Michael Hall', department: 'Sales', salary: 115000, startDate: '2017-03-20', active: false },
+      { name: 'Nora Allen', department: 'Support', salary: 78000, startDate: '2019-11-18', active: true },
+      { name: 'Sebastian Young', department: 'Design', salary: 101500, startDate: '2023-05-22', active: true }
+    ];
+
+    const state = { query: '', activeOnly: false, page: 1, sortKey: null, sortDirection: 'asc' };
+    const pageSize = 10;
+    const search = document.getElementById('ds-search');
+    const activeOnly = document.getElementById('ds-active-only');
+    const tableBody = document.getElementById('ds-grid-table-body');
+    const emptyState = document.querySelector('[data-component="EmptyState"]');
+    const countLine = document.getElementById('ds-grid-count');
+    const pageStatus = document.getElementById('ds-pager-status');
+    const previousButton = document.getElementById('ds-pager-previous');
+    const nextButton = document.getElementById('ds-pager-next');
+
+    const formatCurrency = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    const formatDate = value => new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(value + 'T00:00:00Z'));
+    const filteredEmployees = () => {
+      const query = state.query.trim().toLowerCase();
+      return employees.filter(employee => {
+        const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+        return matchesText && (!state.activeOnly || employee.active);
+      });
+    };
+    const sortedEmployees = records => {
+      if (!state.sortKey) return records;
+      return [...records].sort((first, second) => {
+        const firstValue = first[state.sortKey];
+        const secondValue = second[state.sortKey];
+        let comparison;
+        if (typeof firstValue === 'string') comparison = firstValue.localeCompare(secondValue);
+        else comparison = firstValue === secondValue ? 0 : (firstValue > secondValue ? 1 : -1);
+        return state.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    };
+
+    function updateSortLabels() {
+      document.querySelectorAll('[data-sort]').forEach(button => {
+        const indicator = button.querySelector('span');
+        const selected = button.dataset.sort === state.sortKey;
+        indicator.textContent = selected ? (state.sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+        button.setAttribute('aria-label', `${button.textContent.trim().replace(/[▲▼]/g, '').trim()}${selected ? `, sorted ${state.sortDirection}ending` : ', sort'}`);
+      });
+    }
+    function render() {
+      const filtered = sortedEmployees(filteredEmployees());
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      state.page = Math.min(state.page, totalPages);
+      const startIndex = (state.page - 1) * pageSize;
+      const visible = filtered.slice(startIndex, startIndex + pageSize);
+      tableBody.replaceChildren();
+      visible.forEach(employee => {
+        const row = document.createElement('tr');
+        [employee.name, employee.department, formatCurrency(employee.salary), formatDate(employee.startDate)].forEach(value => {
+          const cell = document.createElement('td');
+          cell.textContent = value;
+          row.appendChild(cell);
+        });
+        const statusCell = document.createElement('td');
+        statusCell.textContent = employee.active ? 'Active' : 'Inactive';
+        statusCell.className = employee.active ? 'ds-status--active' : 'ds-status--inactive';
+        row.appendChild(statusCell);
+        tableBody.appendChild(row);
+      });
+      emptyState.hidden = filtered.length !== 0;
+      const shownStart = filtered.length ? startIndex + 1 : 0;
+      const shownEnd = filtered.length ? startIndex + visible.length : 0;
+      countLine.textContent = `Showing ${shownStart}-${shownEnd} of ${filtered.length}`;
+      pageStatus.textContent = `Page ${state.page} of ${totalPages}`;
+      previousButton.disabled = state.page === 1;
+      nextButton.disabled = state.page === totalPages;
+      updateSortLabels();
+    }
+
+    search.addEventListener('input', event => { state.query = event.target.value; state.page = 1; render(); });
+    activeOnly.addEventListener('change', event => { state.activeOnly = event.target.checked; state.page = 1; render(); });
+    document.querySelectorAll('[data-sort]').forEach(button => button.addEventListener('click', () => {
+      const nextKey = button.dataset.sort;
+      state.sortDirection = state.sortKey === nextKey && state.sortDirection === 'asc' ? 'desc' : 'asc';
+      state.sortKey = nextKey;
+      render();
+    }));
+    previousButton.addEventListener('click', () => { if (state.page > 1) { state.page -= 1; render(); } });
+    nextButton.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filteredEmployees().length / pageSize)); if (state.page < totalPages) { state.page += 1; render(); } });
+
+    document.getElementById('ds-export-csv').addEventListener('click', () => {
+      const records = sortedEmployees(filteredEmployees());
+      const headers = ['Name', 'Department', 'Salary', 'Start Date', 'Active'];
+      const escapeCsv = value => { const text = String(value); return /[,"\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; };
+      const lines = [headers, ...records.map(employee => [employee.name, employee.department, employee.salary, employee.startDate, employee.active])];
+      const csv = lines.map(line => line.map(escapeCsv).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'employees.csv';
+      link.dataset.testid = 'csv-download-link';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee directory</title>
+  <style>
+    :root {
+      --ds-canvas: #f4f7fb;
+      --ds-surface: #ffffff;
+      --ds-text: #172033;
+      --ds-muted: #58647a;
+      --ds-border: #d8e0eb;
+      --ds-accent: #2359d1;
+      --ds-accent-strong: #1644af;
+      --ds-accent-soft: #e8efff;
+      --ds-focus: #f0a000;
+      --ds-success: #18794e;
+      --ds-shadow: rgba(23, 32, 51, 0.12);
+      --ds-radius: 0.75rem;
+      --ds-space-1: 0.5rem;
+      --ds-space-2: 0.75rem;
+      --ds-space-3: 1rem;
+      --ds-space-4: 1.5rem;
+      --ds-space-5: 2rem;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--ds-canvas);
+      color: var(--ds-text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 0.1875rem solid var(--ds-focus);
+      outline-offset: 0.125rem;
+    }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    .app-shell { max-width: 76rem; margin: 0 auto; padding: var(--ds-space-5) var(--ds-space-3); }
+    .app-header { margin-bottom: var(--ds-space-4); }
+    .app-header h1 { margin: 0; font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: -0.03em; }
+    .app-header p { margin: var(--ds-space-1) 0 0; color: var(--ds-muted); }
+    .ds-toolbar, .ds-filterbar, .ds-grid, .ds-pager, .ds-export {
+      background: var(--ds-surface);
+      border: 0.0625rem solid var(--ds-border);
+      border-radius: var(--ds-radius);
+      box-shadow: 0 0.25rem 0.75rem var(--ds-shadow);
+    }
+    .ds-toolbar, .ds-filterbar, .ds-export { margin-bottom: var(--ds-space-3); }
+    .ds-toolbar__head, .ds-filterbar__head, .ds-export__head { padding: var(--ds-space-3) var(--ds-space-4) 0; }
+    .ds-toolbar__title, .ds-filterbar__title, .ds-export__title, .ds-grid__title, .ds-pager__title { margin: 0; font-size: 1rem; }
+    .ds-toolbar__body, .ds-filterbar__body, .ds-export__body { padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-4); }
+    .ds-toolbar__actions { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
+    .ds-toolbar__body { padding-top: 0; }
+    .ds-filterbar__body { display: flex; flex-wrap: wrap; align-items: end; gap: var(--ds-space-3); }
+    .filter-field { display: grid; gap: var(--ds-space-1); min-width: min(100%, 19rem); flex: 1; }
+    .filter-field label, .checkbox-label { color: var(--ds-muted); font-size: 0.875rem; font-weight: 650; }
+    .filter-field input { width: 100%; padding: 0.625rem 0.75rem; border: 0.0625rem solid var(--ds-border); border-radius: 0.5rem; background: var(--ds-surface); color: var(--ds-text); }
+    .checkbox-label { display: flex; align-items: center; min-height: 2.75rem; gap: var(--ds-space-1); }
+    .checkbox-label input { inline-size: 1.1rem; block-size: 1.1rem; accent-color: var(--ds-accent); }
+    .button-primary, .button-secondary, .sort-button {
+      border: 0.0625rem solid var(--ds-border);
+      border-radius: 0.5rem;
+      padding: 0.625rem 0.875rem;
+      font-weight: 700;
+    }
+    .button-primary { border-color: var(--ds-accent); background: var(--ds-accent); color: var(--ds-surface); }
+    .button-primary:hover { background: var(--ds-accent-strong); }
+    .button-secondary { background: var(--ds-surface); color: var(--ds-text); }
+    .button-secondary:hover, .sort-button:hover { background: var(--ds-accent-soft); }
+    .count-line { margin: 0; color: var(--ds-muted); font-size: 0.9375rem; }
+    .ds-grid { overflow: hidden; }
+    .ds-grid__head { padding: var(--ds-space-4) var(--ds-space-4) var(--ds-space-2); }
+    .ds-grid__body { overflow-x: auto; min-height: 22rem; }
+    table { width: 100%; min-width: 42rem; border-collapse: collapse; }
+    th, td { padding: 0.875rem var(--ds-space-4); border-bottom: 0.0625rem solid var(--ds-border); text-align: left; white-space: nowrap; }
+    th { background: var(--ds-canvas); color: var(--ds-muted); font-size: 0.8125rem; letter-spacing: 0.03em; text-transform: uppercase; }
+    td { font-size: 0.9375rem; }
+    tbody tr:hover { background: var(--ds-accent-soft); }
+    .sort-button { display: inline-flex; align-items: center; gap: 0.375rem; border: 0; border-radius: 0.25rem; padding: 0.25rem; background: transparent; color: inherit; text-transform: inherit; letter-spacing: inherit; }
+    .sort-indicator { color: var(--ds-accent); font-size: 1rem; }
+    .status { display: inline-flex; align-items: center; gap: 0.375rem; color: var(--ds-muted); }
+    .status::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--ds-muted); }
+    .status--active { color: var(--ds-success); }
+    .status--active::before { background: var(--ds-success); }
+    .empty-message { padding: var(--ds-space-5) var(--ds-space-4); color: var(--ds-muted); text-align: center; }
+    .ds-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); margin-top: var(--ds-space-3); padding: var(--ds-space-3) var(--ds-space-4); }
+    .ds-pager__head { display: none; }
+    .ds-pager__body { display: flex; align-items: center; gap: var(--ds-space-2); }
+    .page-indicator { color: var(--ds-muted); font-size: 0.9375rem; }
+    .ds-export__body { padding-top: 0; }
+    @media (max-width: 40rem) {
+      .app-shell { padding: var(--ds-space-4) var(--ds-space-3); }
+      .ds-toolbar__actions, .ds-pager { align-items: flex-start; flex-direction: column; }
+      .ds-pager__body { width: 100%; justify-content: space-between; }
+      .ds-filterbar__body { align-items: stretch; }
+    }
+    @media (prefers-reduced-motion: no-preference) { button { transition: background-color 140ms ease, border-color 140ms ease; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell" aria-labelledby="ds-page-title">
+    <header class="app-header">
+      <h1 id="ds-page-title">Employee directory</h1>
+      <p>Browse, filter, sort, and export employee records.</p>
+    </header>
+    <div id="ds-app"></div>
+  </main>
+  <script>
+    'use strict';
+
+    const employees = [
+      { name: 'Aisha Patel', department: 'Engineering', salary: 128000, startDate: '2019-03-18', active: true },
+      { name: 'Marcus Chen', department: 'Sales', salary: 94000, startDate: '2021-07-12', active: true },
+      { name: 'Elena Rodriguez', department: 'Design', salary: 112000, startDate: '2018-11-05', active: true },
+      { name: 'David Okafor', department: 'Support', salary: 72000, startDate: '2022-01-24', active: true },
+      { name: 'Priya Nair', department: 'Engineering', salary: 141000, startDate: '2017-06-14', active: true },
+      { name: 'Jordan Williams', department: 'Sales', salary: 88000, startDate: '2020-09-01', active: false },
+      { name: 'Sofia Martin', department: 'Support', salary: 76000, startDate: '2019-08-27', active: true },
+      { name: 'Theo Brooks', department: 'Design', salary: 105000, startDate: '2023-02-13', active: true },
+      { name: 'Mei Tan', department: 'Engineering', salary: 119000, startDate: '2021-04-19', active: true },
+      { name: 'Caleb Johnson', department: 'Sales', salary: 97000, startDate: '2018-12-03', active: false },
+      { name: 'Nora Ibrahim', department: 'Support', salary: 79000, startDate: '2020-05-11', active: true },
+      { name: 'Owen Murphy', department: 'Engineering', salary: 134000, startDate: '2016-10-21', active: true },
+      { name: 'Lina Kim', department: 'Design', salary: 101000, startDate: '2022-06-06', active: true },
+      { name: 'Andre Silva', department: 'Sales', salary: 92000, startDate: '2019-01-15', active: true },
+      { name: 'Grace Thompson', department: 'Support', salary: 74000, startDate: '2023-08-28', active: true },
+      { name: 'Hassan Ali', department: 'Engineering', salary: 126000, startDate: '2020-02-10', active: false },
+      { name: 'Victoria Reed', department: 'Design', salary: 116000, startDate: '2017-09-22', active: true },
+      { name: 'Samuel Lee', department: 'Sales', salary: 99000, startDate: '2021-11-08', active: true },
+      { name: 'Isabel Garcia', department: 'Support', salary: 81000, startDate: '2018-04-30', active: false },
+      { name: 'Ethan Walker', department: 'Engineering', salary: 137000, startDate: '2019-12-16', active: true },
+      { name: 'Maya Desai', department: 'Design', salary: 109000, startDate: '2022-10-03', active: true },
+      { name: 'Noah Bennett', department: 'Sales', salary: 86000, startDate: '2023-05-17', active: true },
+      { name: 'Zoe Foster', department: 'Support', salary: 77000, startDate: '2020-07-29', active: true },
+      { name: 'Daniel Park', department: 'Engineering', salary: 123000, startDate: '2018-02-26', active: true }
+    ];
+
+    const pageSize = 10;
+    const state = { query: '', activeOnly: false, sortKey: null, sortDirection: 'asc', page: 1 };
+    const app = document.getElementById('ds-app');
+    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+    function node(tag, options = {}) {
+      const element = document.createElement(tag);
+      if (options.className) element.className = options.className;
+      if (options.id) element.id = options.id;
+      if (options.text !== undefined) element.textContent = options.text;
+      if (options.role) element.dataset.role = options.role;
+      if (options.testid) element.dataset.testid = options.testid;
+      if (options.type) element.type = options.type;
+      return element;
+    }
+
+    function createComponent(tag, className, component, titleId, title, stateName) {
+      const root = node(tag, { className });
+      root.dataset.component = component;
+      root.dataset.state = stateName;
+      root.setAttribute('aria-labelledby', titleId);
+      const heading = node('h2', { className: className + '__title', id: titleId, text: title });
+      const header = node('header', { className: className + '__head' });
+      header.appendChild(heading);
+      root.appendChild(header);
+      return { root, header };
+    }
+
+    function currentRows() {
+      const query = state.query.trim().toLocaleLowerCase();
+      return employees.filter((employee) => {
+        const matchesText = !query || employee.name.toLocaleLowerCase().includes(query) || employee.department.toLocaleLowerCase().includes(query);
+        return matchesText && (!state.activeOnly || employee.active);
+      }).sort((first, second) => {
+        if (!state.sortKey) return 0;
+        const firstValue = first[state.sortKey];
+        const secondValue = second[state.sortKey];
+        let comparison;
+        if (typeof firstValue === 'boolean') comparison = Number(firstValue) - Number(secondValue);
+        else if (typeof firstValue === 'number') comparison = firstValue - secondValue;
+        else comparison = String(firstValue).localeCompare(String(secondValue));
+        return state.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    function createToolbar(host) {
+      const component = createComponent('section', 'ds-toolbar', 'Toolbar', 'ds-toolbar-title', 'Table summary', 'ready');
+      const actions = node('div', { className: 'ds-toolbar__actions', role: 'toolbar-actions' });
+      const count = node('p', { className: 'count-line' });
+      actions.appendChild(count);
+      const body = node('div', { className: 'ds-toolbar__body', role: 'toolbar-actions' });
+      body.appendChild(actions);
+      component.root.appendChild(body);
+      host.appendChild(component.root);
+      return { root: component.root, update(total, start, end) { count.textContent = total ? 'Showing ' + start + '-' + end + ' of ' + total : 'Showing 0-0 of 0'; return this; } };
+    }
+
+    function createFilterBar(host, onChange) {
+      const component = createComponent('section', 'ds-filterbar', 'FilterBar', 'ds-filterbar-title', 'Filters', 'ready');
+      const body = node('div', { className: 'ds-filterbar__body', role: 'filterbar-facets' });
+      const field = node('div', { className: 'filter-field' });
+      const label = node('label', { text: 'Search name or department' });
+      label.htmlFor = 'ds-filterbar-search';
+      const input = node('input', { id: 'ds-filterbar-search', testid: 'filter-search', type: 'search' });
+      input.setAttribute('placeholder', 'e.g. Engineering or Aisha');
+      input.setAttribute('autocomplete', 'off');
+      field.append(label, input);
+      const activeLabel = node('label', { className: 'checkbox-label', text: 'Active only' });
+      const checkbox = node('input', { id: 'ds-filterbar-active', testid: 'filter-active', type: 'checkbox' });
+      activeLabel.prepend(checkbox);
+      input.addEventListener('input', () => onChange(input.value, checkbox.checked));
+      checkbox.addEventListener('change', () => onChange(input.value, checkbox.checked));
+      body.append(field, activeLabel);
+      component.root.appendChild(body);
+      host.appendChild(component.root);
+      return { root: component.root, update() { return this; } };
+    }
+
+    function createDataGrid(host, onSort) {
+      const component = createComponent('section', 'ds-grid', 'DataGrid', 'ds-grid-title', 'Employee records', 'ready');
+      const body = node('div', { className: 'ds-grid__body', role: 'grid-rows' });
+      const table = node('table');
+      table.setAttribute('aria-label', 'Employee records');
+      const head = node('thead');
+      const headerRow = node('tr');
+      const columns = [['name', 'Name'], ['department', 'Department'], ['salary', 'Salary'], ['startDate', 'Start date'], ['active', 'Status']];
+      columns.forEach(([key, label]) => {
+        const heading = node('th');
+        heading.scope = 'col';
+        const button = node('button', { className: 'sort-button', testid: 'sort-' + key, type: 'button' });
+        button.dataset.key = key;
+        button.addEventListener('click', () => onSort(key));
+        heading.appendChild(button);
+        headerRow.appendChild(heading);
+      });
+      head.appendChild(headerRow);
+      const tableBody = node('tbody');
+      table.append(head, tableBody);
+      body.appendChild(table);
+      const live = node('p', { className: 'ds-grid__live' });
+      live.setAttribute('aria-live', 'polite');
+      live.hidden = true;
+      component.root.append(body, live);
+      host.appendChild(component.root);
+      return {
+        root: component.root,
+        update(rows) {
+          component.root.dataset.state = rows.length ? 'ready' : 'empty';
+          columns.forEach(([key, label], index) => {
+            const button = headerRow.children[index].firstChild;
+            const selected = key === state.sortKey;
+            button.replaceChildren();
+            button.append(document.createTextNode(label));
+            const indicator = node('span', { className: 'sort-indicator', text: selected ? (state.sortDirection === 'asc' ? '↑' : '↓') : '↕' });
+            indicator.setAttribute('aria-hidden', 'true');
+            button.appendChild(indicator);
+            button.setAttribute('aria-label', label + (selected ? ', sorted ' + state.sortDirection + 'ending' : ', activate to sort ascending'));
+            button.setAttribute('aria-pressed', String(selected));
+          });
+          tableBody.replaceChildren();
+          if (!rows.length) {
+            const row = node('tr');
+            const cell = node('td', { className: 'empty-message', text: 'No employees match the current filters.' });
+            cell.colSpan = columns.length;
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+          } else {
+            rows.forEach((employee) => {
+              const row = node('tr');
+              row.append(
+                node('td', { text: employee.name }),
+                node('td', { text: employee.department }),
+                node('td', { text: currency.format(employee.salary) }),
+                node('td', { text: employee.startDate }),
+                createStatusCell(employee.active)
+              );
+              tableBody.appendChild(row);
+            });
+          }
+          live.textContent = rows.length + ' employee records on this page.';
+          return this;
+        }
+      };
+    }
+
+    function createStatusCell(active) {
+      const cell = node('td');
+      const status = node('span', { className: active ? 'status status--active' : 'status', text: active ? 'Active' : 'Inactive' });
+      cell.appendChild(status);
+      return cell;
+    }
+
+    function createPager(host, onPageChange) {
+      const component = createComponent('nav', 'ds-pager', 'Pager', 'ds-pager-title', 'Pagination', 'ready');
+      component.root.setAttribute('aria-label', 'Pagination');
+      const pages = node('div', { className: 'ds-pager__body', role: 'pager-pages' });
+      const previous = node('button', { className: 'button-secondary', text: 'Previous', testid: 'page-previous', type: 'button' });
+      const indicator = node('p', { className: 'page-indicator' });
+      const next = node('button', { className: 'button-secondary', text: 'Next', testid: 'page-next', type: 'button' });
+      previous.addEventListener('click', () => onPageChange(-1));
+      next.addEventListener('click', () => onPageChange(1));
+      pages.append(previous, indicator, next);
+      component.root.appendChild(pages);
+      host.appendChild(component.root);
+      return { root: component.root, update(page, totalPages) { component.root.dataset.state = totalPages ? 'ready' : 'empty'; indicator.textContent = 'Page ' + page + ' of ' + totalPages; previous.disabled = page <= 1; next.disabled = page >= totalPages; return this; } };
+    }
+
+    function createExportMenu(host, onExport) {
+      const component = createComponent('section', 'ds-export', 'ExportMenu', 'ds-export-title', 'Export', 'ready');
+      const body = node('div', { className: 'ds-export__body', role: 'export-formats' });
+      const button = node('button', { className: 'button-primary', text: 'Export CSV', testid: 'export-csv', type: 'button' });
+      button.addEventListener('click', onExport);
+      body.appendChild(button);
+      component.root.appendChild(body);
+      host.appendChild(component.root);
+      return { root: component.root, update() { return this; } };
+    }
+
+    function escapeCsv(value) {
+      const stringValue = String(value);
+      return /[,"]/.test(stringValue) ? '"' + stringValue.replace(/"/g, '""') + '"' : stringValue;
+    }
+
+    function exportCsv() {
+      const rows = currentRows();
+      const header = ['Name', 'Department', 'Salary', 'Start Date', 'Active'];
+      const lines = [header, ...rows.map((employee) => [employee.name, employee.department, employee.salary, employee.startDate, employee.active])]
+        .map((row) => row.map(escapeCsv).join(','));
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = node('a', { testid: 'csv-download' });
+      link.href = url;
+      link.download = 'employees.csv';
+      link.hidden = true;
+      app.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    const toolbar = createToolbar(app);
+    const filters = createFilterBar(app, (query, activeOnly) => { state.query = query; state.activeOnly = activeOnly; state.page = 1; render(); });
+    const grid = createDataGrid(app, (key) => { state.sortDirection = state.sortKey === key && state.sortDirection === 'asc' ? 'desc' : 'asc'; state.sortKey = key; state.page = 1; render(); });
+    const pager = createPager(app, (change) => { const totalPages = Math.max(1, Math.ceil(currentRows().length / pageSize)); state.page = Math.min(totalPages, Math.max(1, state.page + change)); render(); });
+    const exporter = createExportMenu(app, exportCsv);
+
+    function render() {
+      const rows = currentRows();
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      state.page = Math.min(state.page, totalPages);
+      const start = rows.length ? (state.page - 1) * pageSize + 1 : 0;
+      const end = Math.min(state.page * pageSize, rows.length);
+      toolbar.update(rows.length, start, end);
+      grid.update(rows.slice(start - 1, end));
+      pager.update(state.page, totalPages);
+      filters.update();
+      exporter.update();
+    }
+
+    render();
+  </script>
+</body>
+</html>
