@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Directory</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
+  h1 { margin-top: 0; }
+  .controls { display: flex; gap: 20px; align-items: center; margin-bottom: 18px; }
+  label { display: flex; gap: 8px; align-items: center; }
+  input[type="text"] { padding: 7px; width: 260px; }
+  button { padding: 7px 12px; cursor: pointer; }
+  button:disabled { cursor: default; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+  th { background: #f2f2f2; }
+  th button { border: 0; background: transparent; padding: 0; font: inherit; font-weight: bold; width: 100%; text-align: left; }
+  .summary { margin: 14px 0; }
+  .pagination { display: flex; gap: 12px; align-items: center; margin-top: 16px; }
+</style>
+</head>
+<body>
+<h1>Employee Directory</h1>
+<div class="controls">
+  <label>Search <input id="search" type="text" placeholder="Name or department"></label>
+  <label><input id="activeOnly" type="checkbox"> Active only</label>
+  <button id="exportCsv" type="button">Export CSV</button>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th><button type="button" data-key="name">Name <span></span></button></th>
+      <th><button type="button" data-key="department">Department <span></span></button></th>
+      <th><button type="button" data-key="salary">Salary <span></span></button></th>
+      <th><button type="button" data-key="startDate">Start Date <span></span></button></th>
+      <th><button type="button" data-key="active">Active <span></span></button></th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+<div id="rowCount" class="summary"></div>
+<div class="pagination">
+  <button id="previous" type="button">Previous</button>
+  <span id="pageIndicator"></span>
+  <button id="next" type="button">Next</button>
+</div>
+<script>
+const employees = [
+  { name: 'Ava Mitchell', department: 'Engineering', salary: 118000, startDate: '2019-03-18', active: true },
+  { name: 'Liam Carter', department: 'Sales', salary: 82000, startDate: '2021-07-12', active: true },
+  { name: 'Sophia Nguyen', department: 'Design', salary: 96000, startDate: '2020-01-27', active: true },
+  { name: 'Noah Bennett', department: 'Support', salary: 64000, startDate: '2022-09-05', active: false },
+  { name: 'Emma Rodriguez', department: 'Engineering', salary: 132000, startDate: '2017-11-14', active: true },
+  { name: 'Oliver Brooks', department: 'Sales', salary: 79000, startDate: '2023-02-20', active: true },
+  { name: 'Isabella Kim', department: 'Support', salary: 68000, startDate: '2018-06-08', active: true },
+  { name: 'Elijah Foster', department: 'Design', salary: 101000, startDate: '2020-10-30', active: false },
+  { name: 'Mia Patel', department: 'Engineering', salary: 124000, startDate: '2021-04-16', active: true },
+  { name: 'James Wilson', department: 'Sales', salary: 88000, startDate: '2019-08-22', active: true },
+  { name: 'Charlotte Green', department: 'Support', salary: 71000, startDate: '2022-01-10', active: true },
+  { name: 'Benjamin Lee', department: 'Design', salary: 93000, startDate: '2018-12-03', active: false },
+  { name: 'Amelia Turner', department: 'Engineering', salary: 115000, startDate: '2023-05-19', active: true },
+  { name: 'Lucas Adams', department: 'Sales', salary: 85000, startDate: '2020-07-01', active: false },
+  { name: 'Harper Scott', department: 'Support', salary: 66000, startDate: '2021-11-25', active: true },
+  { name: 'Henry Parker', department: 'Design', salary: 99000, startDate: '2019-02-11', active: true },
+  { name: 'Evelyn Morris', department: 'Engineering', salary: 128000, startDate: '2017-09-29', active: false },
+  { name: 'Alexander Reed', department: 'Sales', salary: 91000, startDate: '2022-04-07', active: true },
+  { name: 'Abigail Cooper', department: 'Support', salary: 69000, startDate: '2020-03-15', active: true },
+  { name: 'Daniel Price', department: 'Design', salary: 97000, startDate: '2021-06-21', active: true },
+  { name: 'Ella Hughes', department: 'Engineering', salary: 121000, startDate: '2018-08-13', active: true },
+  { name: 'Matthew Ross', department: 'Sales', salary: 76000, startDate: '2023-01-09', active: false },
+  { name: 'Grace Bailey', department: 'Support', salary: 72000, startDate: '2019-10-17', active: true },
+  { name: 'Jack Morgan', department: 'Design', salary: 94000, startDate: '2022-12-12', active: true }
+];
+
+const pageSize = 10;
+let page = 1;
+let sortKey = '';
+let sortDirection = 'asc';
+const search = document.getElementById('search');
+const activeOnly = document.getElementById('activeOnly');
+const tableBody = document.getElementById('tableBody');
+const rowCount = document.getElementById('rowCount');
+const previous = document.getElementById('previous');
+const next = document.getElementById('next');
+const pageIndicator = document.getElementById('pageIndicator');
+
+function filteredEmployees() {
+  const query = search.value.trim().toLowerCase();
+  return employees.filter(employee =>
+    (!query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query)) &&
+    (!activeOnly.checked || employee.active)
+  ).sort((a, b) => {
+    if (!sortKey) return 0;
+    const first = a[sortKey];
+    const second = b[sortKey];
+    let comparison;
+    if (typeof first === 'string') comparison = first.localeCompare(second);
+    else comparison = Number(first) - Number(second);
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+}
+
+function render() {
+  const rows = filteredEmployees();
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  if (page > pageCount) page = pageCount;
+  const start = (page - 1) * pageSize;
+  const displayed = rows.slice(start, start + pageSize);
+  tableBody.innerHTML = displayed.map(employee => `<tr><td>${employee.name}</td><td>${employee.department}</td><td>${employee.salary}</td><td>${employee.startDate}</td><td>${employee.active ? 'Yes' : 'No'}</td></tr>`).join('');
+  const first = rows.length ? start + 1 : 0;
+  const last = rows.length ? start + displayed.length : 0;
+  rowCount.textContent = `Showing ${first}-${last} of ${rows.length}`;
+  pageIndicator.textContent = `Page ${page} of ${pageCount}`;
+  previous.disabled = page === 1;
+  next.disabled = page === pageCount;
+  document.querySelectorAll('th button').forEach(button => {
+    button.querySelector('span').textContent = button.dataset.key === sortKey ? (sortDirection === 'asc' ? '▲' : '▼') : '';
+  });
+}
+
+search.addEventListener('input', () => { page = 1; render(); });
+activeOnly.addEventListener('change', () => { page = 1; render(); });
+document.querySelectorAll('th button').forEach(button => {
+  button.addEventListener('click', () => {
+    if (sortKey === button.dataset.key) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    else { sortKey = button.dataset.key; sortDirection = 'asc'; }
+    render();
+  });
+});
+previous.addEventListener('click', () => { page--; render(); });
+next.addEventListener('click', () => { page++; render(); });
+document.getElementById('exportCsv').addEventListener('click', () => {
+  const columns = ['name', 'department', 'salary', 'startDate', 'active'];
+  const csv = [columns.join(','), ...filteredEmployees().map(employee => columns.map(column => {
+    const value = String(employee[column]);
+    return value.includes(',') ? `"${value}"` : value;
+  }).join(','))].join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'employees.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+render();
+</script>
+</body>
+</html>

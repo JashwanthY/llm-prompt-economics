@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Directory</title>
+  <style>
+    :root {
+      --color-page: #f4f7fb;
+      --color-surface: #ffffff;
+      --color-ink: #172033;
+      --color-muted: #64748b;
+      --color-border: #dbe3ef;
+      --color-primary: #2656c9;
+      --color-primary-dark: #1e43a0;
+      --color-primary-light: #e8efff;
+      --color-row-hover: #f7f9fd;
+      --color-success: #137a4a;
+      --color-shadow: rgba(23, 32, 51, 0.10);
+      --color-focus: #f59e0b;
+      --color-transparent: transparent;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--color-page);
+      color: var(--color-ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .app-shell { max-width: 1180px; margin: 0 auto; padding: 42px 24px; }
+    .app-heading { margin: 0 0 6px; font-size: 30px; }
+    .app-subtitle { margin: 0 0 28px; color: var(--color-muted); }
+    .app-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px var(--color-shadow);
+      overflow: hidden;
+    }
+    .app-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+      padding: 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .app-filters { display: flex; gap: 18px; align-items: end; flex-wrap: wrap; }
+    .app-field { display: grid; gap: 7px; font-size: 14px; font-weight: 700; }
+    input[type="text"] {
+      width: 285px;
+      padding: 10px 12px;
+      color: var(--color-ink);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      font: inherit;
+      font-weight: 400;
+    }
+    input:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+    .app-check { display: flex; align-items: center; gap: 8px; min-height: 39px; font-size: 14px; }
+    .app-button {
+      padding: 10px 14px;
+      color: var(--color-surface);
+      background: var(--color-primary);
+      border: 1px solid var(--color-primary);
+      border-radius: 7px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+    .app-button:hover:not(:disabled) { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+    .app-button:disabled { color: var(--color-muted); background: var(--color-primary-light); border-color: var(--color-border); cursor: not-allowed; }
+    .app-table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th { padding: 0; text-align: left; background: var(--color-primary-light); border-bottom: 1px solid var(--color-border); }
+    .app-sort-button {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      color: var(--color-ink);
+      background: var(--color-transparent);
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      text-align: left;
+    }
+    .app-sort-button:hover { color: var(--color-primary); }
+    .app-sort-indicator { color: var(--color-primary); font-size: 13px; }
+    td { padding: 14px 20px; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+    tbody tr:hover { background: var(--color-row-hover); }
+    .app-status { color: var(--color-success); font-weight: 700; }
+    .app-status--inactive { color: var(--color-muted); }
+    .app-empty { color: var(--color-muted); text-align: center; padding: 32px; }
+    .app-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 20px;
+      color: var(--color-muted);
+      font-size: 14px;
+    }
+    .app-pagination { display: flex; gap: 10px; align-items: center; }
+    @media (max-width: 650px) {
+      .app-shell { padding: 24px 12px; }
+      .app-toolbar, .app-footer { align-items: stretch; flex-direction: column; }
+      input[type="text"] { width: min(100%, 285px); }
+      .app-pagination { justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <h1 class="app-heading">Employee Directory</h1>
+    <p class="app-subtitle">Browse, filter, sort, and export employee records.</p>
+    <section class="app-card" aria-label="Employee data table">
+      <div class="app-toolbar">
+        <div class="app-filters">
+          <label class="app-field" for="app-search-input">Search employees
+            <input id="app-search-input" data-testid="search-input" type="text" placeholder="Name or department" autocomplete="off">
+          </label>
+          <label class="app-check" for="app-active-only">
+            <input id="app-active-only" data-testid="active-only-checkbox" type="checkbox">
+            Active only
+          </label>
+        </div>
+        <button id="app-export-button" data-testid="export-csv-button" class="app-button" type="button">Export CSV</button>
+      </div>
+      <div class="app-table-wrap">
+        <table>
+          <thead id="app-table-head"></thead>
+          <tbody id="app-table-body"></tbody>
+        </table>
+      </div>
+      <div class="app-footer">
+        <span id="app-row-count" aria-live="polite"></span>
+        <div class="app-pagination">
+          <button id="app-previous-button" data-testid="previous-page-button" class="app-button" type="button">Previous</button>
+          <span id="app-page-indicator" aria-live="polite"></span>
+          <button id="app-next-button" data-testid="next-page-button" class="app-button" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const employees = [
+        { name: 'Amelia Carter', department: 'Engineering', salary: 118000, startDate: '2019-04-15', active: true },
+        { name: 'Noah Bennett', department: 'Sales', salary: 84000, startDate: '2021-07-12', active: true },
+        { name: 'Priya Shah', department: 'Design', salary: 96000, startDate: '2020-01-27', active: true },
+        { name: 'Marcus Reed', department: 'Support', salary: 68500, startDate: '2018-09-03', active: false },
+        { name: 'Elena Torres', department: 'Engineering', salary: 132000, startDate: '2017-11-20', active: true },
+        { name: 'Lucas Kim', department: 'Sales', salary: 79000, startDate: '2022-03-14', active: true },
+        { name: 'Hannah Brooks', department: 'Support', salary: 72000, startDate: '2020-08-31', active: true },
+        { name: 'Owen Price', department: 'Design', salary: 91000, startDate: '2019-06-10', active: false },
+        { name: 'Sofia Patel', department: 'Engineering', salary: 125000, startDate: '2018-02-05', active: true },
+        { name: 'Ethan Wallace', department: 'Sales', salary: 87500, startDate: '2021-10-18', active: true },
+        { name: 'Grace Nguyen', department: 'Support', salary: 70500, startDate: '2022-05-23', active: true },
+        { name: 'Daniel Morgan', department: 'Design', salary: 103000, startDate: '2016-12-01', active: true },
+        { name: 'Maya Collins', department: 'Engineering', salary: 115000, startDate: '2020-11-09', active: false },
+        { name: 'Caleb Foster', department: 'Sales', salary: 81000, startDate: '2019-03-25', active: true },
+        { name: 'Isabella Ross', department: 'Support', salary: 75000, startDate: '2017-07-17', active: true },
+        { name: 'Julian Park', department: 'Design', salary: 98000, startDate: '2021-01-11', active: true },
+        { name: 'Chloe Martin', department: 'Engineering', salary: 128000, startDate: '2018-10-29', active: true },
+        { name: 'Henry Adams', department: 'Sales', salary: 76500, startDate: '2023-02-06', active: true },
+        { name: 'Zoe Ramirez', department: 'Support', salary: 69500, startDate: '2019-09-16', active: false },
+        { name: 'Leo Turner', department: 'Design', salary: 94000, startDate: '2020-06-22', active: true },
+        { name: 'Nina Johnson', department: 'Engineering', salary: 121000, startDate: '2022-09-01', active: true },
+        { name: 'Aaron Lewis', department: 'Sales', salary: 89500, startDate: '2018-05-08', active: false },
+        { name: 'Mei Chen', department: 'Support', salary: 73500, startDate: '2021-04-19', active: true },
+        { name: 'Theo Green', department: 'Design', salary: 100000, startDate: '2017-01-30', active: true }
+      ];
+
+      const columns = [
+        { key: 'name', label: 'Name' },
+        { key: 'department', label: 'Department' },
+        { key: 'salary', label: 'Salary' },
+        { key: 'startDate', label: 'Start Date' },
+        { key: 'active', label: 'Status' }
+      ];
+      const pageSize = 10;
+      let currentPage = 1;
+      let sortKey = 'name';
+      let sortDirection = 'asc';
+
+      const searchInput = document.getElementById('app-search-input');
+      const activeOnly = document.getElementById('app-active-only');
+      const tableHead = document.getElementById('app-table-head');
+      const tableBody = document.getElementById('app-table-body');
+      const rowCount = document.getElementById('app-row-count');
+      const pageIndicator = document.getElementById('app-page-indicator');
+      const previousButton = document.getElementById('app-previous-button');
+      const nextButton = document.getElementById('app-next-button');
+      const exportButton = document.getElementById('app-export-button');
+
+      function getFilteredRows() {
+        const query = searchInput.value.trim().toLowerCase();
+        return employees.filter((employee) => {
+          const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+          return matchesText && (!activeOnly.checked || employee.active);
+        });
+      }
+
+      function getSortedRows(rows) {
+        return [...rows].sort((first, second) => {
+          let firstValue = first[sortKey];
+          let secondValue = second[sortKey];
+          if (typeof firstValue === 'string') {
+            return firstValue.localeCompare(secondValue) * (sortDirection === 'asc' ? 1 : -1);
+          }
+          if (typeof firstValue === 'boolean') {
+            firstValue = Number(firstValue);
+            secondValue = Number(secondValue);
+          }
+          return (firstValue - secondValue) * (sortDirection === 'asc' ? 1 : -1);
+        });
+      }
+
+      function createCell(tagName, value) {
+        const cell = document.createElement(tagName);
+        cell.textContent = value;
+        return cell;
+      }
+
+      function renderHeaders() {
+        const headerRow = document.createElement('tr');
+        columns.forEach((column) => {
+          const header = document.createElement('th');
+          header.scope = 'col';
+          if (column.key === sortKey) header.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'app-sort-button';
+          button.dataset.testid = `sort-${column.key}-button`;
+          button.setAttribute('aria-label', `Sort by ${column.label}`);
+          const label = document.createElement('span');
+          label.textContent = column.label;
+          const indicator = document.createElement('span');
+          indicator.className = 'app-sort-indicator';
+          indicator.textContent = column.key === sortKey ? (sortDirection === 'asc' ? '▲ Ascending' : '▼ Descending') : '↕';
+          button.append(label, indicator);
+          button.addEventListener('click', () => {
+            if (sortKey === column.key) {
+              sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+              sortKey = column.key;
+              sortDirection = 'asc';
+            }
+            currentPage = 1;
+            render();
+          });
+          header.append(button);
+          headerRow.append(header);
+        });
+        tableHead.replaceChildren(headerRow);
+      }
+
+      function formatSalary(value) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+      }
+
+      function renderRows(rows) {
+        tableBody.replaceChildren();
+        if (rows.length === 0) {
+          const emptyRow = document.createElement('tr');
+          const emptyCell = createCell('td', 'No employees match the current filters.');
+          emptyCell.className = 'app-empty';
+          emptyCell.colSpan = columns.length;
+          emptyRow.append(emptyCell);
+          tableBody.append(emptyRow);
+          return;
+        }
+        rows.forEach((employee) => {
+          const row = document.createElement('tr');
+          row.append(
+            createCell('td', employee.name),
+            createCell('td', employee.department),
+            createCell('td', formatSalary(employee.salary)),
+            createCell('td', employee.startDate)
+          );
+          const status = createCell('td', employee.active ? 'Active' : 'Inactive');
+          status.className = employee.active ? 'app-status' : 'app-status app-status--inactive';
+          row.append(status);
+          tableBody.append(row);
+        });
+      }
+
+      function render() {
+        const filteredRows = getFilteredRows();
+        const sortedRows = getSortedRows(filteredRows);
+        const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+        currentPage = Math.min(currentPage, totalPages);
+        const startIndex = (currentPage - 1) * pageSize;
+        const visibleRows = sortedRows.slice(startIndex, startIndex + pageSize);
+        const firstShown = sortedRows.length === 0 ? 0 : startIndex + 1;
+        const lastShown = sortedRows.length === 0 ? 0 : Math.min(startIndex + pageSize, sortedRows.length);
+
+        renderHeaders();
+        renderRows(visibleRows);
+        rowCount.textContent = `Showing ${firstShown}-${lastShown} of ${sortedRows.length}`;
+        pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+        previousButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
+      }
+
+      function csvValue(value) {
+        const text = String(value);
+        return /[,"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      }
+
+      function exportCsv() {
+        const rows = getSortedRows(getFilteredRows());
+        const header = columns.map((column) => csvValue(column.label)).join(',');
+        const body = rows.map((employee) => [
+          employee.name,
+          employee.department,
+          employee.salary,
+          employee.startDate,
+          employee.active
+        ].map(csvValue).join(','));
+        const blob = new Blob([[header, ...body].join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'filtered-employees.csv';
+        link.dataset.testid = 'csv-download-link';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      searchInput.addEventListener('input', () => { currentPage = 1; render(); });
+      activeOnly.addEventListener('change', () => { currentPage = 1; render(); });
+      previousButton.addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); } });
+      nextButton.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(getFilteredRows().length / pageSize));
+        if (currentPage < totalPages) { currentPage += 1; render(); }
+      });
+      exportButton.addEventListener('click', exportCsv);
+
+      render();
+    })();
+  </script>
+</body>
+</html>
