@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Directory</title>
+  <style>
+    body {
+      margin: 32px;
+      font-family: Arial, sans-serif;
+      color: #222;
+    }
+    h1 { margin-top: 0; }
+    .controls, .pagination {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    input[type="text"] {
+      padding: 7px;
+      width: 260px;
+    }
+    button { padding: 7px 11px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th button {
+      padding: 0;
+      border: 0;
+      background: none;
+      font: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .count { margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <h1>Employee Directory</h1>
+  <div class="controls">
+    <label>Filter <input id="filterInput" type="text" placeholder="Name or department"></label>
+    <label><input id="activeOnly" type="checkbox"> Active only</label>
+    <button id="exportButton" type="button">Export CSV</button>
+  </div>
+
+  <div id="rowCount" class="count"></div>
+  <table>
+    <thead>
+      <tr>
+        <th><button type="button" data-column="name">Name <span></span></button></th>
+        <th><button type="button" data-column="department">Department <span></span></button></th>
+        <th><button type="button" data-column="salary">Salary <span></span></button></th>
+        <th><button type="button" data-column="startDate">Start Date <span></span></button></th>
+        <th><button type="button" data-column="active">Active <span></span></button></th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <div class="pagination">
+    <button id="previousButton" type="button">Previous</button>
+    <span id="pageIndicator"></span>
+    <button id="nextButton" type="button">Next</button>
+  </div>
+
+  <script>
+    const employees = [
+      { name: 'Amelia Carter', department: 'Engineering', salary: 118000, startDate: '2019-03-18', active: true },
+      { name: 'Noah Bennett', department: 'Sales', salary: 82000, startDate: '2021-07-12', active: true },
+      { name: 'Olivia Hayes', department: 'Support', salary: 64000, startDate: '2022-01-24', active: false },
+      { name: 'Liam Foster', department: 'Design', salary: 91000, startDate: '2020-09-08', active: true },
+      { name: 'Emma Wallace', department: 'Engineering', salary: 132000, startDate: '2018-05-14', active: true },
+      { name: 'Ethan Morris', department: 'Sales', salary: 76000, startDate: '2023-02-06', active: true },
+      { name: 'Sophia Reed', department: 'Support', salary: 68000, startDate: '2019-11-20', active: false },
+      { name: 'Mason Grant', department: 'Design', salary: 87000, startDate: '2021-04-29', active: true },
+      { name: 'Isabella Price', department: 'Engineering', salary: 105000, startDate: '2022-08-15', active: true },
+      { name: 'James Turner', department: 'Sales', salary: 94000, startDate: '2017-06-01', active: false },
+      { name: 'Mia Collins', department: 'Support', salary: 71000, startDate: '2020-12-10', active: true },
+      { name: 'Benjamin Ross', department: 'Design', salary: 98000, startDate: '2018-10-03', active: true },
+      { name: 'Charlotte Evans', department: 'Engineering', salary: 124000, startDate: '2023-05-22', active: true },
+      { name: 'Lucas Murphy', department: 'Sales', salary: 79000, startDate: '2021-03-17', active: false },
+      { name: 'Harper Cooper', department: 'Support', salary: 66000, startDate: '2022-06-30', active: true },
+      { name: 'Henry Phillips', department: 'Design', salary: 102000, startDate: '2019-08-26', active: true },
+      { name: 'Evelyn Ward', department: 'Engineering', salary: 115000, startDate: '2020-02-11', active: false },
+      { name: 'Alexander Brooks', department: 'Sales', salary: 86000, startDate: '2023-09-04', active: true },
+      { name: 'Abigail Sanders', department: 'Support', salary: 69000, startDate: '2018-07-19', active: true },
+      { name: 'Daniel Hughes', department: 'Design', salary: 93000, startDate: '2021-11-09', active: true },
+      { name: 'Ella Jenkins', department: 'Engineering', salary: 128000, startDate: '2017-01-16', active: true },
+      { name: 'Michael Perry', department: 'Sales', salary: 83000, startDate: '2022-04-25', active: false },
+      { name: 'Avery Long', department: 'Support', salary: 62000, startDate: '2023-01-09', active: true },
+      { name: 'Jack Russell', department: 'Design', salary: 89000, startDate: '2020-06-18', active: true }
+    ];
+
+    const pageSize = 10;
+    let currentPage = 1;
+    let sortColumn = null;
+    let sortDirection = 'asc';
+
+    const filterInput = document.getElementById('filterInput');
+    const activeOnly = document.getElementById('activeOnly');
+    const tableBody = document.getElementById('tableBody');
+    const rowCount = document.getElementById('rowCount');
+    const previousButton = document.getElementById('previousButton');
+    const nextButton = document.getElementById('nextButton');
+    const pageIndicator = document.getElementById('pageIndicator');
+
+    function filteredEmployees() {
+      const query = filterInput.value.trim().toLowerCase();
+      return employees.filter(employee =>
+        (!query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query)) &&
+        (!activeOnly.checked || employee.active)
+      );
+    }
+
+    function sortedEmployees() {
+      const rows = filteredEmployees();
+      if (!sortColumn) return rows;
+      return rows.sort((a, b) => {
+        let first = a[sortColumn];
+        let second = b[sortColumn];
+        if (typeof first === 'string') {
+          return first.localeCompare(second) * (sortDirection === 'asc' ? 1 : -1);
+        }
+        return (first - second) * (sortDirection === 'asc' ? 1 : -1);
+      });
+    }
+
+    function render() {
+      const rows = sortedEmployees();
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * pageSize;
+      const pageRows = rows.slice(start, start + pageSize);
+      const first = rows.length ? start + 1 : 0;
+      const last = start + pageRows.length;
+
+      tableBody.innerHTML = pageRows.map(employee => `
+        <tr>
+          <td>${employee.name}</td>
+          <td>${employee.department}</td>
+          <td>${employee.salary}</td>
+          <td>${employee.startDate}</td>
+          <td>${employee.active ? 'Yes' : 'No'}</td>
+        </tr>
+      `).join('');
+
+      rowCount.textContent = `Showing ${first}-${last} of ${rows.length}`;
+      pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+      previousButton.disabled = currentPage === 1;
+      nextButton.disabled = currentPage === totalPages;
+
+      document.querySelectorAll('th button').forEach(button => {
+        button.querySelector('span').textContent = button.dataset.column === sortColumn
+          ? (sortDirection === 'asc' ? '▲' : '▼')
+          : '';
+      });
+    }
+
+    document.querySelectorAll('th button').forEach(button => {
+      button.addEventListener('click', () => {
+        const column = button.dataset.column;
+        if (sortColumn === column) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortColumn = column;
+          sortDirection = 'asc';
+        }
+        render();
+      });
+    });
+
+    filterInput.addEventListener('input', () => {
+      currentPage = 1;
+      render();
+    });
+
+    activeOnly.addEventListener('change', () => {
+      currentPage = 1;
+      render();
+    });
+
+    previousButton.addEventListener('click', () => {
+      currentPage -= 1;
+      render();
+    });
+
+    nextButton.addEventListener('click', () => {
+      currentPage += 1;
+      render();
+    });
+
+    document.getElementById('exportButton').addEventListener('click', () => {
+      const headers = ['name', 'department', 'salary', 'startDate', 'active'];
+      const csv = [headers.join(','), ...filteredEmployees().map(employee =>
+        headers.map(header => {
+          const value = String(employee[header]);
+          return value.includes(',') ? `"${value.replace(/"/g, '""')}"` : value;
+        }).join(',')
+      )].join('\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'employees.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>

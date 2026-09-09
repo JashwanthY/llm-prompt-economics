@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Directory</title>
+  <style>
+    :root {
+      --color-page: #f5f7fb;
+      --color-surface: #ffffff;
+      --color-text: #1f2937;
+      --color-muted: #64748b;
+      --color-border: #dbe3ee;
+      --color-primary: #2563eb;
+      --color-primary-dark: #1d4ed8;
+      --color-primary-soft: #eff6ff;
+      --color-success: #15803d;
+      --color-disabled: #a8b3c2;
+      --color-shadow: rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--color-page);
+      color: var(--color-text);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .app-shell { max-width: 1180px; margin: 0 auto; padding: 40px 20px; }
+    .app-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px var(--color-shadow);
+      overflow: hidden;
+    }
+    .app-header { padding: 28px 30px 18px; }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.02em; }
+    .app-subtitle { margin: 0; color: var(--color-muted); }
+    .app-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding: 0 30px 22px;
+    }
+    .app-search {
+      flex: 1 1 300px;
+      min-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      background: var(--color-surface);
+      font: inherit;
+    }
+    .app-search:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+    .app-checkbox-label { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .app-checkbox { width: 17px; height: 17px; accent-color: var(--color-primary); }
+    .app-button {
+      border: 1px solid var(--color-primary);
+      border-radius: 8px;
+      padding: 9px 14px;
+      background: var(--color-primary);
+      color: var(--color-surface);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+    .app-button:hover:not(:disabled) { background: var(--color-primary-dark); }
+    .app-button:disabled { background: var(--color-disabled); border-color: var(--color-disabled); cursor: not-allowed; }
+    .app-table-wrap { overflow-x: auto; border-top: 1px solid var(--color-border); }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 13px 18px; border-bottom: 1px solid var(--color-border); text-align: left; }
+    th { background: var(--color-primary-soft); color: var(--color-text); font-size: 14px; }
+    .app-sort-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+    .app-sort-button:focus { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: 3px; }
+    .app-sort-indicator { color: var(--color-primary); min-width: 12px; }
+    .app-status-active { color: var(--color-success); font-weight: 600; }
+    .app-status-inactive { color: var(--color-muted); }
+    .app-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 18px 30px 24px;
+    }
+    .app-count, .app-page { color: var(--color-muted); font-size: 14px; }
+    .app-pagination { display: flex; align-items: center; gap: 12px; }
+    .app-empty { text-align: center; color: var(--color-muted); padding: 30px; }
+    @media (max-width: 640px) {
+      .app-shell { padding: 20px 10px; }
+      .app-header, .app-toolbar, .app-footer { padding-left: 18px; padding-right: 18px; }
+      .app-footer { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="app-card" aria-labelledby="app-title">
+      <header class="app-header">
+        <h1 id="app-title">Employee Directory</h1>
+        <p class="app-subtitle">Browse, filter, and export employee records.</p>
+      </header>
+      <div class="app-toolbar">
+        <label for="app-search">Search employees</label>
+        <input id="app-search" class="app-search" type="search" placeholder="Search by name or department" data-testid="search-input">
+        <label class="app-checkbox-label" for="app-active-only">
+          <input id="app-active-only" class="app-checkbox" type="checkbox" data-testid="active-only-checkbox">
+          Active only
+        </label>
+        <button id="app-export" class="app-button" type="button" data-testid="export-button">Export CSV</button>
+      </div>
+      <div class="app-table-wrap">
+        <table>
+          <thead>
+            <tr id="app-table-header"></tr>
+          </thead>
+          <tbody id="app-table-body"></tbody>
+        </table>
+      </div>
+      <footer class="app-footer">
+        <div id="app-count" class="app-count" aria-live="polite">Showing 0-0 of 0</div>
+        <div class="app-pagination">
+          <button id="app-previous" class="app-button" type="button" data-testid="previous-button">Previous</button>
+          <span id="app-page" class="app-page" aria-live="polite">Page 1 of 1</span>
+          <button id="app-next" class="app-button" type="button" data-testid="next-button">Next</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+  <script>
+    const employees = [
+      { name: "Aisha Patel", department: "Engineering", salary: 118000, startDate: "2021-03-15", active: true },
+      { name: "Marcus Chen", department: "Sales", salary: 92000, startDate: "2022-07-11", active: true },
+      { name: "Elena Rodriguez", department: "Support", salary: 76000, startDate: "2020-11-02", active: true },
+      { name: "Noah Williams", department: "Design", salary: 98000, startDate: "2019-05-20", active: false },
+      { name: "Priya Nair", department: "Engineering", salary: 132000, startDate: "2018-01-08", active: true },
+      { name: "Daniel Kim", department: "Sales", salary: 87000, startDate: "2023-02-13", active: true },
+      { name: "Sofia Martin", department: "Support", salary: 71000, startDate: "2021-09-27", active: true },
+      { name: "Liam Thompson", department: "Design", salary: 105000, startDate: "2020-04-06", active: true },
+      { name: "Grace Okafor", department: "Engineering", salary: 124000, startDate: "2017-08-21", active: false },
+      { name: "Ethan Brooks", department: "Sales", salary: 101000, startDate: "2019-10-14", active: true },
+      { name: "Maya Singh", department: "Support", salary: 79000, startDate: "2022-01-31", active: true },
+      { name: "Oliver Jensen", department: "Design", salary: 91000, startDate: "2023-06-19", active: true },
+      { name: "Hannah Lee", department: "Engineering", salary: 145000, startDate: "2016-12-05", active: true },
+      { name: "Samuel Carter", department: "Sales", salary: 95000, startDate: "2021-06-28", active: false },
+      { name: "Isabella Rossi", department: "Support", salary: 73500, startDate: "2020-08-17", active: true },
+      { name: "Caleb Morgan", department: "Design", salary: 88000, startDate: "2022-10-03", active: true },
+      { name: "Zoe Adams", department: "Engineering", salary: 127000, startDate: "2019-02-25", active: true },
+      { name: "Benjamin Scott", department: "Sales", salary: 110000, startDate: "2018-07-30", active: true },
+      { name: "Nora Ibrahim", department: "Support", salary: 82000, startDate: "2023-04-10", active: false },
+      { name: "Henry Wilson", department: "Design", salary: 97000, startDate: "2021-12-13", active: true },
+      { name: "Camila Torres", department: "Engineering", salary: 116000, startDate: "2022-03-07", active: true },
+      { name: "Julian Reed", department: "Sales", salary: 99000, startDate: "2020-01-20", active: true },
+      { name: "Fatima Hassan", department: "Support", salary: 74500, startDate: "2019-11-18", active: true },
+      { name: "Leo Anderson", department: "Design", salary: 113000, startDate: "2017-04-24", active: false }
+    ];
+
+    const state = { query: "", activeOnly: false, sortColumn: "name", sortDirection: "asc", page: 1 };
+    const pageSize = 10;
+    const columns = [
+      { key: "name", label: "Name" },
+      { key: "department", label: "Department" },
+      { key: "salary", label: "Salary" },
+      { key: "startDate", label: "Start date" },
+      { key: "active", label: "Status" }
+    ];
+
+    const header = document.getElementById("app-table-header");
+    const body = document.getElementById("app-table-body");
+    const search = document.getElementById("app-search");
+    const activeOnly = document.getElementById("app-active-only");
+    const count = document.getElementById("app-count");
+    const pageLabel = document.getElementById("app-page");
+    const previous = document.getElementById("app-previous");
+    const next = document.getElementById("app-next");
+    const exportButton = document.getElementById("app-export");
+
+    function makeElement(tag, text, className) {
+      const element = document.createElement(tag);
+      if (text !== undefined) element.textContent = text;
+      if (className) element.className = className;
+      return element;
+    }
+
+    function renderHeader() {
+      header.replaceChildren();
+      columns.forEach((column) => {
+        const cell = makeElement("th");
+        cell.scope = "col";
+        const button = makeElement("button", undefined, "app-sort-button");
+        button.type = "button";
+        button.dataset.testid = `sort-${column.key}`;
+        button.setAttribute("aria-label", `Sort by ${column.label}`);
+        button.append(makeElement("span", column.label));
+        const indicator = makeElement("span", "", "app-sort-indicator");
+        if (state.sortColumn === column.key) {
+          indicator.textContent = state.sortDirection === "asc" ? "▲" : "▼";
+          button.setAttribute("aria-sort", state.sortDirection === "asc" ? "ascending" : "descending");
+        }
+        button.append(indicator);
+        button.addEventListener("click", () => {
+          if (state.sortColumn === column.key) {
+            state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+          } else {
+            state.sortColumn = column.key;
+            state.sortDirection = "asc";
+          }
+          render();
+        });
+        cell.append(button);
+        header.append(cell);
+      });
+    }
+
+    function filteredRows() {
+      const query = state.query.trim().toLowerCase();
+      return employees.filter((employee) => {
+        const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+        return matchesText && (!state.activeOnly || employee.active);
+      });
+    }
+
+    function sortedRows(rows) {
+      return [...rows].sort((a, b) => {
+        const first = a[state.sortColumn];
+        const second = b[state.sortColumn];
+        let comparison;
+        if (typeof first === "number") comparison = first - second;
+        else if (typeof first === "boolean") comparison = Number(first) - Number(second);
+        else comparison = String(first).localeCompare(String(second));
+        return state.sortDirection === "asc" ? comparison : -comparison;
+      });
+    }
+
+    function render() {
+      const rows = sortedRows(filteredRows());
+      const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+      const startIndex = (state.page - 1) * pageSize;
+      const visibleRows = rows.slice(startIndex, startIndex + pageSize);
+      body.replaceChildren();
+      if (visibleRows.length === 0) {
+        const row = makeElement("tr");
+        const cell = makeElement("td", "No employees match the current filters.", "app-empty");
+        cell.colSpan = columns.length;
+        row.append(cell);
+        body.append(row);
+      } else {
+        visibleRows.forEach((employee) => {
+          const row = makeElement("tr");
+          row.append(makeElement("td", employee.name));
+          row.append(makeElement("td", employee.department));
+          row.append(makeElement("td", `$${employee.salary.toLocaleString("en-US")}`));
+          row.append(makeElement("td", employee.startDate));
+          row.append(makeElement("td", employee.active ? "Active" : "Inactive", employee.active ? "app-status-active" : "app-status-inactive"));
+          body.append(row);
+        });
+      }
+      const firstShown = rows.length === 0 ? 0 : startIndex + 1;
+      const lastShown = Math.min(startIndex + pageSize, rows.length);
+      count.textContent = `Showing ${firstShown}-${lastShown} of ${rows.length}`;
+      pageLabel.textContent = `Page ${state.page} of ${totalPages}`;
+      previous.disabled = state.page === 1;
+      next.disabled = state.page === totalPages;
+      renderHeader();
+    }
+
+    function csvValue(value) {
+      const text = value === true ? "Active" : value === false ? "Inactive" : String(value);
+      return /[,"\n]/.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text;
+    }
+
+    function exportCsv() {
+      const rows = filteredRows();
+      const lines = [columns.map((column) => csvValue(column.label)).join(",")];
+      rows.forEach((employee) => lines.push(columns.map((column) => csvValue(employee[column.key])).join(",")));
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "employees.csv";
+      link.dataset.testid = "download-link";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    search.addEventListener("input", () => {
+      state.query = search.value;
+      state.page = 1;
+      render();
+    });
+    activeOnly.addEventListener("change", () => {
+      state.activeOnly = activeOnly.checked;
+      state.page = 1;
+      render();
+    });
+    previous.addEventListener("click", () => { if (state.page > 1) { state.page -= 1; render(); } });
+    next.addEventListener("click", () => { state.page += 1; render(); });
+    exportButton.addEventListener("click", exportCsv);
+    render();
+  </script>
+</body>
+</html>

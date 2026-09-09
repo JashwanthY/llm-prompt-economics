@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Directory</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  color: #222;
+}
+.controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+input[type="text"] {
+  padding: 0.5rem;
+  width: 18rem;
+}
+button {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.65rem;
+  text-align: left;
+}
+th {
+  background: #f2f2f2;
+}
+th button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  padding: 0;
+  font-weight: bold;
+}
+.status {
+  margin: 0.75rem 0;
+}
+.pagination {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+</style>
+</head>
+<body>
+<h1>Employee Directory</h1>
+<div class="controls">
+  <label for="filter">Filter:</label>
+  <input id="filter" type="text" placeholder="Name or department">
+  <label><input id="activeOnly" type="checkbox"> Active only</label>
+  <button id="export">Export CSV</button>
+</div>
+<div id="count" class="status"></div>
+<table>
+  <thead>
+    <tr>
+      <th><button type="button" data-key="name">Name</button></th>
+      <th><button type="button" data-key="department">Department</button></th>
+      <th><button type="button" data-key="salary">Salary</button></th>
+      <th><button type="button" data-key="startDate">Start Date</button></th>
+      <th><button type="button" data-key="active">Active</button></th>
+    </tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+<div class="pagination">
+  <button id="previous">Previous</button>
+  <span id="page"></span>
+  <button id="next">Next</button>
+</div>
+<script>
+const employees = [
+  { name: "Ava Thompson", department: "Engineering", salary: 118000, startDate: "2021-03-15", active: true },
+  { name: "Liam Carter", department: "Sales", salary: 91000, startDate: "2020-07-06", active: true },
+  { name: "Mia Rodriguez", department: "Support", salary: 72000, startDate: "2022-01-24", active: true },
+  { name: "Noah Williams", department: "Design", salary: 86000, startDate: "2019-11-18", active: false },
+  { name: "Sophia Patel", department: "Engineering", salary: 126000, startDate: "2018-05-21", active: true },
+  { name: "Ethan Brooks", department: "Sales", salary: 98000, startDate: "2023-02-13", active: true },
+  { name: "Isabella Nguyen", department: "Support", salary: 69000, startDate: "2021-09-27", active: true },
+  { name: "Oliver Morgan", department: "Design", salary: 94000, startDate: "2020-04-09", active: true },
+  { name: "Amelia Foster", department: "Engineering", salary: 109000, startDate: "2022-06-06", active: false },
+  { name: "James Kim", department: "Sales", salary: 88000, startDate: "2019-08-12", active: true },
+  { name: "Charlotte Reed", department: "Support", salary: 76000, startDate: "2023-10-02", active: true },
+  { name: "Benjamin Scott", department: "Design", salary: 101000, startDate: "2018-12-03", active: false },
+  { name: "Harper Bell", department: "Engineering", salary: 132000, startDate: "2017-02-14", active: true },
+  { name: "Lucas Evans", department: "Sales", salary: 95000, startDate: "2021-12-20", active: false },
+  { name: "Evelyn Cooper", department: "Support", salary: 73500, startDate: "2020-10-19", active: true },
+  { name: "Henry Ward", department: "Design", salary: 89000, startDate: "2022-08-15", active: true },
+  { name: "Ella Murphy", department: "Engineering", salary: 115000, startDate: "2019-03-25", active: true },
+  { name: "Alexander Rivera", department: "Sales", salary: 103000, startDate: "2018-07-30", active: true },
+  { name: "Grace Bailey", department: "Support", salary: 71000, startDate: "2021-05-10", active: false },
+  { name: "Daniel Howard", department: "Design", salary: 97000, startDate: "2023-04-17", active: true },
+  { name: "Scarlett Hughes", department: "Engineering", salary: 121000, startDate: "2020-01-13", active: true },
+  { name: "Michael Perry", department: "Sales", salary: 93000, startDate: "2022-11-07", active: false },
+  { name: "Chloe Richardson", department: "Support", salary: 78000, startDate: "2019-06-24", active: true },
+  { name: "Samuel Cox", department: "Design", salary: 92000, startDate: "2021-08-02", active: true }
+];
+
+const filterInput = document.getElementById("filter");
+const activeOnly = document.getElementById("activeOnly");
+const body = document.getElementById("body");
+const count = document.getElementById("count");
+const pageLabel = document.getElementById("page");
+const previous = document.getElementById("previous");
+const next = document.getElementById("next");
+const pageSize = 10;
+let page = 1;
+let sortKey = null;
+let sortDirection = 1;
+
+function filteredEmployees() {
+  const query = filterInput.value.trim().toLowerCase();
+  return employees.filter(employee => {
+    const matchesText = !query || employee.name.toLowerCase().includes(query) || employee.department.toLowerCase().includes(query);
+    return matchesText && (!activeOnly.checked || employee.active);
+  });
+}
+
+function sortedEmployees() {
+  const result = filteredEmployees();
+  if (sortKey) {
+    result.sort((a, b) => {
+      let first = a[sortKey];
+      let second = b[sortKey];
+      if (typeof first === "string") {
+        first = first.toLowerCase();
+        second = second.toLowerCase();
+      }
+      if (first < second) return -1 * sortDirection;
+      if (first > second) return 1 * sortDirection;
+      return 0;
+    });
+  }
+  return result;
+}
+
+function render() {
+  const records = sortedEmployees();
+  const totalPages = Math.max(1, Math.ceil(records.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  const start = (page - 1) * pageSize;
+  const visible = records.slice(start, start + pageSize);
+  body.innerHTML = visible.map(employee => `
+    <tr>
+      <td>${employee.name}</td>
+      <td>${employee.department}</td>
+      <td>$${employee.salary.toLocaleString()}</td>
+      <td>${employee.startDate}</td>
+      <td>${employee.active ? "Yes" : "No"}</td>
+    </tr>
+  `).join("");
+  const first = records.length ? start + 1 : 0;
+  const last = Math.min(start + pageSize, records.length);
+  count.textContent = `Showing ${first}-${last} of ${records.length}`;
+  pageLabel.textContent = `Page ${page} of ${totalPages}`;
+  previous.disabled = page === 1;
+  next.disabled = page === totalPages;
+  document.querySelectorAll("th button").forEach(button => {
+    const label = button.textContent.replace(/ [▲▼]$/, "");
+    button.textContent = sortKey === button.dataset.key ? `${label} ${sortDirection === 1 ? "▲" : "▼"}` : label;
+  });
+}
+
+document.querySelectorAll("th button").forEach(button => {
+  button.addEventListener("click", () => {
+    if (sortKey === button.dataset.key) {
+      sortDirection *= -1;
+    } else {
+      sortKey = button.dataset.key;
+      sortDirection = 1;
+    }
+    render();
+  });
+});
+
+filterInput.addEventListener("input", () => {
+  page = 1;
+  render();
+});
+activeOnly.addEventListener("change", () => {
+  page = 1;
+  render();
+});
+previous.addEventListener("click", () => {
+  page -= 1;
+  render();
+});
+next.addEventListener("click", () => {
+  page += 1;
+  render();
+});
+document.getElementById("export").addEventListener("click", () => {
+  const records = sortedEmployees();
+  const headers = ["Name", "Department", "Salary", "Start Date", "Active"];
+  const values = records.map(employee => [employee.name, employee.department, employee.salary, employee.startDate, employee.active]);
+  const csv = [headers, ...values].map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "employees.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+render();
+</script>
+</body>
+</html>

@@ -11,6 +11,7 @@
 __pycache__/
 data/cache*/
 experiments/skill-bloat/variants/*.md
+!experiments/skill-bloat/variants/README.md
 node_modules/
 paper/*.aux
 paper/*.bbl

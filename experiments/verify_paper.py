@@ -130,10 +130,47 @@ claim(sum(x["hex"] for _, x in cm) == 1 and all("L1_light" in f.name for f, x in
 claim(sum(x["bad_id_prefix"] for _, x in cm) == 1 and all("L1_light" in f.name for f, x in cm if x["bad_id_prefix"]), "one unprefixed id, at L1")
 claim(sum(x["inline_handlers"] + x["missing_testid"] + x["innerHTML"] for _, x in cm) == 0, "three rules never broken at any level")
 clog = json.load(open(ROOT / "compliance/runlog.json"))
-cL0 = [r for r in clog if r["level"] == "L0_none"]
-tL0 = [r for r in by_lvl["L0_none"] if r["task"] == "table"]
-claim(near(pct(mean(tL0, "out_tokens"), mean(cL0, "out_tokens")), .26, .006) and near(pct(mean(tL0, "secs"), mean(cL0, "secs")), .28, .006),
-      f"five house rules cost +26% tokens, +28% latency over the bare table task at zero guidance")
+# The old cross-experiment rules-vs-guidance comparison is withdrawn: the
+# compliance and dose table prompts are not the same text (152 vs 192 words) and
+# the two ran in different sessions. experiments/rulescost replaces it with one
+# identical task text across interleaved arms.
+rc = json.load(open(ROOT / "rulescost/runlog.json"))
+rb = collections.defaultdict(list)
+for r in rc:
+    rb[r["arm"]].append(r)
+claim(len(rc) == 18 and all(len(rb[a]) == 6 for a in ("bare", "rules", "restraint")),
+      "rulescost: 18 interleaved runs, 6 per arm")
+rm = lambda a, k: st.mean(x[k] for x in rb[a])
+b_o, b_s, b_c = rm("bare", "out_tokens"), rm("bare", "secs"), rm("bare", "chars")
+claim(near(b_o, 4253, 1) and near(rm("rules", "out_tokens"), 5170, 1)
+      and near(rm("restraint", "out_tokens"), 2949, 1), "rulescost tokens 4,253 / 5,170 / 2,949")
+claim(near(pct(b_o, rm("rules", "out_tokens")), .22, .006), "rules +22% output tokens")
+claim(near(pct(b_o, rm("restraint", "out_tokens")), -.31, .006), "restraint -31% output tokens")
+claim(near(pct(b_s, rm("rules", "secs")), .17, .006) and near(pct(b_s, rm("restraint", "secs")), -.33, .006),
+      "rules +17% latency, restraint -33% latency")
+claim(near(pct(b_c, rm("rules", "chars")), .17, .006) and near(pct(b_c, rm("restraint", "chars")), -.32, .006),
+      "rules +17% size, restraint -32% size")
+rp = {(x["arm"], x["model"], x["trial"]): x["out_tokens"] for x in rc}
+ks = sorted({(m_, t) for (_, m_, t) in rp})
+claim(sum(rp[("rules", *k)] > rp[("bare", *k)] for k in ks) == 6
+      and sum(rp[("restraint", *k)] < rp[("bare", *k)] for k in ks) == 6,
+      "rules rose in 6/6 paired cells, restraint fell in 6/6")
+for mod, wr, ws in (("gpt-5.6-luna", .19, -.27), ("gpt-5.6-terra", .24, -.34)):
+    f = lambda a: st.mean(x["out_tokens"] for x in rb[a] if x["model"] == mod)
+    claim(near(pct(f("bare"), f("rules")), wr, .006) and near(pct(f("bare"), f("restraint")), ws, .006),
+          f"rulescost {mod.split('-')[-1]}: rules {wr:+.0%}, restraint {ws:+.0%}")
+# Cross-check the per-model figures the prose quotes, since the earlier draft
+# said -31% for luna where the data says -27% and no check caught it.
+prose = (ROOT.parent / "paper-bloat/preprint.md").read_text()
+claim("(+19%/\u221227% and +24%/\u221234%)" in prose,
+      "prose quotes the measured per-model split (+19%/-27% and +24%/-34%)")
+
+# the arms are matched in length -- this is what makes the contrast a test of
+# what a line asks for rather than of how long it is
+_rd = load("rulescost_design", "rulescost/design.py")
+claim(abs(len(_rd.RULES.split()) - len(_rd.RESTRAINT.split())) <= 6,
+      f"arms matched in length ({len(_rd.RULES.split())} vs {len(_rd.RESTRAINT.split())} words)")
+claim(_rd.TASK == dose_design.TASK_TABLE, "rulescost uses the dose table task text verbatim")
 
 # ---------------------------------------------------------------- content audit
 FEAT = {"aria": r"\saria-[a-z]+=", "rem": r"\d(\.\d+)?rem\b", "props": r"--[a-z][\w-]*\s*:",
@@ -232,11 +269,11 @@ claim(near(am("minimal", "out_tokens"), 5114, 1) and near(am("minimal", "secs"),
 
 # ---------------------------------------------------------------- totals
 runs = {d: json.load(open(ROOT / d / "runlog.json")) for d in
-        ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol", "diversity", "skill-bloat")}
+        ("bloat-pilot", "bloat-pilot-da", "dose", "compliance", "hard", "poscontrol", "diversity", "skill-bloat", "rulescost")}
 total = sum(len(v) for v in runs.values())
-claim(total == 172, f"172 runs total ({total})")
+claim(total == 190, f"190 runs total ({total})")
 spend = sum(r.get("in_tokens", 0) for v in runs.values() for r in v) / 1e6 * 1.25 + sum(r.get("out_tokens", 0) for v in runs.values() for r in v) / 1e6 * 10
-claim(near(spend, 14.78, .015), f"total spend $14.78 (${spend:.2f})")
+claim(near(spend, 16.28, .015), f"total spend $16.28 (${spend:.2f})")
 
 print(f"\n{len(fails)} mismatch(es)")
 sys.exit(1 if fails else 0)
