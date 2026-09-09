@@ -1,123 +1,154 @@
 ---
 name: prompt-contract
-description: How to decide what belongs in a system prompt, agent instruction file, CLAUDE.md, AGENTS.md or SKILL.md — and what to leave out. Use when writing a new system prompt or skill from scratch, reviewing one in a PR, deciding whether a rule is worth adding, debugging an agent that ignores its instructions, or answering "is this prompt too long / what should I cut". Built on measurements of what models actually do with each kind of instruction, not on prompt-engineering folklore.
+description: Audit and trim a system prompt, CLAUDE.md, AGENTS.md or SKILL.md by measuring which of its lines actually change the model's output, then report the token and latency saving. Use when someone asks what to cut from a prompt, says their prompt or skill is too long, asks whether a rule is worth adding, is reviewing prompt changes in a PR, is debugging an agent that ignores its instructions, or wants to know what generic best-practice instructions are costing them. Also use when writing a new system prompt from scratch and deciding what belongs in it.
 ---
 
 # Write the contract, not the advice
 
-A system prompt is a **contract**: the things the model cannot infer and must
-get right. Everything else is a work order you are placing, and you will be
-billed for it.
+A system prompt is a **contract**: what the model cannot infer and must get
+right. Every other line is a work order you are placing, and you are billed for
+it at the output.
 
-Two mistakes follow from getting this backwards. Teams fill prompts with
-general advice the model doesn't need, and leave out the specifics only they
-know. Then they cut the wrong half when the prompt gets long.
+**The organising fact: knowing is not doing.** A capable model knows what
+accessible markup is, what idempotency is, what a good commit message looks
+like. It frequently does not produce them unprompted. Across 48 generated
+artifacts one accessibility feature appeared in **0 of 12** outputs when
+unmentioned and **12 of 12** when asked for. Other conventions appeared every
+time regardless. Some requests were ignored however firmly made.
 
-## The one thing to internalise
+**You cannot tell which is which by reading the line.** That is why this skill
+measures instead of advising.
 
-**Knowing is not doing.**
+## Three kinds of line
 
-A capable model knows what accessible markup is, what idempotency is, what a
-good commit message looks like. That does not mean it produces them unprompted.
-In measurements across 48 generated artifacts, a specific accessibility feature
-appeared in **0 of 12** outputs when unmentioned and **12 of 12** when asked
-for — one line, all the difference. Meanwhile other conventions appeared every
-time regardless, and some requests were ignored no matter how firmly they were
-made.
+| kind | example | cost | verdict |
+|---|---|---|---|
+| **Contract** | key names, thresholds, precedence, invariants | earns it | **never cut** |
+| **Work order** | "handle the empty case", "emit structured logs" | billed at the output | keep **iff** you want what it produces |
+| **Restriction** | "never use X", "no commentary" | no detectable cost | keep when unsure |
 
-You cannot tell which is which by reading the line. This is the central
-practical fact about system prompts, and almost all advice about them ignores it.
+The failure mode of trimming is silent: delete the line that was the only reason
+your output had some property, and everything still runs without it. **Shorter
+is not the goal. Knowing is the goal.**
 
-## What to include
+---
 
-**1. Contract first — everything the model cannot infer.** This is the part
-that earns its tokens, and in practice it is most of a good prompt:
+# The procedure
 
-- Exact names: keys, fields, components, endpoints, files, IDs
-- Exact values: thresholds, rates, limits, enum members, formats
-- Structure: the shape of the output, what wraps what, what order
-- Precedence: which rule wins when two apply
-- Domain facts and invariants: what must never be true at the same time
-- Where things live and what may not be touched
+Run this end to end. Report the summary in step 6 — that is the deliverable.
 
-A model with no context will guess these, and its guesses will be plausible and
-wrong. **Every line here is load-bearing. Never cut this half.**
+## Step 1 — Get what you need from the user
 
-**2. Work orders — general instructions whose output you actually want.**
-"Handle the empty case." "Emit structured logs." These are legitimate, and each
-one is a purchase: it makes the model produce more, and you pay for the extra on
-the output side. Include one when you want the thing it produces. Not as
-insurance.
+You need three things. Ask for whatever is missing:
 
-**3. Restrictions — instructions that ask for less.** "Never use X." "Do not
-add commentary." These are the cheapest lines in a prompt: they reduce output
-rather than adding to it, and measured cost was within noise. If you are unsure
-whether to keep a restriction, keep it.
+1. **The prompt file** to audit.
+2. **A command that runs their real task**, reading the prompt from
+   `$PROMPT_FILE` and writing its artifact to `$OUT_FILE`. A wrapper script is
+   fine. Without this you can only classify, not measure — say so plainly and
+   stop at step 2.
+3. **How many runs** they will pay for. Default 3 per variant. Six runs of a
+   single-file generation task is roughly $0.30; a long agentic loop is more.
+   Tell them the estimate before spending anything.
 
-## What to leave out
+## Step 2 — Classify, free
 
-- **Advice the model follows anyway.** Dead weight. You cannot identify it by
-  reading — measure it (below).
-- **Advice the model ignores anyway.** Also dead weight, and worse: it creates
-  the impression the behaviour is covered when it isn't.
-- **Insurance.** Lines added "just in case", to feel thorough, or because
-  another prompt had them. If you cannot say what output a line produces, it is
-  probably not producing any.
-- **Restated capability.** Explaining what the model is or how to think.
-- **Emphasis as a substitute for specificity.** `CRITICAL: You MUST ALWAYS` is
-  not more precise than the same sentence in plain words. If a rule is being
-  missed, the fix is usually a sharper contract, not louder formatting.
+```
+python3 scripts/audit.py classify <prompt-file>
+```
 
-## Length is the wrong question
+Splits lines into *guidance* (recognised generic directives — auditable),
+*restraint* (asks for less — leave them), and *review* (unrecognised).
 
-"Too long" is not the problem, and shortening is not the goal. A long prompt
-that is mostly contract is fine. A short prompt missing a threshold is broken.
+**Never propose deleting a `review` line.** Those are usually the contract. The
+tool has no signal on them and neither do you.
 
-Ask of each line: **what does this produce that I would otherwise not get?** If
-the answer is "nothing", cut it regardless of length. If the answer is a thing
-you want, keep it regardless of length.
+If most of the file is `review`, say so: that prompt is mostly contract and
+there is little to cut. That is a finding, not a failure.
 
-The failure mode of aggressive trimming is silent: you delete the line that was
-the only reason your output had some property, everything still runs, and the
-property is quietly gone.
+## Step 3 — Produce the off-arm
 
-## How to check, rather than guess
+Write a copy of the prompt with the *generic guidance block removed* and
+**every contract line kept**. Run the task N times against it, saving outputs.
 
-Run your real task once with a block of general instructions **removed**, keeping
-the whole contract. Compare against a run with them in. For each instruction,
-count something mechanical in the output that indicates compliance:
+## Step 4 — Bucket the lines
 
-- present in both → the model does it anyway → **delete the line**
-- absent in both → the model ignores it → **delete the line**
-- absent without, present with → **that line is why you get it — keep it if you
-  want it**
+```
+python3 scripts/audit.py report <prompt-file> --off 'runs/off_*.<ext>' --on 'runs/on_*.<ext>'
+```
 
-Compare per unit of output size, not raw counts: a longer artifact contains more
-of everything, and a count that doubles while the output grows 76% has barely
-moved. The `guidance-audit` skill automates this.
+Counts are compared per 10KB, because a longer artifact contains more of
+everything. Without `--on` you get candidates, not verdicts.
 
-## Reviewing someone else's prompt
+- **already-followed** → delete, the model does it anyway
+- **ignored** → delete, the model does not do it either way
+- **amplified / only-when-asked** → **this line is why you get that** — keep it
+  if the user wants the feature
 
-1. Separate contract from everything else. Contract is not up for discussion.
-2. For each remaining line, ask what output it produces. No answer → candidate.
-3. Check whether the "candidates" survive a run without them.
-4. Keep restrictions; they are cheap.
-5. Report what each cut would cost, and let the owner decide. Deleting a work
-   order deletes the feature — that is a product call, not a prompt call.
+## Step 5 — Propose a trimmed prompt, and measure it
 
-## What is measured here, and what is not
+Write `trimmed.md` removing **only** the *already-followed* and *ignored* lines.
+Never remove contract, restriction, `review`, or anything the user said they
+want. Then:
 
-**Measured** (172 runs, two frontier models from one vendor, code-generation
-tasks, 2026-09): models frequently do not apply general good practice
+```
+python3 scripts/measure.py --cmd '<their command>' \
+    --variant original=<prompt-file> --variant trimmed=trimmed.md --runs 3
+```
+
+Variants are interleaved so session drift lands on all of them equally.
+
+## Step 6 — Report
+
+Give the user exactly this, and nothing dressed up:
+
+- **What I removed** — each line, and which bucket it fell in
+- **What I deliberately kept** — the amplified/only-when-asked lines, naming the
+  feature each one buys, so they can overrule you
+- **What I could not judge** — the `review` lines, untouched
+- **Measured effect** — output tokens, latency and artifact size, original vs
+  trimmed, with intervals and the run count
+- **What this does not prove** — that the output is still correct
+
+Then: **"Run your own tests before adopting the trimmed prompt."** Say it
+plainly. This measures whether directives were *followed*, never whether the
+result is *right*.
+
+## If you cannot run their task
+
+Stop at step 2. Give the classification, mark the priors in
+`references/signatures.json` as hints, and state clearly that nothing was
+measured. Bias toward keeping. A wrong deletion is silent and permanent; a wrong
+retention costs tokens.
+
+---
+
+# What to include when writing a new prompt
+
+**Contract first**, and expect it to be most of the file: exact names, keys,
+fields, endpoints, IDs; exact values, thresholds, rates, limits, formats;
+output structure; which rule wins when two apply; domain invariants; what may
+not be touched. A model with no context guesses these, plausibly and wrongly.
+
+**Leave out:** advice the model follows anyway; advice it ignores anyway;
+insurance lines added "just in case"; restated capability; and emphasis used as
+a substitute for precision — `CRITICAL: You MUST ALWAYS` is not more specific
+than the same sentence in plain words. If a rule keeps being missed, the fix is
+usually a sharper contract, not louder formatting.
+
+# Evidence, and its limits
+
+**Measured** — 172 runs, two frontier models from one vendor, code-generation
+tasks, September 2026: models frequently do not apply general good practice
 unprompted; instructions that ask for work materially increase output volume;
-instructions that ask for restraint had no detectable cost; and correctness did
-not degrade as general instructions were added, on tasks where the models were
-already near-perfect.
+instructions that ask for restraint had no detectable cost; correctness did not
+degrade as general instructions were added, on tasks where the models were
+already near-perfect (so this bounds harm, it does not exclude it).
 
-**Not measured, and stated as principle:** that contract belongs first, that
-emphasis is a poor substitute for specificity, and that this transfers beyond
-code generation and beyond one vendor. Treat those as reasoning, not evidence.
+**Reasoning, not evidence** — that contract belongs first, that emphasis is a
+poor substitute for specificity, and that any of this transfers beyond code
+generation or beyond one vendor.
 
-**Expect the boundary to move.** Which instructions a model follows unprompted
-changes with every release. That is why this skill teaches a procedure rather
-than shipping a list of lines to delete — re-check after a model upgrade.
+**The boundary moves.** Which instructions a model applies unprompted changes
+with every release, which is why this skill measures on the user's model rather
+than shipping a list of lines to delete. Treat `references/signatures.json` as
+hints about what to check first, never as verdicts.
