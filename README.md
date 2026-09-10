@@ -1,9 +1,11 @@
-# Instruction Economics in Agent System Prompts
+# Instruction Economics in LLM System Prompts
 
-Every agent runs on a system prompt, and every system prompt fills up with
-generic advice — *write semantic markup, handle the empty case, name your
-constants*. Whatever your agent is and whatever format holds its instructions,
-the same question applies: **is any of that advice doing anything?**
+If you ship anything on an LLM — a product feature, an internal tool, a coding
+agent — you maintain a system prompt, and it has filled up with generic advice:
+*write semantic markup, handle the empty case, name your constants*. It does not
+matter whether that text lives in your application code, a vendor system prompt,
+an agent skill or a `CLAUDE.md`. The same question applies: **is any of it doing
+anything?**
 
 We measured it across **198 runs** on two frontier models. Each generic line
 turns out to be doing one of three things, and reading it will not tell you
@@ -20,8 +22,8 @@ them saves.
 ## Install
 
 ```
-/plugin marketplace add JashwanthY/instruction-economics
-/plugin install prompt-contract@instruction-economics
+/plugin marketplace add JashwanthY/llm-prompt-economics
+/plugin install prompt-contract@llm-prompt-economics
 ```
 
 Then ask your agent:
