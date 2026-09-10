@@ -10,7 +10,7 @@ models, and releases the method as a tool you can point at your own prompt.
 
 | | |
 |---|---|
-| **Paper** | [`paper-bloat/main.pdf`](paper-bloat/main.pdf) — source in [`preprint.md`](paper-bloat/preprint.md) |
+| **Paper** | [`paper-bloat/main.pdf`](paper-bloat/main.pdf) |
 | **Tool** | [`skills/prompt-contract/`](skills/prompt-contract/) — installable agent skill |
 | **Data** | [`experiments/`](experiments/) — every design, run log and grader |
 | **Check** | `python3 experiments/verify_paper.py` — re-derives every number, offline |
@@ -54,23 +54,17 @@ pip install -r requirements.txt
 npm install jsdom                      # the behavioural graders run in Node
 
 python3 experiments/verify_paper.py    # offline; re-derives every claim
-python3 paper-bloat/build.py           # regenerate main.tex
-tectonic paper-bloat/main.tex
 ```
+
+`verify_paper.py` recomputes every numeric claim in the paper from the raw run
+logs and exits non-zero on any mismatch. It needs no API key and makes no model
+call: the complete logs of all 198 runs are included, which is what makes the
+paper checkable.
 
 Re-running the experiments themselves needs an API key in `OPENAI_API_KEY`, or
-`OPENAI_ENV_FILE` pointing at a `.env` that contains one. API nondeterminism
-means runs are not seed-reproducible, which is why the complete logs are
-included — every number in the paper can be checked without a model call.
-
-The paper builds for several venues from one source:
-
-```bash
-python3 paper-bloat/build.py --venue ieee     # or acm, neurips, iclr
-```
-
-See [`paper-bloat/README.md`](paper-bloat/README.md) for what that does and does
-not solve.
+`OPENAI_ENV_FILE` pointing at a `.env` containing one. API nondeterminism means
+runs are not seed-reproducible, so fresh runs will differ in detail; the shipped
+logs are the record.
 
 ## Licence
 
