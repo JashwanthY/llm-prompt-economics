@@ -1,114 +1,78 @@
-# stillholds
+# Instruction Economics in Agent System Prompts
 
-**Most prompt-engineering advice has never been measured.** This repository measures eight
-rules taken verbatim from OpenAI's and Anthropic's own documentation, across 15 models and two
-vendors, one rule at a time — and ships what survived as an installable skill.
+**A generic line in a system prompt is not a reminder — it is a work order, and
+you are billed for it at the output.**
 
-Two rules held on every model tested. Two widely taught techniques did nothing on all but one.
-One technique was worth 55 accuracy points on GPT-5.1 and about 12 on GPT-5.6 — no vendor
-documentation records that decay.
+Agent system prompts accumulate general engineering guidance alongside the
+project-specific facts a model cannot infer. This repository measures what that
+general material costs and what it buys, across **198 runs** on two frontier
+models, and releases the method as a tool you can point at your own prompt.
 
----
+| | |
+|---|---|
+| **Paper** | [`paper-bloat/main.pdf`](paper-bloat/main.pdf) — source in [`preprint.md`](paper-bloat/preprint.md) |
+| **Tool** | [`skills/prompt-contract/`](skills/prompt-contract/) — installable agent skill |
+| **Data** | [`experiments/`](experiments/) — every design, run log and grader |
+| **Check** | `python3 experiments/verify_paper.py` — re-derives every number, offline |
 
-## Install the skill
+## What the study found
 
-```bash
-git clone <REPO-URL> && cd stillholds
-mkdir -p ~/.claude/skills/system-prompt-writing
-cp -R skills/system-prompt-writing/{SKILL.md,references} ~/.claude/skills/system-prompt-writing/
-```
+**Generic guidance is not redundant.** The model does not apply it unprompted. A
+`prefers-reduced-motion` query appears in **0 of 12** artifacts when unmentioned
+and **12 of 12** when asked for. Other conventions appear regardless, and some
+requests are ignored however firmly made — and you cannot tell which is which by
+reading the line.
 
-Restart your agent. It loads when you ask to write, review, or fix a system prompt.
+**Most of the bill arrives at the output.** 811 words of input guidance produce
+**+42% output tokens** and **+38% latency**, rising in all twelve paired cells.
+Output is priced around eight times input and is not reduced by prompt caching,
+so 73% of the added spend lands where caching cannot reach.
 
-## What it does
+**Length is the wrong variable.** At matched length, 75 words asking the model to
+*do* cost **+22%** output while 79 words asking it to *withhold* saved **31%** —
+a 53-point swing, both arms fully correct. At skill scale, 4,746 added words that
+are mostly templates and specification cost only **+4%**.
 
-Given a prompt and the model you actually ship to, it walks a five-step audit:
+**Correctness does not move**, on a pipeline whose positive control registers a
+26-point drop when a single needed parameter is removed.
 
-0. **Name the model, then fetch its vendor's current guidance.** The measured evidence here is
-   narrow and dated; the vendor page is broad and live. The skill states explicit rules for
-   what to do when the two disagree.
-1. **Delete blanket fallback instructions.** "If in doubt, guess." Costs accuracy on every
-   model measured.
-2. **Make the output contract explicit.** Name every key. Helps on every model measured — the
-   one rule expected to survive future upgrades, because a schema is information no amount of
-   capability supplies.
-3. **Delete scaffolding that measured nothing.** XML wrappers, role sentences.
-4. **Check the model-dependent rules**, which genuinely reverse by vendor.
-5. **Verify on your own inputs**, with the noise floor stated.
+## The tool
 
-### Worked example
+[`skills/prompt-contract`](skills/prompt-contract/) packages the method. Point it
+at your prompt and a command that runs your real task, and it classifies every
+line, runs the task without the generic guidance, attributes a verdict to each
+directive, proposes a trim of dead weight only, measures original against
+trimmed, and reports what changed and what it saved.
 
-Before — a real invoice-extraction prompt that was fabricating vendor names:
+It never deletes: a line that survives attribution is a feature you are buying,
+and whether to keep buying it is your call.
 
-```
-<instructions>
-You are an expert invoice-processing assistant with 20 years of experience.
-Think step by step.
-Extract the invoice details as JSON.
-CRITICAL: You MUST always populate every field. If in doubt, use your best
-guess. Never leave a field blank.
-Be concise.
-</instructions>
-```
-
-`stillholds score` on this prompt, targeting `gpt-5.4`, reports: **R6 and R7 harmful**,
-**R1/R2/R8 expired**, **R4 unmeasurable** — and that **R5, the rule that helps on every model,
-is absent**. The fabrication is prompt-caused: the "best guess" line is the audit's most
-harmful pattern.
-
-## Use the tooling
+## Reproducing
 
 ```bash
-pip install -e .
-stillholds score --prompt your-prompt.txt --to gpt-5.6-sol   # audit a prompt
-stillholds audit --models gpt-5.6-sol --n 20 --seeds 2       # re-run the measurement
-stillholds gen-skill                                          # rebuild the skill from the map
+pip install -r requirements.txt
+npm install jsdom                      # the behavioural graders run in Node
+
+python3 experiments/verify_paper.py    # offline; re-derives every claim
+python3 paper-bloat/build.py           # regenerate main.tex
+tectonic paper-bloat/main.tex
 ```
 
-`score` is deterministic and makes no API calls. `audit` does, and costs money.
+Re-running the experiments themselves needs an API key in `OPENAI_API_KEY`, or
+`OPENAI_ENV_FILE` pointing at a `.env` that contains one. API nondeterminism
+means runs are not seed-reproducible, which is why the complete logs are
+included — every number in the paper can be checked without a model call.
 
-## The evidence
+The paper builds for several venues from one source:
 
-`data/audit/combined-15models.json` — 120 cells, 107 measurable, 45 significant. Every row
-carries `band`, `degenerate_ci`, `control_accuracy` and `expired`, so you can recompute any
-claim rather than trusting a table.
+```bash
+python3 paper-bloat/build.py --venue ieee     # or acm, neurips, iclr
+```
 
-**Excluded, no variation, and measured null are three different things**, and the audit keeps
-them apart. A model already scoring 1.00 without an instruction cannot be improved by it —
-reporting that as "no effect" is an absence of measurement wearing a null's clothing. That
-distinction is the paper's methodological contribution and it caught a false finding of our own.
+See [`paper-bloat/README.md`](paper-bloat/README.md) for what that does and does
+not solve.
 
-## The paper
+## Licence
 
-`paper/main.pdf` — *Does It Still Hold? An Expiry Audit of Prompt-Engineering Guidance Across
-15 Models.* Rebuild with `cd paper && python3 build.py && tectonic -X compile main.tex`
-(needs `pandoc` and `tectonic`).
-
-## Honest limits
-
-- **One task family.** Structured extraction scored on schema conformance. A rule inert here
-  could matter for summarisation, code generation, or dialogue.
-- **n = 20, noise floor near ±25 points.** Only the two universal rules clear it comfortably.
-- **Two vendors, no open-weight models.**
-- **One rule had a construct-validity failure** — its control arm encoded the scoring
-  convention. Re-measured with a clean control the direction holds, the magnitudes shrink. See
-  §4.7. We report it rather than quietly restating the conclusion.
-- **Dated.** The audit date is stamped in the skill. Model behaviour moves; that is the point.
-
-## Contributing
-
-The most valuable contributions are measurements we cannot make:
-
-- **A second task family** — summarisation or code generation. This is the single biggest
-  credibility upgrade available, and it converts our main limitation into a finding either way.
-- **Open-weight models.** `src/stillholds/registry.py` takes new entries; the harness needs a
-  provider branch in `client.py`.
-- **Vendors we do not cover.** Google, Mistral, Meta.
-
-Run `stillholds audit --models <id> --n 20 --seeds 2 --out data/audit/<name>.json` and open a
-PR with the JSON. Please do not hand-edit result files.
-
-## License
-
-Code and data: MIT. The vendor documentation quoted in `docs/RULES-INVENTORY.md` belongs to
-its respective owners and is quoted for analysis.
+Code under MIT, paper text and figures under CC BY 4.0. See [LICENSE](LICENSE)
+and [CITATION.cff](CITATION.cff).
