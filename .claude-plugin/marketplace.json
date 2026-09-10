@@ -1,0 +1,19 @@
+{
+  "name": "instruction-economics",
+  "owner": {
+    "name": "Jashwanth Yenugu"
+  },
+  "metadata": {
+    "description": "Measured tooling for agent system prompts",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "prompt-contract",
+      "description": "Find out which lines of a system prompt, CLAUDE.md, AGENTS.md or SKILL.md are actually doing anything, by running the task without them and measuring what the model does anyway. Reports what to cut and what the cut saves; never deletes.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/prompt-contract"]
+    }
+  ]
+}
