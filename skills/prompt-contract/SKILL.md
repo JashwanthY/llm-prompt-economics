@@ -55,7 +55,7 @@ Run this end to end. Report the summary in step 6 — that is the deliverable.
    `$PROMPT_FILE` and writing its artifact to `$OUT_FILE`. A wrapper script is
    fine. Without this you can review but not measure — say so plainly.
 3. **How many runs** they will pay for. Default 3 per variant. Six runs of a
-   single-file generation task is roughly $0.30; a long agentic loop is more.
+   single-file generation task is roughly 30 US cents; a long agentic loop is more.
    Tell them the estimate before spending anything.
 
 ## Step 2 — Read the prompt and classify it yourself
