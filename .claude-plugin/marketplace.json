@@ -4,13 +4,13 @@
     "name": "Jashwanth Yenugu"
   },
   "metadata": {
-    "description": "Measured tooling for agent system prompts",
-    "version": "1.0.0"
+    "description": "Research-backed review for LLM system prompts",
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "prompt-contract",
-      "description": "Find out which lines of an LLM system prompt are actually doing anything -- in application code, a vendor prompt, an agent skill, CLAUDE.md or AGENTS.md -- by running the task without them and measuring what the model does anyway. Reports what to cut and what the cut saves; never deletes.",
+      "description": "Review any LLM system prompt -- in application code, a vendor prompt, an agent skill, CLAUDE.md or AGENTS.md -- for what to cut, sharpen or keep. Reports each finding with its line number, counts and the study's measured evidence, and changes nothing until you approve.",
       "source": "./",
       "strict": false,
       "skills": [

@@ -13,9 +13,9 @@ which: the model already does it anyway, the model ignores it anyway, or that
 line is the only reason you get the behaviour at all. Two are dead weight. One
 is a feature you are paying for.
 
-**This repo ships `prompt-contract`** — an agent skill that runs that check on
-your prompt, on your model, and tells you which lines to cut and what cutting
-them saves.
+**This repo ships `prompt-contract`** — an agent skill that reviews your prompt
+against these findings, reports what to cut, sharpen or keep with line numbers
+and counts, and changes nothing until you approve.
 
 ![How it works](docs/how-it-works.png)
 
@@ -33,13 +33,17 @@ Then ask your agent:
 <details>
 <summary>Manual install, or other agents</summary>
 
-Copy `skills/prompt-contract/` into `~/.claude/skills/` (all projects) or
-`.claude/skills/` (one project).
+Copy `skills/prompt-contract/SKILL.md` into a `prompt-contract` folder in your
+agent's skills directory:
 
-`SKILL.md` is plain Markdown with YAML frontmatter and the scripts are
-dependency-free Python, so any agent that reads a skill file can follow it. I
-have not verified Codex or Cursor myself — an issue reporting whether it worked
-is welcome.
+| agent | folder |
+|---|---|
+| Claude Code | `~/.claude/skills/prompt-contract/` |
+| Cursor, Codex | `~/.agents/skills/prompt-contract/` |
+
+It is one Markdown file with YAML frontmatter, so any agent that reads skills can
+follow it. I have not verified Cursor or Codex loading it myself — an issue
+reporting whether it worked is welcome.
 
 </details>
 
@@ -47,25 +51,24 @@ is welcome.
 
 ## What the skill does
 
-Given your prompt and a command that runs your real task, it:
+Point your agent at a prompt and it:
 
-1. **Classifies** every line as contract, work order, or restriction — by
-   reading it, not by matching keywords. Anything naming a fact that exists only
-   in your project is contract, and contract is never proposed for deletion.
-2. **Scores** the prompt: what share of it is actually load-bearing.
-3. **Runs your task without the generic guidance**, keeping the contract intact.
-4. **Attributes a verdict** to each directive by counting, in the generated
-   output, what each arm actually produced.
-5. **Proposes a trim** of dead weight only, and **measures** original against
-   trimmed — output tokens, latency, artifact size.
-6. **Reports** what was removed, what was kept *and which feature each kept line
-   buys*, what it could not judge, and the measured saving.
+1. **Sorts every line** into contract (facts the model could not guess), work
+   orders (requests for more output) and restrictions (requests for less).
+2. **Finds the problems** — duplicates, conflicts with no rule for which wins,
+   vague rules, shouting in place of precision, web or file input with no guard,
+   work orders nobody needs.
+3. **Reports** in a fixed format: counts and shares, then each finding with its
+   line number, why it matters (citing the study's numbers) and the exact
+   proposed change, then the questions only you can answer.
+4. **Stops.** Nothing changes until you reply *"apply all"*, *"apply 1, 3"* or
+   *"skip"*.
+5. **Applies what you approved**, and offers an optional check run of your real
+   task on the old and new prompt to measure the difference.
 
-It never deletes anything itself. A line that survives is a feature you are
-buying, and whether to keep buying it is your call, not a tool's.
-
-The cheapest useful run needs one execution of your own task without the
-guidance — about **$0.15** for a single-artifact task.
+The skill is instructions only — one `SKILL.md`, no scripts. The review costs
+nothing beyond your agent reading the prompt; the check run costs a few runs of
+your task, and it asks first.
 
 ## What the study found
 
