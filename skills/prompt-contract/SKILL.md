@@ -137,7 +137,7 @@ usually a sharper contract, not louder formatting.
 
 # Evidence, and its limits
 
-**Measured** — 172 runs, two frontier models from one vendor, code-generation
+**Measured** — 198 runs, two frontier models from one vendor, code-generation
 tasks, September 2026: models frequently do not apply general good practice
 unprompted; instructions that ask for work materially increase output volume;
 instructions that ask for restraint had no detectable cost; correctness did not
