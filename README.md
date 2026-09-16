@@ -49,14 +49,15 @@ is welcome.
 
 Given your prompt and a command that runs your real task, it:
 
-1. **Classifies** every line — guidance, restriction, or *unrecognised*.
-   Unrecognised lines are usually your project's contract and are never proposed
-   for deletion.
-2. **Runs your task without the generic guidance**, keeping the contract intact.
-3. **Attributes a verdict** to each directive by comparing what the model
-   produced in each arm.
-4. **Proposes a trim** of dead weight only.
-5. **Measures** original against trimmed — output tokens, latency, artifact size.
+1. **Classifies** every line as contract, work order, or restriction — by
+   reading it, not by matching keywords. Anything naming a fact that exists only
+   in your project is contract, and contract is never proposed for deletion.
+2. **Scores** the prompt: what share of it is actually load-bearing.
+3. **Runs your task without the generic guidance**, keeping the contract intact.
+4. **Attributes a verdict** to each directive by counting, in the generated
+   output, what each arm actually produced.
+5. **Proposes a trim** of dead weight only, and **measures** original against
+   trimmed — output tokens, latency, artifact size.
 6. **Reports** what was removed, what was kept *and which feature each kept line
    buys*, what it could not judge, and the measured saving.
 
