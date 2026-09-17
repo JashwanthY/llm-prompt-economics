@@ -20,6 +20,15 @@ def test_personal_skill_names_excludes_prompt_contract(tmp_path):
     assert personal_skill_names([tmp_path]) == {"alpha"}
 
 
+def test_shipped_skill_names_are_not_personal(tmp_path):
+    for name in ("imagegen", "alpha"):
+        (tmp_path / "mine" / name).mkdir(parents=True)
+        (tmp_path / "mine" / name / "SKILL.md").write_text("x")
+    (tmp_path / "system" / "imagegen").mkdir(parents=True)
+    (tmp_path / "system" / "imagegen" / "SKILL.md").write_text("x")
+    assert personal_skill_names([tmp_path / "mine"], [tmp_path / "system"]) == {"alpha"}
+
+
 def test_clean_probe_passes_and_is_logged(tmp_path, monkeypatch):
     _fake(monkeypatch, "probe")
     log = tmp_path / "probes.jsonl"
