@@ -61,5 +61,6 @@ def test_codex_cmd_disables_personal_skills_and_mcp_servers(tmp_path, monkeypatc
     assert entries and all(e["enabled"] is False for e in entries)
     assert "--ignore-user-config" in cmd
     assert not any(c.startswith("mcp_servers.") for c in cmd)
+    assert cmd[cmd.index("--disable") + 1] == "apps"
     assert codex_cmd("apply all", "gpt-x", resume="t-1", homes=(str(home),))[-3:] == ["resume", "t-1", "apply all"]
     assert "-m" not in codex_cmd("probe", None, homes=(str(home),))

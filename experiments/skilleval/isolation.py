@@ -4,9 +4,9 @@ Both arms get the agent as shipped, built-in skills included. The only differenc
 between arms is whether prompt-contract sits in the working directory's skill
 folder. Personal settings, plugins, hooks, MCP servers and skills are excluded:
 Claude Code by --setting-sources project and --strict-mcp-config, Codex by not
-loading the user's config.toml at all (auth still comes from CODEX_HOME) and
-disabling each personal skill per run. Both were verified by probe on
-2026-09-17 (DESIGN.md §3).
+loading the user's config.toml at all (auth still comes from CODEX_HOME),
+disabling account-connected apps and disabling each personal skill per run.
+Both were verified by probe on 2026-09-17 (DESIGN.md §3).
 """
 import glob
 import json
@@ -58,7 +58,8 @@ def codex_skill_disables(homes=CODEX_SKILL_HOMES):
 def codex_cmd(message, model=None, resume=None, effort=None, homes=CODEX_SKILL_HOMES):
     base = shlex.split(os.environ["SKILLEVAL_CODEX_BIN"]) if os.environ.get("SKILLEVAL_CODEX_BIN") else list(CODEX_PKG)
     cmd = base + ["exec", "--json", "--skip-git-repo-check", "--sandbox", "workspace-write",
-                  "--ignore-user-config", "-c", "skills.config=" + codex_skill_disables(homes)]
+                  "--ignore-user-config", "--disable", "apps",
+                  "-c", "skills.config=" + codex_skill_disables(homes)]
     if model:
         cmd += ["-m", model]
     if effort:
