@@ -1,0 +1,50 @@
+{
+  "run_id": "dry-claude-off",
+  "study": "dry",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "DEV",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "585fc205-9f87-4d55-9f7f-4d34a4ad0585",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "secs": 29.6,
+      "input_tokens": 52769,
+      "output_tokens": 3260,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1398691,
+      "tool_calls": [
+        "Read",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Done \u2014 cut it from 48 lines to 35 with no loss of rules. Changes:\n\n- **Removed duplication**: the shouted \"IMPORTANT!!! MUST ALWAYS verify...\" line just restated the first bullet \u2014 merged into one clear instruction. The Reminders table at the bottom repeated rules already stated above, so it's gone.\n- **Removed vague filler**: \"Be careful with currency\" and \"Always double-check your answer for accuracy\" gave no concrete action \u2014 the real currency rule already lives in the Reply Format section.\n- **Removed redundant constraint**: \"Keep replies short and concise\" duplicated the 120-word limit right above it.\n- **Split a run-on bullet**: refund limit and escalation SLA were crammed into one line; now separate bullets so neither gets skimmed past.\n\nNo caps-lock shouting, no repeated rules, every remaining line is a single actionable instruction."
+    }
+  ]
+}

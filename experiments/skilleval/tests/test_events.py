@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pytest
+
 from events import parse_claude, parse_codex
 
 CLAUDE = [
@@ -51,3 +55,10 @@ def test_codex_turn_failed_is_an_error():
 
 def test_codex_empty_stream_is_an_error():
     assert parse_codex(["Reading additional input from stdin..."]).error == "no events"
+
+
+@pytest.mark.parametrize("name,parse", [("claude_real.jsonl", parse_claude), ("codex_real.jsonl", parse_codex)])
+def test_real_event_streams_parse(name, parse):
+    lines = (Path(__file__).parent / "fixtures" / name).read_text().splitlines()
+    r = parse(lines)
+    assert r.error is None and r.session_id and r.final_text and r.output_tokens > 0
