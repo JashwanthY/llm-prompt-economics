@@ -1,0 +1,13 @@
+{
+  "written": "2026-09-17",
+  "repo_commit": "590cf95f5143",
+  "skill_path": "skills/prompt-contract/SKILL.md",
+  "skill_commit": "39b88ef7e617",
+  "skill_sha256": "aceb950a2eb921b16ea953bda2ce2ac792daf443165926e35fe02528abc48290",
+  "claude_code_version": "2.1.198 (Claude Code)",
+  "claude_model_flag": "sonnet",
+  "codex_version": "codex-cli 0.154.0",
+  "codex_model": null,
+  "codex_reasoning_effort": null,
+  "bolt_commit": "2e254ac19a69"
+}
