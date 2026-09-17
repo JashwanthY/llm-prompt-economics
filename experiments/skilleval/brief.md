@@ -18,7 +18,7 @@ Write two files in the current folder.
   - 3 or 4 `work_order_unclear` lines — generic good-practice requests whose value to this product is debatable, e.g. "suggest related articles", "add a friendly sign-off".
   - at least 2 `restriction` lines — rules asking the model to do less or not do something.
   - two traps, which are correct as written:
-    - `generic_contract` — a line naming facts only this product has (a field, file, tool, ID or threshold) but phrased in generic-sounding words.
+    - `generic_contract` — a line naming facts only this product has (a field, file, tool, ID or threshold) but phrased in generic-sounding words. At least one of its tokens must be a literal product-specific identifier — a field, file, tool, ID or exact value written as `snake_case`, `kebab-case`, a path, a filename, `camelCase` or an ALLCAPS code — not a generic description.
     - `reference_block` — a schema, template or example block of at least 60 words the product depends on.
 
 ## answer_key.json

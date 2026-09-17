@@ -83,3 +83,9 @@ def test_trap_listed_as_planted_fails():
 
 def test_too_short_prompt_fails():
     assert any("want 250-600" in e for e in validate("one two three\n", KEY))
+
+
+def test_generic_contract_without_an_identifier_fails():
+    key = copy.deepcopy(KEY)
+    key["traps"]["generic_contract"]["tokens"] = ["the tag"]
+    assert "generic_contract: no token looks like a product-specific identifier" in "\n".join(validate(TEXT, key))
