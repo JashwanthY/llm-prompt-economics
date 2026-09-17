@@ -4,11 +4,13 @@ validate() returns a list of problems; an empty list means the pair is usable.
 After authoring, only clerical errors may be corrected by hand, each logged.
 """
 import json
+import re
 import sys
 from pathlib import Path
 
 ONCE = ("restated_capability", "duplicate", "emphasis", "vague_contract", "conflict",
         "unguarded_input", "missing_contract")
+IDENTIFIER = re.compile(r"[A-Za-z0-9][_\-./][A-Za-z0-9]|[a-z][A-Z]|^[A-Z0-9_]{3,}$")
 
 
 def item_lines(item):
@@ -67,9 +69,13 @@ def validate(prompt_text, key):
     traps = key.get("traps", {})
     gc = traps.get("generic_contract", {})
     if line_ok(gc.get("line"), "generic_contract"):
-        for token in gc.get("tokens") or ["<no tokens>"]:
+        tokens = gc.get("tokens") or ["<no tokens>"]
+        for token in tokens:
             if token not in lines[gc["line"] - 1]:
                 errors.append(f"generic_contract: token {token!r} is not on line {gc['line']}")
+        if not any(IDENTIFIER.search(token) for token in tokens):
+            errors.append("generic_contract: no token looks like a product-specific identifier "
+                           "(snake_case, kebab-case, a path, a filename, camelCase or an ALLCAPS code)")
         if gc["line"] in planted_lines:
             errors.append("generic_contract: its line is also listed as planted")
     rb = traps.get("reference_block", {})

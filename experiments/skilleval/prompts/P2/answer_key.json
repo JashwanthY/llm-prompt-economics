@@ -3,21 +3,22 @@
   "domain": "a coding agent working in a company's web application repository",
   "planted": [
     {"category": "restated_capability", "line": 3},
-    {"category": "duplicate", "lines": [13, 69], "phrase": "a single logical change"},
-    {"category": "emphasis", "line": 26, "tokens": ["MUST ALWAYS", "CRITICAL", "!!!"]},
-    {"category": "vague_contract", "line": 14},
-    {"category": "conflict", "lines": [20, 28]},
-    {"category": "unguarded_input", "line": 32},
-    {"category": "missing_contract", "depends_line": 22, "fact": "the numeric diff-size threshold (e.g. lines/files changed) that triggers mandatory second review"},
+    {"category": "duplicate", "lines": [12, 70], "phrase": "for any changed behavior"},
+    {"category": "emphasis", "line": 27, "tokens": ["YOU MUST ALWAYS", "CRITICAL", "NO EXCEPTIONS!!!"]},
+    {"category": "vague_contract", "line": 28},
+    {"category": "conflict", "lines": [42, 43]},
+    {"category": "unguarded_input", "line": 34},
+    {"category": "missing_contract", "depends_line": 41, "fact": "the exact diff-size threshold that makes a PR count as exceeding the 'size threshold' requiring #big-changes review is never defined"},
+    {"category": "work_order_unclear", "line": 15},
     {"category": "work_order_unclear", "line": 16},
-    {"category": "work_order_unclear", "line": 61},
-    {"category": "work_order_unclear", "line": 62},
-    {"category": "work_order_unclear", "line": 63},
-    {"category": "restriction", "line": 15},
-    {"category": "restriction", "line": 24}
+    {"category": "work_order_unclear", "line": 30},
+    {"category": "work_order_unclear", "line": 36},
+    {"category": "restriction", "line": 20},
+    {"category": "restriction", "line": 21},
+    {"category": "restriction", "line": 22}
   ],
   "traps": {
-    "generic_contract": {"line": 36, "tokens": ["environment variable", "configuration schema file", "deployment pipeline"]},
-    "reference_block": {"start": 40, "end": 57}
+    "generic_contract": {"line": 44, "tokens": ["PRICING_RULES", "pricing logic", "finance's dashboards"]},
+    "reference_block": {"start": 48, "end": 63}
   }
 }

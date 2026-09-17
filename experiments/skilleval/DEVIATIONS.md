@@ -49,3 +49,4 @@ a hypothesis, metric or pass criterion unless it says so.
 - **2026-09-17 — Lost runs count against the hypotheses.** §4.4 gives thresholds out
   of 12. A run lost to two infrastructure failures is counted as not meeting the
   criterion (fixed denominator of 12), the conservative reading.
+- **2026-09-17 — The generic-contract trap must conceal a real identifier.** DESIGN.md §4.1 asks each prompt for a trap line "naming facts only this product has… phrased in generic-sounding words". P2's first version named no identifier, so an auditor flagging it as vague would have been correct while the trap metric counted it as damage. `validate_key.py` now requires at least one identifier-shaped token in the trap, `brief.md` states the requirement, and P2 was re-authored under that brief. P1, P3 and P4 were authored before the sentence was added and pass the tightened check unchanged.
