@@ -1,0 +1,57 @@
+{
+  "run_id": "A-claude-off-P4-r3",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P4",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "3b5a83a4-bd62-43e5-bf17-2f951e83a065",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 42.2,
+      "input_tokens": 166713,
+      "output_tokens": 3928,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.19577219999999998,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Glob",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cleaned up `prompt.md`. Three main issues were making it long and causing the model to ignore parts of it:\n\n1. **Contradiction**: it told the model to both \"return the entire JSON record on a single line\" *and* \"pretty-print... each top-level field on its own line\" \u2014 conflicting formatting instructions the model had to arbitrate. Removed the single-line instruction and kept the pretty-print delivery check.\n2. **Off-task instructions**: `extraction_notes` was supposed to hold \"observations for the intake reviewer\" per the record contract, but separate bullets told the model to stuff a friendly greeting, a productivity tip, and a procurement tip into that same field \u2014 directly contradicting the field's own definition. Removed all three.\n3. **Generic filler persona**: \"You are a helpful, knowledgeable assistant\" added no task-relevant signal and nudged toward chatty output; replaced with a one-line role statement scoped to the pipeline.\n\nAlso normalized the all-caps `KEEP SUPPLIER CAPITALIZATION` bullet to match the surrounding style. The file is now ~15% shorter with no internal contradictions."
+    }
+  ]
+}

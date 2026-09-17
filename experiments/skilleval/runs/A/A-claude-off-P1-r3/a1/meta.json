@@ -1,0 +1,54 @@
+{
+  "run_id": "A-claude-off-P1-r3",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P1",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "5704611b-9d90-40c6-8c3e-42d4b83606d2",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 67.3,
+      "input_tokens": 110204,
+      "output_tokens": 6826,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.23244379999999998,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Glob",
+        "Read",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "**What changed** (68 \u2192 51 lines, ~25% shorter):\n\n1. **Fixed the contradiction** \u2014 \"always recommend upgrade\" vs \"never recommend unless asked\" was almost certainly the source of the inconsistent behavior you noticed. Kept the conditional rule (only upsell when asked); please confirm that's the intended behavior.\n2. **Removed the redundant \"Final Checklist\" table** \u2014 it just restated rules already given verbatim elsewhere (identity verification, roadmap secrecy), costing tokens with no new signal. Replaced with a short 3-item \"Before Sending\" list for genuinely final checks.\n3. **Normalized the shouting-caps line** (`YOU MUST ALWAYS VERIFY...!!!`) into a plain Restrictions bullet \u2014 inconsistent formatting like that doesn't actually increase compliance and adds noise.\n4. **Merged small one-off sections** (`Before You Send`'s forum-recommendation line into Working with Tickets; identity check into Restrictions) so related rules live together instead of being scattered.\n5. Left the escalation ticket template untouched verbatim since exact formatting matters for the parser.\n\nIf the \"always upsell\" instruction was actually intentional (e.g. a recent product decision) and the \"never unless asked\" line is the stale one, let me know and I'll flip which one wins."
+    }
+  ]
+}
