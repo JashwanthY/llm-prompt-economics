@@ -10,7 +10,14 @@ from pathlib import Path
 
 ONCE = ("restated_capability", "duplicate", "emphasis", "vague_contract", "conflict",
         "unguarded_input", "missing_contract")
-IDENTIFIER = re.compile(r"[A-Za-z0-9][_\-./][A-Za-z0-9]|[a-z][A-Z]|^[A-Z0-9_]{3,}$")
+IDENTIFIER = re.compile(r"""^(?!.*\s)(?:
+      [A-Za-z0-9]+_[A-Za-z0-9_]+          # snake_case, ALLCAPS_CODE
+    | [a-z0-9]+[A-Z][A-Za-z0-9]*          # camelCase
+    | [A-Z][A-Z0-9]{2,}                   # ALLCAPS code
+    | [\w.-]+\.[A-Za-z]{2,4}              # file name
+    | [\w.-]*/[\w./-]+                    # path
+    | \d[\w-]*\d                          # a value with digits, e.g. 2026-04
+)$""", re.X)
 
 
 def item_lines(item):
@@ -75,7 +82,8 @@ def validate(prompt_text, key):
                 errors.append(f"generic_contract: token {token!r} is not on line {gc['line']}")
         if not any(IDENTIFIER.search(token) for token in tokens):
             errors.append("generic_contract: no token looks like a product-specific identifier "
-                           "(snake_case, kebab-case, a path, a filename, camelCase or an ALLCAPS code)")
+                           "(snake_case, camelCase, an ALLCAPS code, a path, a file name, or a value "
+                           "containing digits)")
         if gc["line"] in planted_lines:
             errors.append("generic_contract: its line is also listed as planted")
     rb = traps.get("reference_block", {})

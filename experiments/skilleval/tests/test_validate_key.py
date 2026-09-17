@@ -1,6 +1,8 @@
 import copy
 
-from validate_key import validate
+import pytest
+
+from validate_key import IDENTIFIER, validate
 
 LINES = [
     "# Acme Support Agent", "",
@@ -89,3 +91,19 @@ def test_generic_contract_without_an_identifier_fails():
     key = copy.deepcopy(KEY)
     key["traps"]["generic_contract"]["tokens"] = ["the tag"]
     assert "generic_contract: no token looks like a product-specific identifier" in "\n".join(validate(TEXT, key))
+
+
+REJECTED_IDENTIFIERS = ["day-to-day", "read-only", "e.g.", "end-to-end", "environment variable"]
+ACCEPTED_IDENTIFIERS = ["PRICING_RULES", "record_key", "inv_ingest_v3", "schema_version",
+                        "Billing_Escalation_L2", "2026-04", "camelCaseField", "config/app.yaml",
+                        "settings.json"]
+
+
+@pytest.mark.parametrize("token", REJECTED_IDENTIFIERS)
+def test_identifier_rejects_ordinary_hyphenated_or_generic_words(token):
+    assert not IDENTIFIER.search(token)
+
+
+@pytest.mark.parametrize("token", ACCEPTED_IDENTIFIERS)
+def test_identifier_accepts_product_specific_identifiers(token):
+    assert IDENTIFIER.search(token)
