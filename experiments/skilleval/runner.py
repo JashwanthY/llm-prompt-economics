@@ -5,6 +5,7 @@ and a hard timeout, in a working directory outside any git repository. Artifacts
 are copied to <out_root>/<study>/<run_id>/a<attempt>/ and the directory removed.
 """
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -37,6 +38,40 @@ class RunSpec:
     rep: int
 
 
+def codex_served_model(thread_id, sessions_root=None):
+    """Look up the model that actually served a Codex turn from Codex's own session log.
+
+    `codex exec --json` never reports the model in its event stream (DESIGN.md §2
+    still wants it logged per run), so this reads it back from the rollout file Codex
+    writes to ~/.codex/sessions (or SKILLEVAL_CODEX_SESSIONS, for tests). Matches are
+    on the parsed session id only, never a substring search of the file text.
+    """
+    if sessions_root is None:
+        env = os.environ.get("SKILLEVAL_CODEX_SESSIONS")
+        sessions_root = Path(env) if env else Path.home() / ".codex" / "sessions"
+    sessions_root = Path(sessions_root)
+    files = sorted(sessions_root.glob("**/rollout-*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    for f in files:
+        session_id, model = None, None
+        for line in f.read_text().splitlines():
+            try:
+                e = json.loads(line)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(e, dict):
+                continue
+            payload = e.get("payload", e)
+            if not isinstance(payload, dict):
+                continue
+            if e.get("type") == "session_meta" and "session_id" in payload:
+                session_id = payload["session_id"]
+            elif e.get("type") == "turn_context" and "model" in payload:
+                model = payload["model"]
+        if session_id == thread_id:
+            return model
+    return None
+
+
 def run_turn(agent, wd, message, codex_model=None, resume=None, codex_effort=None, timeout=TIMEOUT):
     cmd = claude_cmd(message, resume) if agent == "claude" else codex_cmd(message, codex_model, resume, codex_effort)
     start = time.monotonic()
@@ -48,6 +83,8 @@ def run_turn(agent, wd, message, codex_model=None, resume=None, codex_effort=Non
         lines, stderr, code = out.splitlines(), "", None
     secs = time.monotonic() - start
     result = (parse_claude if agent == "claude" else parse_codex)(lines)
+    if agent == "codex" and result.model is None and result.session_id:
+        result.model = codex_served_model(result.session_id)
     if code is None:
         result.error = "timeout"
     elif code != 0 and result.error is None:
@@ -98,7 +135,8 @@ def run_session(spec, prompt_dir, out_root, codex_model=None, codex_effort=None,
     meta = {
         **asdict(spec), "attempt": attempt, "status": "error" if errors else "ok", "errors": errors,
         "gate_unchanged": unchanged, "turns": len(turns), "files_after_t1": files_after_t1,
-        "turn": [{"session_id": r.session_id, "model": r.model, "secs": round(s, 1),
+        "turn": [{"session_id": r.session_id, "model": r.model,
+                  "requested_model": codex_model if spec.agent == "codex" else "sonnet", "secs": round(s, 1),
                   "input_tokens": r.input_tokens, "output_tokens": r.output_tokens,
                   "reasoning_tokens": r.reasoning_tokens, "cost_usd": r.cost_usd,
                   "tool_calls": r.tool_calls, "skills": r.skills, "final_text": r.final_text}

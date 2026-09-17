@@ -4,13 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from runner import RateLimited, RunSpec, run_session
+from runner import RateLimited, RunSpec, codex_served_model, run_session
 
 FAKE = Path(__file__).parent / "fake_agent.py"
 
 
 @pytest.fixture
-def fake(monkeypatch):
+def fake(monkeypatch, tmp_path):
+    monkeypatch.setenv("SKILLEVAL_CODEX_SESSIONS", str(tmp_path / "codex-sessions"))
+
     def use(agent, mode):
         monkeypatch.setenv("FAKE_MODE", mode)
         monkeypatch.setenv("FAKE_FLAVOUR", agent)
@@ -67,3 +69,26 @@ def test_codex_without_pinned_model_refuses_to_run(tmp_path, fake):
     spec = RunSpec("x", "A", "codex", "on", "P1", 1)
     with pytest.raises(ValueError, match="not pinned"):
         run_session(spec, tmp_path, tmp_path / "runs", codex_model=None, frozen_check=lambda: None)
+
+
+def test_codex_model_is_read_from_its_own_session_log(tmp_path, fake):
+    fake("codex", "report_then_apply")
+    sessions = tmp_path / "codex-sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    (sessions / "rollout-2026-01-01T00-00-00-t-1.jsonl").write_text("\n".join(json.dumps(e) for e in [
+        {"type": "session_meta", "payload": {"session_id": "t-1"}},
+        {"type": "turn_context", "payload": {"model": "gpt-test"}},
+    ]) + "\n")
+    meta = _run(tmp_path, "codex")
+    assert meta["turn"][0]["model"] == "gpt-test"
+    assert meta["turn"][0]["requested_model"] == "gpt-x"
+
+
+def test_codex_served_model_returns_none_for_unknown_thread(tmp_path):
+    sessions = tmp_path / "sessions"
+    sessions.mkdir()
+    (sessions / "rollout-2026-01-01T00-00-00-other.jsonl").write_text("\n".join(json.dumps(e) for e in [
+        {"type": "session_meta", "payload": {"session_id": "other-thread"}},
+        {"type": "turn_context", "payload": {"model": "gpt-other"}},
+    ]) + "\n")
+    assert codex_served_model("t-1", sessions_root=sessions) is None
