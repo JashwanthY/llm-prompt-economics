@@ -1,0 +1,89 @@
+{
+  "run_id": "A-claude-on-P4-r2",
+  "study": "A",
+  "agent": "claude",
+  "arm": "on",
+  "prompt_id": "P4",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "90348ca0-8c1a-4601-aa8b-a5b5f5ce83ee",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 128.5,
+      "input_tokens": 107940,
+      "output_tokens": 14002,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.3932749,
+      "tool_calls": [
+        "Skill",
+        "Glob",
+        "Read",
+        "Read"
+      ],
+      "skills": [
+        "prompt-contract",
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "## Prompt audit \u2014 prompt.md\n\n**Summary:** This is a mostly lean extraction contract (field names, formats, routing values) with a handful of real problems mixed in: a direct output-format conflict, two vague/undefined values the model has to guess, and three work-order lines that ask for chit-chat inside a field the schema itself defines as reviewer observations. The conflict at L23/L47 is the single change worth the most \u2014 it's a plausible cause of the \"ignores parts of the prompt\" behavior you're seeing, since the model must silently pick one of two contradictory formatting rules on every run.\n\n### Numbers\n| kind | lines | share |\n|---|---|---|\n| Contract | 31 | 84% |\n| Work orders | 4 | 11% |\n| Restrictions | 2 | 5% |\n| **Total** | 37 | |\n\n- **Size:** ~450 words (~585 tokens)\n- **Contract share:** 84% \u2014 lean\n- **Issues:** 7 \u2014 4 high \u00b7 1 medium \u00b7 2 low\n\n### Findings\n\n1. **Conflict** \u00b7 high \u00b7 L23 & L47\n   > L23: \"Return the entire JSON record on a single line.\"\n   > L47: \"Pretty-print the JSON record with each top-level field on its own line.\"\n\n   These directly contradict each other on output formatting, with nothing saying which wins. The model has to arbitrarily resolve this on every run \u2014 a likely source of the \"ignores parts of the prompt\" complaint.\n   **Proposed:** see Needs your decision #1\n\n2. **Missing contract** \u00b7 high \u00b7 L14\n   > \"Set review_required to true when the invoice total exceeds the configured review threshold; otherwise set it to false.\"\n\n   \"The configured review threshold\" is never defined anywhere in this prompt. There's no value for the model to compare against, so this flag is effectively a guess.\n   **Proposed:** see Needs your decision #2\n\n3. **Vague contract** \u00b7 high \u00b7 L13\n   > \"Round monetary amounts appropriately.\"\n\n   \"Appropriately\" isn't a rule. The model has to guess decimal places and rounding mode, so identical invoices can round differently across runs.\n   **Proposed:** see Needs your decision #3\n\n4. **Work orders to confirm** \u00b7 high \u00b7 L19 (first sentence), L24, L25, L26\n   > L19: \"Locate the supplier identity, invoice header, line item table, and totals section before building the record.\"\n   > L24: \"Include a friendly greeting in extraction_notes.\"\n   > L25: \"Suggest a general productivity habit in extraction_notes.\"\n   > L26: \"Offer a procurement tip in extraction_notes.\"\n\n   L19's first sentence asks the model to do something any capable model already does before extracting fields \u2014 unverified whether it changes behavior, but it costs output tokens every run. L24\u2013L26 are the more serious problem: they conflict with the Record contract itself, which defines `extraction_notes` (L43) as \"an array of strings containing observations for the intake reviewer.\" A greeting, a productivity tip, and a procurement tip are none of those \u2014 this is a field-schema conflict, not just wasted output, and it's output an AP system now has to parse or filter.\n   **Proposed:** delete L24\u2013L26 as inconsistent with L43's own field definition; L19's first sentence \u2014 see Needs your decision #4\n\n5. **Duplicate** \u00b7 medium \u00b7 L11 & L51\n   > L11: \"Copy the supplier invoice number exactly as printed.\"\n   > L51 (table row): \"Copy the supplier invoice number exactly as printed.\"\n\n   Same rule stated twice \u2014 once as an intake rule, once as a delivery check. Costs nothing but reading time now, but risks drifting if one copy is edited later and the other isn't.\n   **Proposed:** delete the \"Invoice identifier\" row from the Delivery checks table (L51); keep L11.\n\n6. **Emphasis for precision** \u00b7 low \u00b7 L12\n   > \"KEEP SUPPLIER CAPITALIZATION\"\n\n   All-caps doesn't make a rule more likely to be followed; it's just shouting. The underlying instruction is fine.\n   **Proposed:** replace with \"Copy the supplier name's capitalization exactly as printed; do not normalize it to title case.\"\n\n7. **Restated capability** \u00b7 low \u00b7 L3\n   > \"You are a helpful, knowledgeable assistant.\"\n\n   Generic assistant framing, adds nothing to a structured extraction task.\n   **Proposed:** delete\n\n### Keep as-is\n- L6 \"one JSON record for the accounts payable intake service... does not approve payment\" \u2014 contract, defines record scope/purpose\n- L9 \"append the OCR tool's complete text to your working context\" \u2014 contract, tool usage\n- L10 \"pipeline_id to inv_ingest_v3 and schema_version to 2026-04\" \u2014 contract, exact values\n- L15/L16 \"Do not search the web... / Do not calculate missing tax amounts\" \u2014 restrictions\n- L19 (2nd/3rd sentences) \"Prefer labeled invoice totals...\" / currency rule \u2014 contract, precedence rules\n- L21 null/empty-array handling, date format, JSON numbers, original-language rule \u2014 contract\n- Record contract block (L32\u2013L43) \u2014 reference schema, cheap regardless of length, keep entirely\n- L52 \"The output must parse as JSON\" \u2014 contract\n\n### Needs your decision\n1. Should the JSON output be a single line (L23) or pretty-printed with one field per line (L47)? Whichever you pick, the other line gets deleted.\n2. What's the actual `review_required` threshold \u2014 a total_amount value, and in what currency/units (e.g., `total_amount > 5000 USD`)?\n3. What's the exact rounding rule for monetary amounts \u2014 e.g., 2 decimal places, round-half-up, or preserve the source's own precision?\n4. Do you want \"locate the supplier identity, header, line items, and totals before building the record\" (L19) kept as an explicit step, or is it safe to drop since extraction requires it anyway?\n\n### If every change is approved\n- **Prompt:** ~450 \u2192 ~410\u2013415 words (\u2248\u22128\u20139%, more once you answer #1\u2013#3 since those replacement values are usually short)\n- **Output:** down, because deleting L24\u2013L26 removes three lines of unwanted extraction_notes content generated on every single run, and resolving the L23/L47 conflict removes a guess the model currently has to make silently. Not measured on this prompt.\n\n**Reply \"apply all\", \"apply 1, 3, 4\" etc. (or \"skip\"), and answer the questions above.** The file has not been changed."
+    },
+    {
+      "session_id": "90348ca0-8c1a-4601-aa8b-a5b5f5ce83ee",
+      "model": "claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 19.2,
+      "input_tokens": 144504,
+      "output_tokens": 1525,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.08710409999999999,
+      "tool_calls": [
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "skills": [
+        "prompt-contract",
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "**Applied:**\n\n| # | Before | After |\n|---|---|---|\n| 7 | `You are a helpful, knowledgeable assistant.` | deleted |\n| 6 | `KEEP SUPPLIER CAPITALIZATION` | `Copy the supplier name's capitalization exactly as printed; do not normalize it to title case.` |\n| 5 | Table had an \"Invoice identifier\" row duplicating L11 | row deleted, L11 remains the single source of that rule |\n\n**Skipped, still waiting on your answers:**\n1. **Conflict L23 vs L47** \u2014 single line, or pretty-printed one field per line?\n2. **L14** \u2014 actual `review_required` threshold value and currency/units?\n3. **L13** \u2014 exact rounding rule (decimal places, rounding mode, or source precision)?\n4. **L19 first sentence** \u2014 keep the explicit \"locate sections before building the record\" step, or drop it?\n\nOnce I have those four, I can finish applying 1\u20134 and give you the final word count and a before/after diff. Want to answer them now?"
+    }
+  ]
+}
