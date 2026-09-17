@@ -29,7 +29,8 @@ def main(limit, agent=None):
     frozen = assert_frozen()
     model, effort = frozen["codex_model"], frozen["codex_reasoning_effort"]
     RUNS.mkdir(exist_ok=True)
-    if not check_isolation(model, RUNS / "probes.jsonl", effort):
+    probe_agents = (agent,) if agent else ("claude", "codex")
+    if not check_isolation(model, RUNS / "probes.jsonl", effort, agents=probe_agents):
         print("isolation probe failed -- see runs/probes.jsonl; nothing was run")
         return 3
     ran = 0
