@@ -59,6 +59,7 @@ def test_codex_cmd_disables_personal_skills_and_mcp_servers(tmp_path, monkeypatc
     cfg = next(c for c in cmd if c.startswith("skills.config="))
     entries = tomllib.loads("x = " + cfg.split("=", 1)[1])["x"]
     assert entries and all(e["enabled"] is False for e in entries)
-    assert "mcp_servers.playwright.enabled=false" in cmd
+    assert "--ignore-user-config" in cmd
+    assert not any(c.startswith("mcp_servers.") for c in cmd)
     assert codex_cmd("apply all", "gpt-x", resume="t-1", homes=(str(home),))[-3:] == ["resume", "t-1", "apply all"]
     assert "-m" not in codex_cmd("probe", None, homes=(str(home),))

@@ -3,9 +3,10 @@
 Both arms get the agent as shipped, built-in skills included. The only difference
 between arms is whether prompt-contract sits in the working directory's skill
 folder. Personal settings, plugins, hooks, MCP servers and skills are excluded:
-Claude Code by --setting-sources project and --strict-mcp-config, Codex by
-disabling each personal skill and MCP server for the run. Both were verified by
-probe on 2026-09-17 (DESIGN.md §3).
+Claude Code by --setting-sources project and --strict-mcp-config, Codex by not
+loading the user's config.toml at all (auth still comes from CODEX_HOME) and
+disabling each personal skill per run. Both were verified by probe on
+2026-09-17 (DESIGN.md §3).
 """
 import glob
 import json
@@ -17,7 +18,6 @@ from pathlib import Path
 from frozen import CODEX_PKG, SKILL
 
 CLAUDE_TOOLS = ["Read", "Edit", "Write", "Glob", "Grep", "Skill"]  # Skill: how Claude Code loads any skill, in both arms
-CODEX_MCP_SERVERS = ["langchain_lates_documentation", "playwright", "node_repl", "computer-use"]
 CODEX_SKILL_HOMES = ("~/.agents/skills", "~/.codex/skills")
 SKILL_SUBDIR = {"claude": ".claude/skills/prompt-contract", "codex": ".agents/skills/prompt-contract"}
 
@@ -58,9 +58,7 @@ def codex_skill_disables(homes=CODEX_SKILL_HOMES):
 def codex_cmd(message, model=None, resume=None, effort=None, homes=CODEX_SKILL_HOMES):
     base = shlex.split(os.environ["SKILLEVAL_CODEX_BIN"]) if os.environ.get("SKILLEVAL_CODEX_BIN") else list(CODEX_PKG)
     cmd = base + ["exec", "--json", "--skip-git-repo-check", "--sandbox", "workspace-write",
-                  "-c", "skills.config=" + codex_skill_disables(homes)]
-    for name in CODEX_MCP_SERVERS:
-        cmd += ["-c", f"mcp_servers.{name}.enabled=false"]
+                  "--ignore-user-config", "-c", "skills.config=" + codex_skill_disables(homes)]
     if model:
         cmd += ["-m", model]
     if effort:
