@@ -1,0 +1,23 @@
+{
+  "prompt_id": "P1",
+  "domain": "a customer-support agent for a subscription software company",
+  "planted": [
+    {"category": "restated_capability", "line": 5},
+    {"category": "duplicate", "lines": [16, 65], "phrase": "unreleased feature details"},
+    {"category": "emphasis", "line": 57, "tokens": ["YOU MUST ALWAYS", "!!!"]},
+    {"category": "vague_contract", "line": 21},
+    {"category": "conflict", "lines": [31, 32]},
+    {"category": "unguarded_input", "line": 36},
+    {"category": "missing_contract", "depends_line": 22, "fact": "the specific escalation threshold (e.g. days past due or dollar amount) that defines when an account 'meets the escalation threshold'"},
+    {"category": "work_order_unclear", "line": 30},
+    {"category": "work_order_unclear", "line": 37},
+    {"category": "work_order_unclear", "line": 38},
+    {"category": "work_order_unclear", "line": 58},
+    {"category": "restriction", "line": 15},
+    {"category": "restriction", "line": 17}
+  ],
+  "traps": {
+    "generic_contract": {"line": 24, "tokens": ["Billing_Escalation_L2", "standard escalation macro"]},
+    "reference_block": {"start": 44, "end": 53}
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "prompt_id": "P4",
+  "domain": "a data-extraction pipeline that turns supplier invoices into a JSON record",
+  "planted": [
+    {
+      "category": "restated_capability",
+      "line": 3
+    },
+    {
+      "category": "duplicate",
+      "lines": [
+        11,
+        51
+      ],
+      "phrase": "Copy the supplier invoice number exactly as printed."
+    },
+    {
+      "category": "emphasis",
+      "line": 12,
+      "tokens": [
+        "KEEP",
+        "SUPPLIER",
+        "CAPITALIZATION"
+      ]
+    },
+    {
+      "category": "vague_contract",
+      "line": 13
+    },
+    {
+      "category": "conflict",
+      "lines": [
+        23,
+        47
+      ]
+    },
+    {
+      "category": "unguarded_input",
+      "line": 9
+    },
+    {
+      "category": "missing_contract",
+      "depends_line": 14,
+      "fact": "The numeric invoice-total threshold that triggers additional review."
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 24
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 25
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 26
+    },
+    {
+      "category": "restriction",
+      "line": 15
+    },
+    {
+      "category": "restriction",
+      "line": 16
+    }
+  ],
+  "traps": {
+    "generic_contract": {
+      "line": 10,
+      "tokens": [
+        "pipeline_id",
+        "inv_ingest_v3",
+        "schema_version",
+        "2026-04"
+      ]
+    },
+    "reference_block": {
+      "start": 31,
+      "end": 44
+    }
+  }
+}

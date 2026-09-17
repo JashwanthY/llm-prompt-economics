@@ -1,0 +1,23 @@
+{
+  "prompt_id": "P2",
+  "domain": "a coding agent working in a company's web application repository",
+  "planted": [
+    {"category": "restated_capability", "line": 3},
+    {"category": "duplicate", "lines": [13, 69], "phrase": "a single logical change"},
+    {"category": "emphasis", "line": 26, "tokens": ["MUST ALWAYS", "CRITICAL", "!!!"]},
+    {"category": "vague_contract", "line": 14},
+    {"category": "conflict", "lines": [20, 28]},
+    {"category": "unguarded_input", "line": 32},
+    {"category": "missing_contract", "depends_line": 22, "fact": "the numeric diff-size threshold (e.g. lines/files changed) that triggers mandatory second review"},
+    {"category": "work_order_unclear", "line": 16},
+    {"category": "work_order_unclear", "line": 61},
+    {"category": "work_order_unclear", "line": 62},
+    {"category": "work_order_unclear", "line": 63},
+    {"category": "restriction", "line": 15},
+    {"category": "restriction", "line": 24}
+  ],
+  "traps": {
+    "generic_contract": {"line": 36, "tokens": ["environment variable", "configuration schema file", "deployment pipeline"]},
+    "reference_block": {"start": 40, "end": 57}
+  }
+}
