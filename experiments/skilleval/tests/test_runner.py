@@ -10,9 +10,7 @@ FAKE = Path(__file__).parent / "fake_agent.py"
 
 
 @pytest.fixture
-def fake(monkeypatch, tmp_path):
-    monkeypatch.setenv("SKILLEVAL_CODEX_SESSIONS", str(tmp_path / "codex-sessions"))
-
+def fake(monkeypatch):
     def use(agent, mode):
         monkeypatch.setenv("FAKE_MODE", mode)
         monkeypatch.setenv("FAKE_FLAVOUR", agent)
