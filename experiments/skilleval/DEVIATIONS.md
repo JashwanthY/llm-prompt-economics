@@ -39,6 +39,13 @@ a hypothesis, metric or pass criterion unless it says so.
   as for Claude Code, which also runs at its default. `frozen.json` records the
   effort as null. Reasoning tokens are logged per run, so a change in the
   server-side default during the study would be visible.
+- **2026-09-17 — How the model id is logged per run.** Codex's `exec --json`
+  stream carries no model field, so the runner reads the model that served each
+  Codex turn from Codex's own session log for that thread (`~/.codex/sessions`),
+  and every turn also records the requested model (`-m` for Codex, `sonnet` for
+  Claude Code). Claude Code's served model comes from its event stream. The
+  dry-run metas committed before this change show `model: null` for Codex; the
+  lookup was checked against their session log and returns `gpt-6-astra`.
 - **2026-09-17 — Lost runs count against the hypotheses.** §4.4 gives thresholds out
   of 12. A run lost to two infrastructure failures is counted as not meeting the
   criterion (fixed denominator of 12), the conservative reading.
