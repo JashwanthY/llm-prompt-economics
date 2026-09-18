@@ -1,0 +1,35 @@
+{
+  "run_id": "dry-codex-off",
+  "study": "dry",
+  "agent": "codex",
+  "arm": "off",
+  "prompt_id": "DEV",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "01a0afaf-ef41-7663-b4c2-7fdff7dd0d0e",
+      "model": null,
+      "secs": 45.2,
+      "input_tokens": 73645,
+      "output_tokens": 879,
+      "reasoning_tokens": 92,
+      "cost_usd": null,
+      "tool_calls": [
+        "command_execution",
+        "command_execution",
+        "command_execution",
+        "command_execution"
+      ],
+      "skills": null,
+      "final_text": "Updated [prompt.md](/private/var/folders/p1/rkvldjq973343m61fprq5jbr0000gn/T/skilleval/dry-codex-off-a1/prompt.md) to 225 words.\n\nRemoved repetition, put the billing workflow first, clarified currency handling, and preserved the business rules and JSON structure.\n\nJSON validation passed. Model adherence still needs behavioral testing."
+    }
+  ]
+}

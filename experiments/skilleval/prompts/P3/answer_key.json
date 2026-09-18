@@ -1,0 +1,79 @@
+{
+  "prompt_id": "P3",
+  "domain": "a research assistant that answers questions from retrieved internal documents",
+  "planted": [
+    {
+      "category": "restated_capability",
+      "line": 3
+    },
+    {
+      "category": "duplicate",
+      "lines": [
+        9,
+        46
+      ],
+      "phrase": "Place citations immediately after the claims they support."
+    },
+    {
+      "category": "emphasis",
+      "line": 11,
+      "tokens": [
+        "PROTECT",
+        "CONFIDENTIALITY!!!"
+      ]
+    },
+    {
+      "category": "vague_contract",
+      "line": 12
+    },
+    {
+      "category": "conflict",
+      "lines": [
+        20,
+        26
+      ]
+    },
+    {
+      "category": "unguarded_input",
+      "line": 29
+    },
+    {
+      "category": "missing_contract",
+      "depends_line": 13,
+      "fact": "The escalation age limit, expressed as a number of days since publication."
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 21
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 22
+    },
+    {
+      "category": "work_order_unclear",
+      "line": 23
+    },
+    {
+      "category": "restriction",
+      "line": 14
+    },
+    {
+      "category": "restriction",
+      "line": 15
+    }
+  ],
+  "traps": {
+    "generic_contract": {
+      "line": 10,
+      "tokens": [
+        "record_key",
+        "source_lookup"
+      ]
+    },
+    "reference_block": {
+      "start": 34,
+      "end": 41
+    }
+  }
+}

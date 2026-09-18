@@ -1,0 +1,54 @@
+{
+  "run_id": "A-claude-off-P3-r2",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P3",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "d36c2622-ce06-423f-af2c-2744dc746359",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 102.2,
+      "input_tokens": 112180,
+      "output_tokens": 10031,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.29686710000000005,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Read",
+        "Skill",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "**What was wrong and what I changed:**\n\n- **Direct contradiction**: \"exactly two paragraphs\" and \"exactly three paragraphs\" were both present \u2014 this is almost certainly why the model seemed to ignore instructions (it can't satisfy both, so it picks unpredictably). Resolved to two paragraphs.\n- **Duplicated instruction**: citation placement was stated once in \"Evidence handling\" and again in the \"Delivery reminder\" table \u2014 removed the table, kept one instance.\n- **Shouted, vague instruction**: `PROTECT CONFIDENTIALITY!!!` gave the model nothing concrete to act on. I removed it \u2014 the concrete version of it is already covered by \"no personal phone numbers / contact details.\" If you meant something broader (e.g., don't quote certain sensitive fields even though the requester has access), tell me and I'll add a specific rule.\n- **Undefined threshold**: \"the escalation age limit\" was never defined anywhere, so the model had no way to apply it. I turned it into a template variable, `{{escalation_age_threshold}}`, consistent with how `{{retrieved_documents}}` is already injected \u2014 you'll need to pass a value (e.g., a date or day count) at call time, or tell me a fixed number and I'll hardcode it instead.\n- **Dropped \"friendly sign-off\" and \"memorable analogy\"**: these are stylistic flourishes that add length/cost and push toward chattiness in a precision/citation-heavy tool. Say the word and I'll add them back.\n- **Structure**: switched to XML-tagged sections (`<role>`, `<documents>`, `<record_schema>`, `<instructions>`, `<output_format>`) and moved the retrieved documents to the top, above the instructions \u2014 this is Anthropic's documented best practice for long-context prompts and generally improves how reliably the model follows the instructions that come after.\n\nLet me know the escalation threshold value (or whether it should stay a runtime variable) and whether you want the sign-off/analogy back."
+    }
+  ]
+}
