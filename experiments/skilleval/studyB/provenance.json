@@ -1,0 +1,9 @@
+{
+  "repo": "https://github.com/stackblitz-labs/bolt.diy",
+  "commit": "2e254ac19a69",
+  "path": "app/lib/common/prompts/prompts.ts",
+  "function": "getSystemPrompt(cwd = '/home/project', supabase = undefined, designScheme = undefined)",
+  "rendered_sha256": "14bbfd369516ee9708d7f22fdbb38383382a9ce578698254344fe71bc087395b",
+  "words": 4147,
+  "rendered_on": "2026-09-18"
+}
