@@ -1,0 +1,55 @@
+{
+  "run_id": "B-claude-on",
+  "study": "B",
+  "agent": "claude",
+  "arm": "on",
+  "prompt_id": "bolt_old_default",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": true,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "95c68c71-ccef-4b44-829c-9e8b3ae82cac",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 225.9,
+      "input_tokens": 162974,
+      "output_tokens": 20872,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.590674,
+      "tool_calls": [
+        "Skill",
+        "Glob",
+        "Read",
+        "Grep",
+        "Grep"
+      ],
+      "skills": [
+        "prompt-contract",
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "## Prompt audit \u2014 prompt.md\n\n**Summary:** This is a large, detailed system prompt for an AI app-builder (Bolt/WebContainer + Supabase + Expo). Most of the length is legitimate, project-specific contract (exact tag schemas, environment limits, migration format) that's cheap to keep. The real cost is four rules stated 2\u20134 times each, a direct contradiction on whether to generate Supabase types, a plan-before-answering instruction that collides with \"don't explain unless asked,\" and a design/best-practices block that's almost entirely generic advice a competent model doesn't need spelled out.\n\n### Numbers\n| kind | lines | share |\n|---|---|---|\n| Contract | ~64 | 54% |\n| Work orders | ~36 | 31% |\n| Restrictions | ~18 | 15% |\n| **Total** | ~118 | |\n\n- **Size:** ~5,000 words (~6,500 tokens) \u2014 counted item-by-item, not exact\n- **Contract share:** 54% \u2014 mixed\n- **Issues:** 15 \u2014 4 high \u00b7 8 medium \u00b7 3 low\n\n### Findings\n\n1. **Conflict** \u00b7 high \u00b7 L71 vs L213, L237\n   > \"Do not try to generate types for supabase.\" / \"Use TypeScript generated types from the schema.\" / \"Generate types from database schema.\"\n   The prompt tells the model both to skip and to generate Supabase types. Whichever the model picks, it's guessing against an explicit contradiction.\n   **Proposed:** see Needs your decision #1\n\n2. **Conflict** \u00b7 high \u00b7 L253-257 vs L422\n   > \"Before providing a solution, BRIEFLY outline your implementation steps... Be concise (2-4 lines maximum)\" vs \"ULTRA IMPORTANT: Do NOT be verbose and DO NOT explain anything unless the user is asking for more information.\"\n   One rule mandates a plan on every reply, the other forbids explaining unless asked. These can't both hold on a first response.\n   **Proposed:** see Needs your decision #2\n\n3. **Vague/dead contract** \u00b7 high \u00b7 L30\n   > \"CRITICAL: You must never use the \"bundled\" type when creating artifacts, This is non-negotiable and used internally only.\"\n   No `\"bundled\"` type is defined anywhere among the documented `boltAction` types (`shell`/`file`/`start`), so this may be a leftover instruction from an older version, or reference internal tooling never explained here \u2014 the model can't act on it correctly either way.\n   **Proposed:** see Needs your decision #3\n\n4. **Unfilled template values** \u00b7 high \u00b7 L400-406\n   > \"FONT: undefined / COLOR PALETTE: undefined / FEATURES: undefined\"\n   If your app doesn't substitute these before the prompt is sent, the model is literally told the font is \"undefined\" and may echo or reason about that string.\n   **Proposed:** see Needs your decision #5\n\n5. **Duplicate (4x)** \u00b7 medium \u00b7 L24, L114, L344-349\n   > \"always write your code in full no partial/diff update\" / \"NEVER use diffs for migration files, ALWAYS provide COMPLETE file content\" / \"CRITICAL: Always provide the FULL, updated content of the artifact...\"\n   Same rule, three places.\n   **Proposed:** keep L344-349 (most complete version); delete L24 and L114.\n\n6. **Duplicate (3x)** \u00b7 medium \u00b7 L121-125, L222, L241\n   > \"ALWAYS enable row level security (RLS) for new tables\" / \"ALWAYS enable RLS for every new table\" / \"NEVER skip RLS setup for any table. Security is non-negotiable!\"\n   **Proposed:** keep L121-125 (has the example); delete L222 and L241.\n\n7. **Duplicate** \u00b7 medium \u00b7 L290-297 vs L429-436\n   > \"Think HOLISTICALLY and COMPREHENSIVELY BEFORE creating an artifact...\" repeated near-verbatim in `artifact_instructions` and again in `mobile_app_instructions`.\n   **Proposed:** keep L290-297 (applies to all artifacts, mobile included); delete L429-436.\n\n8. **Duplicate** \u00b7 medium \u00b7 L372 vs L477-478\n   > \"Bolt ALWAYS uses stock photos from Pexels...\" stated identically in `design_instructions` and again in `mobile_app_instructions`.\n   **Proposed:** keep L372; delete L477-478.\n\n9. **Overlapping restriction, stated twice** \u00b7 medium \u00b7 L351 vs L414-416\n   > \"NEVER say something like 'You can now view X...'\" and separately \"NEVER say... 'Now that the initial files are set up, you can run the app.' INSTEAD: Execute the install and start commands on the users behalf.\"\n   Same intent (don't tell the user to run it themselves \u2014 do it for them), two different wordings.\n   **Proposed:** merge into L414-416, replace with: `NEVER tell the user to open a URL, run install/start commands, or \"view the app\" themselves \u2014 always execute those commands on their behalf via boltAction.` Delete L351.\n\n10. **Duplicate** \u00b7 medium \u00b7 L32\n    > \"CRITICAL: You MUST always follow the <boltArtifact> format.\"\n    Restates what the detailed `artifact_instructions` block (L282-362) already mandates precisely.\n    **Proposed:** delete.\n\n11. **Duplicate work order** \u00b7 medium \u00b7 L418\n    > \"IMPORTANT: For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.\"\n    Restates the `design_instructions` opening goal (L365) almost word for word.\n    **Proposed:** delete.\n\n12. **Work orders to confirm** \u00b7 medium\n    Generic best-practice/aesthetic asks the model already defaults to; effect on this prompt is unverified \u2014 only a run shows whether they change output.\n    - L230-234 (migration best practices: descriptive policy names, indexes, foreign keys)\n    - L236, L238-239 (strong typing, type safety \u2014 separate from the types conflict in #1)\n    - L365-398 (`design_instructions`: visual identity, layout, UX, color/typography, technical excellence \u2014 ~230 words of generic direction)\n    - L459-461 (state management library choice)\n    - L513-517 (performance: memo/useCallback/virtualized lists)\n    - L536-539, L541-549 (component structure, form libraries, \"design inspiration\")\n    **Proposed:** see Needs your decision #4\n\n13. **Ambiguous/unverifiable ask** \u00b7 medium \u00b7 L224-227\n    > \"Test RLS policies by: 1. Verifying authenticated users... 2. Confirming unauthenticated users... 3. Testing edge cases...\"\n    The assistant writes code in one pass and doesn't execute tests \u2014 unclear what artifact this should produce (a test file? a comment? nothing?).\n    **Proposed:** delete, or replace with a concrete ask like \"add a code comment above each policy stating which access pattern it allows and denies\" \u2014 needs your call.\n\n14. **Restated capability** \u00b7 low \u00b7 L2\n    > \"an expert AI assistant and exceptional senior software developer with vast knowledge across multiple programming languages, frameworks, and best practices\"\n    **Proposed:** replace with: `You are Bolt, an AI assistant and senior software developer.`\n\n15. **Emphasis for precision** \u00b7 low \u00b7 ~30 occurrences (e.g. L10, L20, L22, L26, L28, L65, L85, L113-114, L216-219, L290, L318, L322-325, L344, L422, L429)\n    `CRITICAL:`, `IMPORTANT:`, `ULTRA IMPORTANT:` are used as a volume knob on ordinary rules rather than to flag exceptions, which trains the model to discount them everywhere, including the few places they matter.\n    **Proposed:** strip the prefix word, keep the plain rule, on all instances not already covered by another finding.\n\n### Keep as-is\n- L34-59 \"Available shell commands\" \u2014 reference list, cheap, keep\n- L73-82 data-preservation restrictions (no DROP/DELETE, no transaction control) \u2014 contract, essential\n- L155-207 migration file example \u2014 reference template, cheap\n- L216-219 auth restrictions (email/password only, no magic links/SSO, no custom auth table) \u2014 contract\n- L249 allowed HTML elements list \u2014 contract, essential\n- L303-342 `boltArtifact`/`boltAction` schema and ordering rules \u2014 contract, essential\n- L410-412 \"NEVER use the word 'artifact'\" with example \u2014 restriction, clear and cheap\n- L467-475 mobile \"feature/content rich screens\" requirements \u2014 high-value work order (this is the kind of specific ask that reliably shows up in output)\n- L528 \"Implement reduced motion alternatives for animations\" \u2014 high-value work order\n- L588-678 usage examples \u2014 reference, cheap\n\n### Needs your decision\n1. **Supabase types (L71 vs L213/L237):** should the model generate TypeScript types from the Supabase schema, or never touch them? Pick one; I'll delete the other two statements.\n2. **Mandatory pre-solution plan (L253-280) vs \"don't explain unless asked\" (L422):** keep the 2-4 line plan on every response, or drop it in favor of terse-by-default? If kept, it needs a line saying it doesn't count as \"explaining.\"\n3. **\"bundled\" type (L30):** is this a real internal artifact type your app still checks for, or leftover from an earlier version? If real, it needs to say what it is and when it'd apply; if dead, delete it.\n4. **Work-order bundle (finding 12):** which of these do you actually want enforced \u2014 keep the full design_instructions detail, trim it to a few high-value lines (like the reduced-motion one), or cut it and trust the model's defaults?\n5. **Template placeholders (L400-406):** confirm your app fills FONT/COLOR PALETTE/FEATURES before sending, and skips the whole block when unset instead of sending literal \"undefined\".\n\n### If every change is approved\n- **Prompt:** ~5,000 \u2192 ~4,600 words (\u2248\u22128%), more if you also trim finding 12\n- **Output:** down slightly on database/type-generation tasks (conflict removed, no more guessing); latency/output on design and mobile tasks depends on your answer to #4. Not measured on this prompt.\n\n**Reply \"apply all\", \"apply 1, 3, 4\" or \"skip\", and answer the questions above.** The file has not been changed."
+    }
+  ]
+}
