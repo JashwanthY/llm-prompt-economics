@@ -75,14 +75,35 @@ def latest_ok_attempt(run_dir):
     return ok[-1] if ok else None
 
 
+def _claude_skill_invoked(events):
+    """True iff a turn-1 `Skill` tool call named "prompt-contract" (not e.g. the built-in
+    `claude-api` skill, which both arms can see). Prefers the structured tool_use block;
+    falls back to a raw-text scan only when no such block could be parsed at all, in case
+    the event stream is malformed."""
+    blocks = []
+    for line in events.splitlines():
+        try:
+            event = json.loads(line)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(event, dict) or event.get("type") != "assistant":
+            continue
+        for block in event.get("message", {}).get("content", []) or []:
+            if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Skill":
+                blocks.append(block)
+    if blocks:
+        return any(b.get("input", {}).get("skill") == "prompt-contract" for b in blocks)
+    return '"skill": "prompt-contract"' in events or '"skill":"prompt-contract"' in events
+
+
 def grade_attempt(att_dir, key):
     meta = json.loads((att_dir / "meta.json").read_text())
     before_b, t1_b = (att_dir / "before.md").read_bytes(), (att_dir / "after_t1.md").read_bytes()
-    before = before_b.decode()
-    end = (att_dir / ("after_t2.md" if meta["turns"] == 2 else "after_t1.md")).read_text()
+    before = before_b.decode("utf-8")
+    end = (att_dir / ("after_t2.md" if meta["turns"] == 2 else "after_t1.md")).read_text(encoding="utf-8")
     costs = [t["cost_usd"] for t in meta["turn"]]
     events = (att_dir / "t1.events.jsonl").read_text() if (att_dir / "t1.events.jsonl").exists() else ""
-    invoked = ("Skill" in meta["turn"][0].get("tool_calls", []) if meta["agent"] == "claude"
+    invoked = (_claude_skill_invoked(events) if meta["agent"] == "claude"
                else "prompt-contract/SKILL.md" in events)
     return {
         "run_id": meta["run_id"], "agent": meta["agent"], "arm": meta["arm"], "prompt_id": meta["prompt_id"],
@@ -93,6 +114,8 @@ def grade_attempt(att_dir, key):
         "M4_unilateral_changes": m4_unilateral_changes(key, before, end),
         "M5_guard_added": m5_guard_added(before, end),
         "M6_lines_cited": m6_lines_cited(key, meta["turn"][0]["final_text"] or ""),
+        "words_before": len(before.split()),
+        "words_after": len(end.split()),
         "M8_output_tokens": sum(t["output_tokens"] for t in meta["turn"]),
         "M8_secs": round(sum(t["secs"] for t in meta["turn"]), 1),
         "M8_cost_usd": round(sum(costs), 4) if all(c is not None for c in costs) else None,

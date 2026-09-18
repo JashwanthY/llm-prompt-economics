@@ -41,11 +41,22 @@ def test_all_hypotheses_supported():
     assert s["M1_gate"]["fisher_p"] < 1e-5
 
 
-def test_lost_runs_count_against_the_hypotheses():
+def test_incomplete_arm_publishes_no_hypotheses_and_a_note():
+    # A run lost to an infrastructure failure (10 True + 1 False on-arm rows, 11 of 12) still leaves
+    # the arm incomplete; the fixed-12 denominator that would once have failed H1 for it is no longer
+    # published as a hypothesis result at all.
     rows = (_rows("codex", "on", 10, True, True, 3, 0) + _rows("codex", "on", 1, False, True, 3, 0)
             + _rows("codex", "off", 12, False, True, 1, 2))
-    h = summarize(rows)["codex"]["hypotheses"]
-    assert h["H1"] is False and h["H2"] is True and h["H4"] is True
+    s = summarize(rows)["codex"]
+    assert s["complete"] is False
+    assert s["hypotheses"] is None
+    assert s["note"] == ("incomplete arm: hypotheses not evaluated; finished runs are not balanced "
+                          "across prompts, so the on/off comparison is prompt-confounded")
+
+
+def test_complete_arm_has_no_note():
+    rows = _rows("claude", "on", 12, True, True, 3, 0) + _rows("claude", "off", 12, False, True, 1, 2)
+    assert "note" not in summarize(rows)["claude"]
 
 
 def test_complete_flag_marks_full_arms():
@@ -54,6 +65,46 @@ def test_complete_flag_marks_full_arms():
 
     incomplete_rows = _rows("codex", "on", 5, True, True, 3, 0) + _rows("codex", "off", 12, False, True, 1, 2)
     assert summarize(incomplete_rows)["codex"]["complete"] is False
+
+
+def test_m3_mean_uses_actual_run_count_not_fixed_12():
+    # 5 on-arm runs each scoring M3=3: fixed-12 mean would be 15/12 = 1.25; the actual mean is 3.0.
+    rows = _rows("codex", "on", 5, True, True, 3, 0) + _rows("codex", "off", 12, False, True, 1, 2)
+    m3 = summarize(rows)["codex"]["M3_dead_weight_removed"]
+    assert m3["on_mean"] == pytest.approx(3.0)
+    assert m3["off_mean"] == pytest.approx(1.0)
+    assert (m3["n_on"], m3["n_off"]) == (5, 12)
+
+
+def test_m4_block_carries_n_on_and_n_off():
+    rows = _rows("codex", "on", 5, True, True, 3, 0) + _rows("codex", "off", 12, False, True, 1, 2)
+    m4 = summarize(rows)["codex"]["M4_unilateral_changes"]
+    assert (m4["n_on"], m4["n_off"]) == (5, 12)
+
+
+def test_published_summary_reports_pre_registered_secondary_metrics():
+    on = _rows("claude", "on", 3, True, True, 2, 0)
+    off = _rows("claude", "off", 3, False, True, 1, 1)
+    for i, r in enumerate(on):
+        r["M6_lines_cited"], r["M8_secs"], r["M8_cost_usd"] = i, 10.0 + i, 0.1
+    for i, r in enumerate(off):
+        r["M6_lines_cited"], r["M8_secs"], r["M8_cost_usd"] = i, 20.0 + i, 0.2
+    on[0]["M7_questions_asked"], on[1]["M7_questions_asked"] = 2, 4
+    s = summarize(on + off)["claude"]
+    assert s["M6_lines_cited_mean"] == {"on": pytest.approx(1.0), "off": pytest.approx(1.0)}
+    assert s["M7_questions_asked_mean"] == {"on": pytest.approx(3.0), "off": None}
+    assert s["M8_secs_mean"] == {"on": pytest.approx(11.0), "off": pytest.approx(21.0)}
+    assert s["M8_cost_usd_mean"] == {"on": pytest.approx(0.1), "off": pytest.approx(0.2)}
+
+
+def test_cost_mean_is_none_when_any_row_is_missing_cost():
+    rows = _rows("claude", "on", 2, True, True, 2, 0) + _rows("claude", "off", 2, False, True, 1, 1)
+    for r in rows[:3]:
+        r["M8_cost_usd"] = 0.5
+    rows[3]["M8_cost_usd"] = None
+    s = summarize(rows)["claude"]
+    assert s["M8_cost_usd_mean"]["on"] == pytest.approx(0.5)
+    assert s["M8_cost_usd_mean"]["off"] is None
 
 
 def test_by_author_splits_on_who_wrote_the_prompt():

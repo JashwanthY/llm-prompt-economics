@@ -1,6 +1,6 @@
 import json
 
-from grade_a import (best_ratio, grade_all, m1_gate, m2_traps_intact, m3_dead_weight_removed,
+from grade_a import (best_ratio, grade_all, grade_attempt, m1_gate, m2_traps_intact, m3_dead_weight_removed,
                      m4_unilateral_changes, m5_guard_added, m6_lines_cited)
 
 L = [
@@ -97,3 +97,41 @@ def test_grade_all_uses_latest_ok_attempt_and_lists_failures(tmp_path):
     (row,) = out["rows"]
     assert (row["attempt"], row["M1_gate"], row["M3_dead_weight_removed"], row["M7_questions_asked"]) == (2, True, 3, 2)
     assert (row["M8_output_tokens"], row["M8_cost_usd"], row["skill_invoked"]) == (20, 0.2, False)
+    assert (row["words_before"], row["words_after"]) == (len(BEFORE.split()), len(GOOD.split()))
+
+
+def _attempt_dir(tmp_path, agent, events):
+    """Build a minimal graded attempt directory; `events` is a list of raw JSONL event dicts
+    (or None for no events file at all)."""
+    d = tmp_path / "att"
+    d.mkdir()
+    (d / "before.md").write_text(BEFORE)
+    (d / "after_t1.md").write_text(BEFORE)
+    if events is not None:
+        (d / "t1.events.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n")
+    turn = {"tool_calls": [], "final_text": "", "output_tokens": 1, "secs": 1.0, "cost_usd": 0.01}
+    meta = {"run_id": "x", "agent": agent, "arm": "on", "prompt_id": "P1", "rep": 1, "attempt": 1,
+            "turns": 1, "turn": [turn]}
+    (d / "meta.json").write_text(json.dumps(meta))
+    return d
+
+
+def test_skill_invoked_true_for_claude_prompt_contract_skill_call(tmp_path):
+    events = [{"type": "assistant", "message": {"content": [
+        {"type": "tool_use", "name": "Skill", "input": {"skill": "prompt-contract"}}]}}]
+    d = _attempt_dir(tmp_path, "claude", events)
+    assert grade_attempt(d, KEY)["skill_invoked"] is True
+
+
+def test_skill_invoked_false_for_claude_builtin_skill_call(tmp_path):
+    events = [{"type": "assistant", "message": {"content": [
+        {"type": "tool_use", "name": "Skill", "input": {"skill": "claude-api"}}]}}]
+    d = _attempt_dir(tmp_path, "claude", events)
+    assert grade_attempt(d, KEY)["skill_invoked"] is False
+
+
+def test_skill_invoked_true_for_codex_reading_skill_md(tmp_path):
+    events = [{"type": "item.completed", "item": {"type": "file_change",
+              "path": "prompt-contract/SKILL.md"}}]
+    d = _attempt_dir(tmp_path, "codex", events)
+    assert grade_attempt(d, KEY)["skill_invoked"] is True

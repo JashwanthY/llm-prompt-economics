@@ -93,6 +93,17 @@ def test_generic_contract_without_an_identifier_fails():
     assert "generic_contract: no token looks like a product-specific identifier" in "\n".join(validate(TEXT, key))
 
 
+def test_generic_contract_requires_every_token_to_be_identifier_shaped():
+    # Mirrors P1's real trap (runs/m2_sensitivity.md): one identifier-shaped token plus one generic
+    # phrase used to pass because "any" token qualified; now every token must.
+    key = copy.deepcopy(KEY)
+    text = TEXT.replace(LINES[3], "Refunds route through the standard escalation macro tagged billing_high.")
+    key["traps"]["generic_contract"]["tokens"] = ["billing_high", "standard escalation macro"]
+    errs = validate(text, key)
+    assert any("every token must qualify" in e for e in errs)
+    assert not any("no token looks like a product-specific identifier" in e for e in errs)
+
+
 REJECTED_IDENTIFIERS = ["day-to-day", "read-only", "e.g.", "end-to-end", "environment variable"]
 ACCEPTED_IDENTIFIERS = ["PRICING_RULES", "record_key", "inv_ingest_v3", "schema_version",
                         "Billing_Escalation_L2", "2026-04", "camelCaseField", "config/app.yaml",

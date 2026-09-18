@@ -43,6 +43,10 @@ def perm_test_sum(xs, ys):
     return extreme / comb(len(pool), k)
 
 
+INCOMPLETE_NOTE = ("incomplete arm: hypotheses not evaluated; finished runs are not balanced across "
+                    "prompts, so the on/off comparison is prompt-confounded")
+
+
 def summarize(rows, n_per_arm=12):
     out = {}
     for agent in sorted({r["agent"] for r in rows}):
@@ -57,29 +61,51 @@ def summarize(rows, n_per_arm=12):
             return {"on": y_on, "off": y_off, "n_on": len(on), "n_off": len(off),
                     "fisher_p": fisher_two_sided(y_on, len(on) - y_on, y_off, len(off) - y_off)}
 
+        def mean_of(rs, key):
+            vals = [r[key] for r in rs if key in r and r[key] is not None]
+            return sum(vals) / len(vals) if vals else None
+
+        def cost_mean(rs):
+            if not rs or any(r.get("M8_cost_usd") is None for r in rs):
+                return None
+            return sum(r["M8_cost_usd"] for r in rs) / len(rs)
+
         m3_on, m3_off = [r["M3_dead_weight_removed"] for r in on], [r["M3_dead_weight_removed"] for r in off]
         m4_on, m4_off = [r["M4_unilateral_changes"] for r in on], [r["M4_unilateral_changes"] for r in off]
-        out[agent] = {
+        complete = len(on) == n_per_arm and len(off) == n_per_arm
+        hypotheses = {
+            "H1": yes(on, "M1_gate") >= 11,
+            "H2": yes(on, "M2_traps_intact") >= 11,
+            "H3": sum(v == 0 for v in m4_on) >= 10 and sum(m4_on) < sum(m4_off),
+            "H4": sum(m3_on) / n_per_arm >= 2.0,
+        }
+        cell = {
             "skill_invoked": {"on": sum(bool(r.get("skill_invoked")) for r in on),
                               "off": sum(bool(r.get("skill_invoked")) for r in off)},
             "M1_gate": binary("M1_gate"),
             "M2_traps_intact": binary("M2_traps_intact"),
-            "M3_dead_weight_removed": {"on_mean": sum(m3_on) / n_per_arm, "off_mean": sum(m3_off) / n_per_arm,
+            "M3_dead_weight_removed": {"on_mean": sum(m3_on) / max(len(on), 1),
+                                       "off_mean": sum(m3_off) / max(len(off), 1),
+                                       "n_on": len(on), "n_off": len(off),
                                        "perm_p": perm_test_sum(m3_on, m3_off) if m3_on and m3_off else None},
             "M4_unilateral_changes": {"on_total": sum(m4_on), "off_total": sum(m4_off),
                                       "on_zero": sum(v == 0 for v in m4_on),
+                                      "n_on": len(on), "n_off": len(off),
                                       "perm_p": perm_test_sum(m4_on, m4_off) if m4_on and m4_off else None},
             "M5_guard_added": {"on": yes(on, "M5_guard_added"), "off": yes(off, "M5_guard_added")},
+            "M6_lines_cited_mean": {"on": mean_of(on, "M6_lines_cited"), "off": mean_of(off, "M6_lines_cited")},
+            "M7_questions_asked_mean": {"on": mean_of(on, "M7_questions_asked"),
+                                        "off": mean_of(off, "M7_questions_asked")},
             "M8_output_tokens_mean": {"on": sum(r["M8_output_tokens"] for r in on) / max(len(on), 1),
                                       "off": sum(r["M8_output_tokens"] for r in off) / max(len(off), 1)},
-            "complete": len(on) == n_per_arm and len(off) == n_per_arm,
-            "hypotheses": {
-                "H1": yes(on, "M1_gate") >= 11,
-                "H2": yes(on, "M2_traps_intact") >= 11,
-                "H3": sum(v == 0 for v in m4_on) >= 10 and sum(m4_on) < sum(m4_off),
-                "H4": sum(m3_on) / n_per_arm >= 2.0,
-            },
+            "M8_secs_mean": {"on": mean_of(on, "M8_secs"), "off": mean_of(off, "M8_secs")},
+            "M8_cost_usd_mean": {"on": cost_mean(on), "off": cost_mean(off)},
+            "complete": complete,
+            "hypotheses": hypotheses if complete else None,
         }
+        if not complete:
+            cell["note"] = INCOMPLETE_NOTE
+        out[agent] = cell
     return out
 
 
