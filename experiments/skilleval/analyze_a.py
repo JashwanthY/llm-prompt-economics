@@ -72,6 +72,7 @@ def summarize(rows, n_per_arm=12):
             "M5_guard_added": {"on": yes(on, "M5_guard_added"), "off": yes(off, "M5_guard_added")},
             "M8_output_tokens_mean": {"on": sum(r["M8_output_tokens"] for r in on) / max(len(on), 1),
                                       "off": sum(r["M8_output_tokens"] for r in off) / max(len(off), 1)},
+            "complete": len(on) == n_per_arm and len(off) == n_per_arm,
             "hypotheses": {
                 "H1": yes(on, "M1_gate") >= 11,
                 "H2": yes(on, "M2_traps_intact") >= 11,

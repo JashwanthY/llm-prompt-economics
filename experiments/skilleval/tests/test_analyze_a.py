@@ -48,6 +48,14 @@ def test_lost_runs_count_against_the_hypotheses():
     assert h["H1"] is False and h["H2"] is True and h["H4"] is True
 
 
+def test_complete_flag_marks_full_arms():
+    complete_rows = _rows("claude", "on", 12, True, True, 3, 0) + _rows("claude", "off", 12, False, True, 1, 2)
+    assert summarize(complete_rows)["claude"]["complete"] is True
+
+    incomplete_rows = _rows("codex", "on", 5, True, True, 3, 0) + _rows("codex", "off", 12, False, True, 1, 2)
+    assert summarize(incomplete_rows)["codex"]["complete"] is False
+
+
 def test_by_author_splits_on_who_wrote_the_prompt():
     rows = [{"agent": "codex", "arm": "on", "prompt_id": p, "M1_gate": g, "M2_traps_intact": True,
              "M4_unilateral_changes": m4} for p, g, m4 in (("P1", True, 0), ("P3", False, 2), ("P4", True, 1))]
