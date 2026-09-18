@@ -1,0 +1,54 @@
+{
+  "run_id": "A-claude-off-P3-r3",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P3",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "90e41cb8-4eb5-4ffa-a790-01bc878e82cf",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 77.7,
+      "input_tokens": 107006,
+      "output_tokens": 7254,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.23731230000000003,
+      "tool_calls": [
+        "Glob",
+        "Grep",
+        "Skill",
+        "Read",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cleaned up `prompt.md`. Key changes and why:\n\n- **Removed a direct contradiction**: the old prompt required \"exactly two paragraphs\" (line 20) and \"exactly three paragraphs\" (line 26) \u2014 this is almost certainly a chunk of why the model was ignoring parts of the prompt (it can't satisfy both, so it likely guessed or dropped one).\n- **Dropped the \"Delivery reminder\" table**: it repeated the citation-placement rule verbatim and buried one new rule (acronym expansion) at the very bottom \u2014 folded the acronym rule into the main rules list and removed the duplicate.\n- **Removed stylistic asks that don't fit a factual internal tool**: \"friendly sign-off,\" \"memorable analogy,\" \"suggest a related topic.\" These read like consumer-chatbot flourishes competing with the factual/citation-heavy tone the rest of the prompt demands \u2014 likely another source of inconsistent output. Flagging this explicitly in case you actually want them back.\n- **Toned down \"PROTECT CONFIDENTIALITY!!!\"**: shouting/emphasis-heavy text doesn't make Claude more compliant, it just adds noise. Merged it with the phone-number rule into one concrete redaction instruction.\n- **Moved `{{retrieved_documents}}` to the top**, wrapped in `<retrieved_documents>` tags: for long variable context, placing it before the instructions (rather than sandwiched in the middle) improves grounding, and keeps the rules positioned right before the model has to act.\n- **Flagged one undefined term**: \"escalation age limit\" was never defined anywhere in the original prompt. I turned it into an explicit `{{escalation_age_limit}}` template variable to match the existing `{{retrieved_documents}}` pattern \u2014 confirm your calling code actually populates it, otherwise define a fixed value instead.\n\nNet effect: shorter, no contradictions, no duplicate instructions, and the model's attention is aimed at the rules right before it answers."
+    }
+  ]
+}

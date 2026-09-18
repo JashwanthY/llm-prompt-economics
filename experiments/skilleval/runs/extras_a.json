@@ -1,0 +1,137 @@
+{
+  "M4_selectivity": {
+    "claude": {
+      "on": {
+        "ambiguous_changed": 3,
+        "ambiguous_total": 78,
+        "ambiguous_fraction": 0.038461538461538464,
+        "other_changed": 78,
+        "other_total": 462,
+        "other_fraction": 0.16883116883116883,
+        "ratio": 0.227810650887574
+      },
+      "off": {
+        "ambiguous_changed": 56,
+        "ambiguous_total": 78,
+        "ambiguous_fraction": 0.717948717948718,
+        "other_changed": 218,
+        "other_total": 462,
+        "other_fraction": 0.47186147186147187,
+        "ratio": 1.5215243472124207
+      }
+    },
+    "codex": {
+      "on": {
+        "ambiguous_changed": 6,
+        "ambiguous_total": 14,
+        "ambiguous_fraction": 0.42857142857142855,
+        "other_changed": 28,
+        "other_total": 88,
+        "other_fraction": 0.3181818181818182,
+        "ratio": 1.346938775510204
+      },
+      "off": {
+        "ambiguous_changed": 19,
+        "ambiguous_total": 19,
+        "ambiguous_fraction": 1.0,
+        "other_changed": 92,
+        "other_total": 107,
+        "other_fraction": 0.8598130841121495,
+        "ratio": 1.1630434782608696
+      }
+    }
+  },
+  "word_retention": {
+    "claude": {
+      "on": {
+        "mean_retention": 0.9374198916090619,
+        "n": 12
+      },
+      "off": {
+        "mean_retention": 0.8016892400663789,
+        "n": 12
+      }
+    },
+    "codex": {
+      "on": {
+        "mean_retention": 0.7984822934232716,
+        "n": 2
+      },
+      "off": {
+        "mean_retention": 0.6681384418174049,
+        "n": 3
+      }
+    }
+  },
+  "init_skills": {
+    "claude": {
+      "on": {
+        "n_runs": 12,
+        "n_with_skills_data": 12,
+        "n_with_prompt_contract": 12,
+        "skills_seen": [
+          "artifact-design",
+          "batch",
+          "claude-api",
+          "code-review",
+          "dataviz",
+          "debug",
+          "deep-research",
+          "design-sync",
+          "fewer-permission-prompts",
+          "loop",
+          "prompt-contract",
+          "run",
+          "run-skill-generator",
+          "schedule",
+          "simplify",
+          "update-config",
+          "verify"
+        ]
+      },
+      "off": {
+        "n_runs": 12,
+        "n_with_skills_data": 12,
+        "n_with_prompt_contract": 0,
+        "skills_seen": [
+          "artifact-design",
+          "batch",
+          "claude-api",
+          "code-review",
+          "dataviz",
+          "debug",
+          "deep-research",
+          "design-sync",
+          "fewer-permission-prompts",
+          "loop",
+          "run",
+          "run-skill-generator",
+          "schedule",
+          "simplify",
+          "update-config",
+          "verify"
+        ]
+      },
+      "only_in_on": [
+        "prompt-contract"
+      ],
+      "only_in_off": []
+    },
+    "codex": {
+      "on": {
+        "n_runs": 2,
+        "n_with_skills_data": 0,
+        "n_with_prompt_contract": 0,
+        "skills_seen": []
+      },
+      "off": {
+        "n_runs": 3,
+        "n_with_skills_data": 0,
+        "n_with_prompt_contract": 0,
+        "skills_seen": []
+      },
+      "only_in_on": [],
+      "only_in_off": []
+    }
+  }
+}

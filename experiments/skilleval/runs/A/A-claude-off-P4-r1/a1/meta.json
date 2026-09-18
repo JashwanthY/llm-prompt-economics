@@ -1,0 +1,57 @@
+{
+  "run_id": "A-claude-off-P4-r1",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P4",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "80a9eb42-84f7-4edc-9ba9-b0b6ee4c7413",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 63.0,
+      "input_tokens": 176104,
+      "output_tokens": 5035,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.222742,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "The file reads cleanly now with no internal conflicts. Here's what I changed and why:\n\n- **Removed the contradiction that was likely causing the model to ignore instructions**: line 23 previously demanded a single-line JSON output while the Delivery checks table demanded pretty-printed, multi-line JSON. Kept the pretty-print requirement since the prompt states the record is for human review.\n- **Removed three off-task instructions** (greeting, productivity tip, procurement tip for `extraction_notes`) \u2014 they directly contradicted the Record contract's own definition of `extraction_notes` as reviewer observations, and had no business being in an AP extraction pipeline.\n- **Removed a duplicated rule**: \"copy the invoice number exactly\" appeared both as an operational bullet and as a Delivery checks table row; kept the operational bullet, dropped the redundant row.\n- **Normalized the all-caps outlier** (\"KEEP SUPPLIER CAPITALIZATION\") into a proper sentence matching the rest of the bullet style.\n- **Replaced the generic \"helpful, knowledgeable assistant\" framing** with a role statement specific to the task, since the generic line added tokens without focusing the model.\n\nNo extraction requirements, field definitions, or guardrails (no web search, no computing missing tax, currency/date null-handling rules) were altered \u2014 only redundant, conflicting, or irrelevant instructions were removed."
+    }
+  ]
+}

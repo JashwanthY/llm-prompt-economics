@@ -1,0 +1,54 @@
+{
+  "run_id": "A-claude-off-P2-r2",
+  "study": "A",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P2",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "dfbe5212-d42a-4b74-8a47-1ae9cf95decf",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 95.3,
+      "input_tokens": 109663,
+      "output_tokens": 8510,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.2681623,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Glob",
+        "Read",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cleaned up `prompt.md`. Summary of changes:\n\n- **Fixed the contradiction**: dropped \"merge as soon as CI is green\" and kept \"never merge without explicit human approval\" \u2014 the safer, more specific rule.\n- **Added a `Hard Constraints` section** up top that consolidates every non-negotiable rule (human approval, full test suite, `legacy/`, npm installs, `packages/payments`, pricing sync) in plain language, and removed the inconsistent `CRITICAL, NO EXCEPTIONS!!!` shouting \u2014 one rule getting all-caps treatment while equally critical ones got none was likely contributing to the model treating emphasis as noise.\n- **Removed verbatim duplication**: rules about tests/docs/style/ticket-ID were previously stated once in prose and again almost word-for-word in the checklist; now each is stated once, with the checklist serving as the compact final gate.\n- **Tightened section grouping**: `Restrictions` folded into `Hard Constraints`, and a new `Coordination` section groups the design/data/big-changes handoffs that were previously spread across unrelated sections.\n\nNet effect: same substantive rules, no conflicting instructions, and the truly critical constraints are now in one place instead of buried among style preferences \u2014 should make it much harder for the model to miss or override them."
+    }
+  ]
+}
