@@ -1,0 +1,56 @@
+{
+  "run_id": "B-claude-off",
+  "study": "B",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "bolt_old_default",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "5f127350-724c-4db8-a97c-591097685056",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 209.2,
+      "input_tokens": 204120,
+      "output_tokens": 20266,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.6485023,
+      "tool_calls": [
+        "Grep",
+        "Grep",
+        "Skill",
+        "Skill",
+        "Read",
+        "Glob",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design-sync",
+        "dataviz",
+        "artifact-design",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "loop",
+        "schedule",
+        "claude-api",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I rewrote `prompt.md` to cut length and dilution while keeping every functional rule and tag format intact. Key changes:\n\n- **Added a `<non_negotiable_rules>` block up top** consolidating the ~15 scattered `CRITICAL`/`IMPORTANT`/`ULTRA IMPORTANT` one-liners that were spread across the doc (never diffs, never `bundled` type, never destructive SQL, always RLS, never say \"artifact\", be concise). Emphasis markers were overused to the point of being meaningless \u2014 now there's one short, high-signal list instead of dozens of shouted lines competing for attention.\n- **Removed a real contradiction**: the doc said \"Do not try to generate types for supabase\" but later said \"Generate types from database schema\" twice. Resolved to \"hand-write types, don't run `supabase gen types` (no CLI access).\"\n- **Deduped the \"think holistically\" paragraph** (was copy-pasted verbatim in both `artifact_instructions` and `mobile_app_instructions`) and merged Supabase's overlapping Client Setup / Best Practices / TypeScript Integration sections into one coherent block.\n- **Cut one of three near-redundant examples** (the trivial factorial one) \u2014 the remaining two still cover every action type (`file`, `shell`, `start`, multi-file package.json).\n- **Tightened wording throughout** (design instructions, mobile instructions, shell command list) and fixed typos (`seperately`, `provde`, `scho`\u2192`echo`).\n- Left all tag/attribute names (`boltArtifact`, `boltAction`, `type=`, `filePath`, Supabase migration format, the exact allowed HTML tag list, `user_provided_design` placeholder block) untouched since those are likely parsed or templated downstream.\n\nNet effect: meaningfully shorter and internally consistent, with the truly non-negotiable rules surfaced once instead of buried in repetition \u2014 should reduce both cost and the \"ignored instructions\" problem."
+    }
+  ]
+}
