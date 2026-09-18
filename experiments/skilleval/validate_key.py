@@ -2,6 +2,11 @@
 
 validate() returns a list of problems; an empty list means the pair is usable.
 After authoring, only clerical errors may be corrected by hand, each logged.
+
+The generic_contract check (every token must be identifier-shaped, see runs/m2_sensitivity.md)
+binds prompt authoring for Studies B and C only. P1-P4 are frozen (DEVIATIONS.md) and were authored,
+some of them, before this tightened rule existed; they are not re-authored and validate() is not run
+over them in any test.
 """
 import json
 import re
@@ -80,10 +85,16 @@ def validate(prompt_text, key):
         for token in tokens:
             if token not in lines[gc["line"] - 1]:
                 errors.append(f"generic_contract: token {token!r} is not on line {gc['line']}")
-        if not any(IDENTIFIER.search(token) for token in tokens):
-            errors.append("generic_contract: no token looks like a product-specific identifier "
-                           "(snake_case, camelCase, an ALLCAPS code, a path, a file name, or a value "
-                           "containing digits)")
+        bad = [token for token in tokens if not IDENTIFIER.search(token)]
+        if bad:
+            if len(bad) == len(tokens):
+                errors.append("generic_contract: no token looks like a product-specific identifier "
+                               "(snake_case, camelCase, an ALLCAPS code, a path, a file name, or a value "
+                               "containing digits)")
+            else:
+                errors.append(f"generic_contract: token(s) {bad!r} do not look like product-specific "
+                               "identifiers (snake_case, camelCase, an ALLCAPS code, a path, a file name, "
+                               "or a value containing digits); every token must qualify")
         if gc["line"] in planted_lines:
             errors.append("generic_contract: its line is also listed as planted")
     rb = traps.get("reference_block", {})
