@@ -1,0 +1,145 @@
+{
+  "failed_runs": [],
+  "agents": {
+    "claude": {
+      "skill_invoked": {
+        "on": 12,
+        "off": 12
+      },
+      "M1_gate": {
+        "on": 12,
+        "off": 1,
+        "n_on": 12,
+        "n_off": 12,
+        "fisher_p": 9.614829913658827e-06
+      },
+      "M2_traps_intact": {
+        "on": 12,
+        "off": 4,
+        "n_on": 12,
+        "n_off": 12,
+        "fisher_p": 0.0013460761879122358
+      },
+      "M3_dead_weight_removed": {
+        "on_mean": 2.4166666666666665,
+        "off_mean": 2.1666666666666665,
+        "perm_p": 0.5158163952079687
+      },
+      "M4_unilateral_changes": {
+        "on_total": 3,
+        "off_total": 56,
+        "on_zero": 11,
+        "perm_p": 2.218806903152037e-06
+      },
+      "M5_guard_added": {
+        "on": 11,
+        "off": 0
+      },
+      "M8_output_tokens_mean": {
+        "on": 15346.25,
+        "off": 6429.333333333333
+      },
+      "complete": true,
+      "hypotheses": {
+        "H1": true,
+        "H2": true,
+        "H3": true,
+        "H4": true
+      }
+    },
+    "codex": {
+      "skill_invoked": {
+        "on": 2,
+        "off": 0
+      },
+      "M1_gate": {
+        "on": 1,
+        "off": 0,
+        "n_on": 2,
+        "n_off": 3,
+        "fisher_p": 0.4
+      },
+      "M2_traps_intact": {
+        "on": 1,
+        "off": 0,
+        "n_on": 2,
+        "n_off": 3,
+        "fisher_p": 0.4
+      },
+      "M3_dead_weight_removed": {
+        "on_mean": 0.5,
+        "off_mean": 0.75,
+        "perm_p": 1.0
+      },
+      "M4_unilateral_changes": {
+        "on_total": 6,
+        "off_total": 19,
+        "on_zero": 0,
+        "perm_p": 0.1
+      },
+      "M5_guard_added": {
+        "on": 2,
+        "off": 0
+      },
+      "M8_output_tokens_mean": {
+        "on": 4229.5,
+        "off": 1430.6666666666667
+      },
+      "complete": false,
+      "hypotheses": {
+        "H1": false,
+        "H2": false,
+        "H3": false,
+        "H4": false
+      }
+    }
+  },
+  "by_author": {
+    "claude": {
+      "off|claude-authored": {
+        "n": 6,
+        "gate": 1,
+        "traps": 1,
+        "m4_total": 25
+      },
+      "off|codex-authored": {
+        "n": 6,
+        "gate": 0,
+        "traps": 3,
+        "m4_total": 31
+      },
+      "on|claude-authored": {
+        "n": 6,
+        "gate": 6,
+        "traps": 6,
+        "m4_total": 0
+      },
+      "on|codex-authored": {
+        "n": 6,
+        "gate": 6,
+        "traps": 6,
+        "m4_total": 3
+      }
+    },
+    "codex": {
+      "off|claude-authored": {
+        "n": 1,
+        "gate": 0,
+        "traps": 0,
+        "m4_total": 7
+      },
+      "off|codex-authored": {
+        "n": 2,
+        "gate": 0,
+        "traps": 0,
+        "m4_total": 12
+      },
+      "on|claude-authored": {
+        "n": 2,
+        "gate": 1,
+        "traps": 1,
+        "m4_total": 6
+      }
+    }
+  }
+}
