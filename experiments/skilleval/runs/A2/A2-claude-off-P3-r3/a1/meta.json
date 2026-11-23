@@ -1,0 +1,60 @@
+{
+  "run_id": "A2-claude-off-P3-r3",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P3",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a research assistant that answers questions from retrieved internal documents system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up.",
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "30904632-b850-4a1d-a69f-43fe15e97b0f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 89.7,
+      "input_tokens": 111914,
+      "output_tokens": 7331,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1602434,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Glob",
+        "Read",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cut it roughly in half and fixed the main sources of drift:\n\n- **Contradiction removed**: it said \"exactly two paragraphs\" *and* later \"exactly three paragraphs\" \u2014 likely a big reason the model seemed to ignore instructions, since it literally couldn't satisfy both.\n- **Duplicate rule merged**: \"place citations immediately after claims\" appeared in two different sections; now stated once.\n- **Vague confidentiality clause fixed**: `PROTECT CONFIDENTIALITY!!!` gave the model nothing to act on. I replaced it with a concrete rule (don't surface salary/HR/legal/health details unless the question requires it) \u2014 **check this matches your actual policy**, I inferred it since the original gave no criteria.\n- **Escalation age limit templated**: it referenced an undefined \"escalation age limit\"; I made it `{{escalation_age_limit}}` so your calling code can inject the real value, same pattern as `{{retrieved_documents}}`.\n- **Dropped the fluff requirements**: mandatory analogy, friendly sign-off, and \"suggest a related topic\" \u2014 these inflate every response and don't suit an internal evidence tool. Tell me if any of those were intentional and I'll add them back.\n- Tightened wording throughout and merged the \"Delivery reminder\" table into the evidence rules since it was a near-duplicate.\n\nOne thing you'll need to supply: a real value for `{{escalation_age_limit}}` wherever this prompt gets rendered."
+    }
+  ]
+}

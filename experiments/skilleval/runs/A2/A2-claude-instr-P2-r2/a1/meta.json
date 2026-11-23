@@ -1,0 +1,94 @@
+{
+  "run_id": "A2-claude-instr-P2-r2",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P2",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a coding agent working in a company's web application repository system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "30234038-50e7-49cc-8604-94e9de097bca",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 64.1,
+      "input_tokens": 51566,
+      "output_tokens": 5445,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1049954,
+      "tool_calls": [
+        "Glob",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md`. Here's what I found, with line numbers and the specific change I'd make for each. I haven't edited anything yet.\n\n## Direct contradiction (highest priority)\n- **Lines 42\u201343**: \"Merge approved PRs as soon as CI turns green so releases are never blocked on manual steps\" directly contradicts the very next line, \"Never merge a PR without waiting for explicit human approval, even if CI is fully green.\" The model can't reliably follow both \u2014 this is likely a big source of \"ignored instructions.\" **Fix:** delete line 42 and keep only the human-approval requirement, unless you intend a different policy (see Q1 below).\n\n## Unenforceable instructions (no mechanism given for how the agent should act)\n- **Line 7**: \"Coordinate with the design systems team\" / \"loop in the data team\" \u2014 no tool or channel specified, so the agent can't actually do this. **Fix:** either name the concrete action (e.g., \"tag `@design-systems` as a reviewer,\" \"mention it in the PR description\") or rephrase as \"ask the user to confirm this has happened.\"\n- **Line 20**: \"explicit written sign-off from the platform team\" \u2014 no way for the agent to verify this exists. **Fix:** specify where sign-off is recorded (ticket label, comment, field) or change to \"ask the user to confirm sign-off before proceeding.\"\n- **Line 22**: \"completed security review\" \u2014 same problem, no verification mechanism. **Fix:** same as above.\n- **Line 21**: \"checking with a tech lead\" \u2014 workable if this just means \"ask the user in-session,\" but that's not stated. **Fix:** make explicit that it means pausing to ask the user/tech lead directly.\n- **Line 34**: assumes the agent can pull GitHub issue threads and Sentry stack traces into context \u2014 only valid if those integrations/tools actually exist. **Fix:** confirm tool access exists, or rephrase as \"ask the user to paste the relevant issue thread and stack trace.\"\n- **Line 41**: \"the size threshold\" is never defined anywhere, and \"#big-changes review queue\" has no stated mechanism for routing a PR there. **Fix:** give a concrete number (e.g., lines changed) and the concrete action (label, Slack post, etc.), or drop the instruction.\n- **Line 44**: \"sync the change into the PRICING_RULES config\" \u2014 no file path or mechanism given. **Fix:** specify the actual path/process, or drop if it's aspirational.\n\n## Tone/formatting that likely causes the model to deprioritize other lines\n- **Line 27**: \"YOU MUST ALWAYS... CRITICAL, NO EXCEPTIONS!!!\" \u2014 this is the only line shouting in caps/exclamation points, which is also redundant with the checklist (line 70) and line 12. Inconsistent emphasis tends to make a model either over-fixate on this one line or discount emphasis generally. **Fix:** restate plainly, matching the tone of the rest of the doc, and remove the duplicate checklist entry (see below).\n\n## Redundancy (contributes to length/cost without adding information)\n- **Lines 67\u201372 (Pre-PR Checklist table)** duplicates things already stated in prose: \"Code matches surrounding style\" (line 26), \"Tests updated\" (lines 12, 27), \"Docs updated\" (line 14), \"PR references ticket\" (line 40). **Fix:** keep one canonical source \u2014 I'd drop the checklist table entirely (tables cost more tokens than they're worth here) and keep the prose bullets, or vice versa. Your call which reads better day-to-day.\n- **Line 16** (\"short, friendly summary... for non-technical stakeholders\") overlaps with the PR template's own Summary section (lines 52, 60) without saying whether it's the same section or an additional one. **Fix:** merge into the template definition so there's one Summary spec, not two competing descriptions.\n\n## Minor\n- **Line 36**: \"Call out any accessibility issues... even if unrelated to the ticket\" could read as license to expand PR scope, in tension with line 13's \"one logical change per PR.\" **Fix:** clarify this means *mention/file a follow-up*, not fix inline.\n\n---\n\n### Questions only you can decide\n1. **Merge policy (lines 42\u201343):** Should the agent ever auto-merge on green CI, or is human approval always required? I'd default to always requiring approval for a production repo, but confirm.\n2. **Team coordination (line 7):** Does the agent have any messaging/tagging tool (Slack, GitHub review-request), or should \"coordinate\"/\"loop in\" just mean asking you first?\n3. **Sign-off / security review verification (lines 20, 22):** Is there a concrete artifact (label, ticket field, comment from a specific person) the agent can check, or should it just always stop and ask a human?\n4. **Big-PR threshold (line 41):** What's the actual size (e.g., lines changed) that triggers routing to `#big-changes`, and can the agent post there, or should it just flag it in the PR description for you to route?\n5. **PRICING_RULES (line 44):** What's the file path, and is this still an active requirement?\n6. **GitHub/Sentry access (line 34):** Does the agent actually have tools wired up for these, or should this be rewritten around asking you to supply the info?\n7. **Checklist vs. prose (lines 67\u201372):** Keep the table, keep the prose, or merge into one?\n\nLet me know your answers/decisions and I'll make the edits."
+    },
+    {
+      "session_id": "30234038-50e7-49cc-8604-94e9de097bca",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 40.7,
+      "input_tokens": 50996,
+      "output_tokens": 3932,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.18940579999999999,
+      "tool_calls": [
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Rewrote `prompt.md`: resolved the auto-merge/human-approval contradiction, replaced unenforceable \"coordinate with team\"/\"sign-off\"/\"security review\" instructions with explicit \"ask the user to confirm\" language, gave the big-PR rule a concrete threshold (400+ lines) and mechanism, dropped the unverifiable PRICING_RULES file reference in favor of a PR-description flag, removed the shouting-caps line, and merged the redundant checklist table into the responsibilities/template sections. It's shorter and has no internal contradictions now."
+    }
+  ]
+}

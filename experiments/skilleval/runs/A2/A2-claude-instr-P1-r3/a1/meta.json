@@ -1,0 +1,93 @@
+{
+  "run_id": "A2-claude-instr-P1-r3",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P1",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a customer-support agent for a subscription software company system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "b0453edb-e042-40dc-bc05-7222a2e3f091",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 57.7,
+      "input_tokens": 34578,
+      "output_tokens": 4822,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.09432199999999999,
+      "tool_calls": [
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I read through `prompt.md` (68 lines). Here's what I found, with line numbers and the fix I'd make. A few items need your call before I touch anything.\n\n**Needs your decision:**\n\n1. **Lines 31\u201332 \u2014 direct contradiction.** \"Always close every response with a recommendation to upgrade to a higher-tier plan\" vs. \"Never recommend a plan upgrade unless the customer has explicitly asked about pricing.\" These can't both be true, and this is likely the main reason the model looks like it's \"ignoring\" the prompt \u2014 it's actually just picking one side of a coin flip. Which one is the real policy?\n\n2. **Line 22 \u2014 undefined threshold.** \"Escalate to the billing team once the account meets the escalation threshold\" \u2014 no threshold is ever specified anywhere in the doc. The model has nothing to act on. What's the actual rule (e.g., X days past due, or a dollar amount)?\n\n3. **Line 24 vs. lines 40\u201353 \u2014 two competing escalation mechanisms.** Line 24 says to apply a named macro (`Billing_Escalation_L2`) for billing disputes, while a separate full manual ticket template is given later for escalations generally. Is the macro a shortcut used *only* for billing (with the manual template covering non-billing escalations), or should the macro reference just be dropped in favor of the one template? I don't want to guess and merge these wrong.\n\n4. **Line 36 \u2014 \"pasted below for context.\"** This implies ticket/log content gets appended inside this same system prompt at runtime. Is that actually how your harness wires it in (appended after this file), or is it injected elsewhere (e.g., as a user turn)? If it's not literally pasted below, this line is dead weight and probably confusing the model.\n\n**Straightforward cleanup (will do once you approve the above):**\n\n5. **Lines 60\u201367 (Final Checklist table).** Pure restatement of rules already given earlier verbatim (identity check \u2192 line 57, roadmap confidentiality \u2192 line 16, plan tier \u2192 line 23/48). Adds length with zero new information. Recommend deleting the table; if you want a self-check step, one short line is enough.\n\n6. **Line 57 \u2014 ALL CAPS + \"!!!\".** Shouting like this doesn't make models follow instructions better, it just adds noise and clashes with the calm tone everywhere else. Recommend folding this into the \"Restrictions\" section as a normal sentence alongside the other hard rules.\n\n7. **Escalation content is scattered** across line 11 (Scope), line 24 (Billing Guidance), and lines 40\u201353 (dedicated section). Once #3 above is resolved, I'd consolidate all escalation logic into one section so the model isn't piecing it together from three places.\n\n8. **Line 29 \u2014 \"Match the customer's tone and language where appropriate.\"** \"Where appropriate\" is a no-op qualifier \u2014 gives the model no actual rule. Either make it concrete (e.g., mirror formality but never adopt a hostile tone) or cut it.\n\n9. **Line 21 \u2014 \"be careful with dates when walking them through the billing cycle.\"** Vague caution with no concrete action. Either specify what \"careful\" means (e.g., state dates in the customer's account time zone, confirm the exact charge date before explaining) or remove \u2014 vague hedges like this tend to get skipped anyway.\n\nLet me know your answers on 1\u20134, and whether you want me to proceed with 5\u20139, then I'll make the edits."
+    },
+    {
+      "session_id": "b0453edb-e042-40dc-bc05-7222a2e3f091",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 48.4,
+      "input_tokens": 49797,
+      "output_tokens": 4363,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1824758,
+      "tool_calls": [
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Done \u2014 file shrunk from 68 to 55 lines, contradiction removed, redundant checklist/\"Before You Send\" section folded into the relevant rules, vague lines made concrete, and escalation logic consolidated into one section.\n\nStill need from you: the actual past-due escalation threshold/criteria, and confirmation that the three policy calls above (upsell policy, macro-vs-template, ticket-content delivery) match what you intended."
+    }
+  ]
+}

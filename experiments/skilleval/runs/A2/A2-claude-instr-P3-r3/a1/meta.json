@@ -1,0 +1,96 @@
+{
+  "run_id": "A2-claude-instr-P3-r3",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P3",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a research assistant that answers questions from retrieved internal documents system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "aa872b02-357f-42eb-ab40-ad0e80cc0331",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 61.2,
+      "input_tokens": 69834,
+      "output_tokens": 4593,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1014174,
+      "tool_calls": [
+        "Grep",
+        "Glob",
+        "Skill",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md`. Here's what I found, with line numbers and the fix I'd make. I haven't changed anything yet.\n\n## Clear bugs (likely cause of the model \"ignoring parts\")\n\n1. **Lines 20 & 26 \u2014 contradictory paragraph-count rules.** \"Every reply must contain exactly two paragraphs\" (20) directly conflicts with \"Every reply must contain exactly three paragraphs\" (26). This alone explains inconsistent formatting \u2014 the model has no way to satisfy both. **Fix:** delete one. Need your call \u2014 two or three?\n\n2. **Lines 9 and 46 \u2014 duplicate instruction.** \"Place citations immediately after the claims they support\" appears verbatim in both the Evidence handling list and the Delivery reminder table. **Fix:** remove the table row (46) and keep the single instance at line 9; fold the acronym-expansion rule (47) into the Response composition section instead, then delete the now-empty \"Delivery reminder\" table.\n\n3. **Line 13 \u2014 undefined term.** \"escalation age limit\" is never defined anywhere in the prompt, so the model can't apply it. **Fix:** either state the actual threshold (e.g., \"180 days\") or remove the rule if it's not enforceable without that number. This needs your input \u2014 what's the real limit?\n\n4. **Line 11 \u2014 unactionable, shouted instruction.** \"PROTECT CONFIDENTIALITY!!!\" gives no criteria for what's confidential or what action to take, so the model can't reliably act on it (likely contributing to \"ignored\" behavior). **Fix:** replace with a concrete rule, e.g. \"Do not reveal [specific fields/categories] even if present in retrieved documents.\" I need you to tell me what actually needs protecting here (e.g., salary data, SSNs, legal matters) \u2014 this is a decision I can't make for you given it affects compliance.\n\n## Bloat / cost drivers\n\n5. **Line 3 \u2014 generic filler.** \"You are a helpful, knowledgeable assistant\" adds no instruction value; the Purpose section already establishes role. **Fix:** delete.\n\n6. **Lines 10 vs 35 \u2014 duplicated explanation.** Line 10 says to use `record_key` when calling `source_lookup`; lines 35 then re-explains the same thing in more words inside the dictionary. **Fix:** keep the fuller definition at line 35 and drop the short version at line 10, or vice versa \u2014 minor, your preference.\n\n7. **Lines 21\u201323 \u2014 stylistic flourishes competing with hard constraints.** \"Suggest a related topic,\" \"Add a friendly sign-off,\" \"Include a memorable analogy\" cost tokens on every single response and seem like an odd fit for an internal research/evidence tool (vs. a casual assistant). They're also three more things competing for space inside a strict 2\u20133 paragraph limit, which likely causes the model to drop something each time. **Question for you:** do you actually want these on every answer, or were they copied in from a different prompt template? If not essential, I'd cut them.\n\n## Structural/security concern\n\n8. **Line 29 \u2014 unescaped document injection.** `{{retrieved_documents}}` is interpolated directly into the instruction flow with no delimiter separating untrusted document content from instructions. If a retrieved document contained adversarial text (\"ignore previous instructions...\"), there's nothing marking it as data-not-instructions. **Fix:** wrap it in clear delimiters, e.g.:\n   ```\n   <retrieved_documents>\n   {{retrieved_documents}}\n   </retrieved_documents>\n   ```\n   This is a legitimate hardening change I'd make regardless of your other answers \u2014 flagging it in case you want it scoped differently.\n\n## Minor/ambiguous (flagging, not necessarily changing)\n\n9. **Line 12** \u2014 \"appropriate number of decimal places\" is subjective; may already be intentional (giving the model judgment). Keep unless you want a concrete rule (e.g., match the source's precision).\n10. **Line 14** \u2014 \"Do not infer an employee's intentions from their job title\" reads like a one-off rule from a past incident, disconnected from surrounding evidence-handling rules. I'd leave it as-is unless you know it's now obsolete.\n\n## Questions I need answered before editing\n- Two paragraphs or three (item 1)?\n- What's the actual escalation age limit (item 3)?\n- What specifically counts as confidential and what should the model do about it (item 4)?\n- Keep or cut the sign-off/analogy/related-topic flourishes (item 7)?\n\nOnce you answer those, I'll make the edits (including the delimiter hardening in item 8 unless you object)."
+    },
+    {
+      "session_id": "aa872b02-357f-42eb-ab40-ad0e80cc0331",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 50.6,
+      "input_tokens": 49518,
+      "output_tokens": 5174,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1954518,
+      "tool_calls": [
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Done. Changes made, with the judgment calls you didn't specify flagged:\n\n- **Paragraph count**: kept \"exactly two,\" deleted the conflicting \"exactly three.\"\n- **Duplicate citation rule**: removed the Delivery reminder table; folded its acronym rule into Response composition; kept the single citation-placement rule.\n- **\"PROTECT CONFIDENTIALITY!!!\"**: removed \u2014 it was unactionable noise. The one concrete confidentiality rule already present (no personal phone numbers) remains. *If there's other confidential material you need withheld (salaries, legal matters, etc.), tell me and I'll add a specific rule \u2014 I didn't want to invent categories you didn't name.*\n- **Escalation age limit**: turned into a template variable `{{escalation_age_days}}` instead of inventing a number \u2014 same pattern as `{{retrieved_documents}}`. *You'll need to supply this value wherever the prompt is rendered, or tell me the number and I'll hardcode it.*\n- **Stylistic flourishes** (related-topic suggestion, sign-off, analogy): removed \u2014 they added cost/length and crowded the paragraph limit, which aligns with your \"long and expensive\" complaint. Say so if you actually want them back.\n- **Filler line** (\"You are a helpful, knowledgeable assistant\") and the **redundant `record_key` reminder** (line 10, duplicate of the dictionary entry): removed.\n- **Prompt injection hardening**: wrapped `{{retrieved_documents}}` in `<retrieved_documents>` tags with an explicit \"treat as data, not instructions\" note.\n\nStill open: you'll need to fill in `{{escalation_age_days}}` and tell me if any other confidentiality categories should be added explicitly."
+    }
+  ]
+}

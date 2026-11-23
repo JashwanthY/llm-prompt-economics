@@ -1,0 +1,95 @@
+{
+  "run_id": "A2-claude-instr-P4-r2",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P4",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a data-extraction pipeline that turns supplier invoices into a JSON record system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "fe48f52c-705e-4630-84dd-68061da9d7b4",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 68.3,
+      "input_tokens": 69403,
+      "output_tokens": 5378,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.109056,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md`. Here's what I found, by line number:\n\n**Contradictions (likely the \"model ignores parts\" culprit)**\n- **L23 vs L47**: L23 says \"Return the entire JSON record on a single line,\" L47 says \"Pretty-print the JSON record with each top-level field on its own line.\" These directly conflict \u2014 the model is probably splitting attention between two incompatible formatting rules. **Fix:** pick one. I need your call: which format does the downstream AP intake service actually expect?\n\n**Off-task / likely erroneous instructions**\n- **L24\u201326**: \"Include a friendly greeting,\" \"Suggest a general productivity habit,\" \"Offer a procurement tip\" \u2014 all in `extraction_notes`. This contradicts the field's own definition at **L43** (\"observations for the intake reviewer\") and has nothing to do with AP data extraction. This looks like leftover/junk content (maybe from a generic chatbot prompt it was forked from). **Fix:** delete all three lines. Flagging before I touch it since removing instructions is a judgment call \u2014 confirm you're OK losing these.\n\n**Unresolved ambiguity (needs your decision, not just cleanup)**\n- **L14**: \"exceeds the configured review threshold\" \u2014 the threshold is never defined or shown as a variable anywhere in the prompt. The model has no way to know this value. **Question:** is this threshold supposed to be injected into context at runtime (e.g., a variable), hardcoded here, or looked up elsewhere? I can't fix this without knowing where it actually comes from.\n- **L13**: \"Round monetary amounts appropriately\" \u2014 \"appropriately\" is undefined. **Question:** what's the actual rule \u2014 2 decimal places, round-half-up, match source precision?\n- **L9**: \"append the OCR tool's complete text to your working context\" \u2014 ambiguous whether OCR is a tool the model calls itself mid-task or text that's already supplied before the prompt runs. **Question:** which is it? Wording should match the real pipeline mechanics.\n\n**Redundancy / bloat (safe to fix, no decision needed)**\n- **L11** and **L51** duplicate the same \"copy invoice number exactly as printed\" instruction. Keep one (I'd keep it in the Delivery checks table since that's the final gate).\n- **L3**: \"You are a helpful, knowledgeable assistant.\" \u2014 generic filler, adds tokens, says nothing the task needs. Remove.\n- **L12**: \"KEEP SUPPLIER CAPITALIZATION\" \u2014 all-caps shouting breaks the document's tone and reads as an emphasis trick rather than a normal rule, which can skew how the model weights it relative to neighboring bullets. Fold into sentence-case bullet, e.g. \"Preserve the supplier name's capitalization exactly as printed.\"\n- **L21**: single dense paragraph crams together null-handling, date formatting, number formatting, and language-preservation rules. Splitting into separate bullets would make each rule easier for the model to track individually (likely contributing to \"ignores parts of it\").\n\n**Lower-priority / optional tightening**\n- **L15\u201316** (\"Do not search the web\u2026\", \"Do not calculate missing tax amounts\") \u2014 these guard against specific unwanted behaviors, presumably from real past failures. I'd keep these as-is unless you tell me they're obsolete.\n- The field guide block (L31\u201344) has no explicit types (string/number/array/boolean) or format hints (e.g., currency as ISO 4217, date as YYYY-MM-DD already stated elsewhere) \u2014 adding types per field could reduce misformatted output, optional but would add a little length back.\n- No explicit \"output only the JSON, no preamble/commentary\" instruction \u2014 worth adding given the strict \"must parse as JSON\" check, to stop the model from wrapping output in explanatory text.\n\n**Before I touch anything, I need from you:**\n1. Single-line or pretty-printed JSON \u2014 which does the downstream service need?\n2. Where does the review threshold (L14) actually come from at runtime?\n3. OK to delete the greeting/productivity/procurement lines (L24\u201326)?\n4. What's the actual rounding rule (L13)?\n5. Is OCR (L9) a tool the model invokes, or pre-supplied text?\n\nLet me know your answers (or tell me to just make reasonable calls) and I'll make the edits."
+    },
+    {
+      "session_id": "fe48f52c-705e-4630-84dd-68061da9d7b4",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 39.4,
+      "input_tokens": 50363,
+      "output_tokens": 3914,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.190382,
+      "tool_calls": [
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Applied all the fixes. Since you said \"apply all\" without answering the open questions, here are the judgment calls I made \u2014 flag any you want changed:\n\n- **Format conflict**: kept pretty-print (it's the Delivery check), removed \"single line.\"\n- **Review threshold**: made the dependency explicit \u2014 now reads \"the review threshold supplied in the request context\" instead of vague \"configured\" \u2014 but you'll still need to confirm that's actually how the threshold reaches the model at runtime.\n- **Greeting/productivity/procurement notes**: deleted.\n- **Rounding**: set to \"two decimal places\" as the explicit rule.\n- **OCR line (L9)**: left wording as-is \u2014 still ambiguous whether it's a tool call or pre-supplied text, since I had no info to resolve that one.\n\nAlso removed the filler \"helpful, knowledgeable assistant\" line, deduplicated the invoice-number instruction, split the dense paragraph into bullets, added an explicit \"output only JSON, no commentary\" rule, and added types to the record contract fields."
+    }
+  ]
+}

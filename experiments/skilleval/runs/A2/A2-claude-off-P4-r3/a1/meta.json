@@ -1,0 +1,61 @@
+{
+  "run_id": "A2-claude-off-P4-r3",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P4",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a data-extraction pipeline that turns supplier invoices into a JSON record system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up.",
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "ac173d99-94b6-4b73-bd29-485dcd966e2f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 60.7,
+      "input_tokens": 132553,
+      "output_tokens": 5426,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.139079,
+      "tool_calls": [
+        "Glob",
+        "Grep",
+        "Skill",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cleaned up `prompt.md`. Key fixes:\n\n- **Removed a direct contradiction**: the old prompt said \"return the entire JSON record on a single line\" and later \"pretty-print... each top-level field on its own line.\" This is the likely cause of the model \"ignoring parts\" \u2014 it's not ignoring, it's resolving a contradiction you never noticed. Kept pretty-print since the record explicitly supports human review.\n- **Removed off-topic instructions** that had no business in a structured AP extraction pipeline: the generic \"helpful, knowledgeable assistant\" persona line, and three bullets telling the model to stuff a greeting, a productivity tip, and a procurement tip into `extraction_notes` (which the record contract defines as reviewer observations). These added cost and noise on every call for no extraction value.\n- **Deduplicated**: \"copy the invoice number exactly as printed\" existed both as a bullet and as a table row in \"Delivery checks\" \u2014 merged into one bullet, and folded in the ALL-CAPS \"KEEP SUPPLIER CAPITALIZATION\" line (inconsistent shouting-style formatting) as a normal sentence covering both invoice number and supplier name.\n- Dropped the now-overkill two-row Markdown table in favor of two plain bullets.\n\nNo behavioral fields, null-handling rules, or routing logic were changed \u2014 only redundant, contradictory, or irrelevant content was removed. File is meaningfully shorter now."
+    }
+  ]
+}

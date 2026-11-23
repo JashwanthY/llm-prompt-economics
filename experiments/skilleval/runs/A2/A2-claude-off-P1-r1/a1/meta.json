@@ -1,0 +1,58 @@
+{
+  "run_id": "A2-claude-off-P1-r1",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P1",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a customer-support agent for a subscription software company system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up.",
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "3d6a1ee4-51a4-4d37-8a3e-a2b443a3ce24",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 50.4,
+      "input_tokens": 75202,
+      "output_tokens": 4103,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1094608,
+      "tool_calls": [
+        "Read",
+        "Skill",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cleaned up `prompt.md` (68 lines \u2192 42). Key changes:\n\n- **Fixed the contradiction** \u2014 \"always close with an upgrade pitch\" vs. \"never recommend an upgrade unless asked\" directly conflicted; kept only the latter (the more sensible, conservative rule), which is likely what was causing inconsistent behavior.\n- **Removed the \"Final Checklist\" table** \u2014 it just restated rules already given earlier, adding tokens without adding instruction.\n- **Dropped the shouty ALL-CAPS/`!!!` identity-verification line** \u2014 folded into a single plain \"Rules\" section instead of repeating it in two places with different emphasis.\n- **Consolidated scattered restrictions** (identity check, no refunds, no roadmap sharing, confirm plan tier) into one `## Rules` section instead of being spread across \"Restrictions,\" \"Before You Send,\" and the checklist.\n- Kept the escalation ticket template verbatim since downstream tooling parses it.\n\nNet effect: no duplicate or conflicting instructions, same functional coverage, meaningfully fewer tokens per request."
+    }
+  ]
+}

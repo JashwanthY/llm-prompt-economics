@@ -1,0 +1,94 @@
+{
+  "run_id": "A2-claude-instr-P3-r1",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P3",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a research assistant that answers questions from retrieved internal documents system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "9285a195-9c97-460f-a534-66130be9613f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 66.7,
+      "input_tokens": 52446,
+      "output_tokens": 5621,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.10818820000000001,
+      "tool_calls": [
+        "Skill",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md`. Here's what I found, by category.\n\n**Contradictions (bugs \u2014 likely why the model \"ignores\" things)**\n1. **Line 20 vs line 26**: \"Every reply must contain exactly two paragraphs\" directly contradicts \"Every reply must contain exactly three paragraphs.\" The model is almost certainly picking one and silently dropping the other. \u2192 **Need your call**: which count is correct, or should this rule be dropped entirely? (Rigid paragraph counts often fight against short answers like \"no evidence found\" \u2014 see point 9 below.)\n\n**Redundant content (safe for me to remove, no judgment call needed)**\n2. **Line 46** duplicates **line 9** verbatim (\"Place citations immediately after the claims they support\").\n3. **Line 10** duplicates what's already specified in the Record reference table (line 35 already states `source_lookup` takes `record_key`).\n4. **Line 3** (\"You are a helpful, knowledgeable assistant\") is generic filler \u2014 the Purpose section already defines the role more specifically.\n\n**Vague/unenforceable instructions (need your input on specifics)**\n5. **Line 11**: `PROTECT CONFIDENTIALITY!!!` \u2014 all-caps/exclamation doesn't reliably increase model compliance, it just burns tokens and reads as noise. It's also not actionable: confidential *how*, protect from *what*? \u2192 **Need your call**: what specifically counts as confidential here (e.g., unreleased financials, legal/HR matters, specific document owners), so I can write a concrete rule.\n6. **Line 13**: \"the escalation age limit\" is referenced but never defined \u2014 no actual threshold is given. \u2192 **Need your call**: what's the actual age limit (e.g., 90/180 days), and does \"flag for owner review\" mean a note in the answer text, or something else?\n\n**Narrow/possibly orphaned rules**\n7. **Line 14**: \"Do not infer an employee's intentions from their job title\" is oddly specific with no stated rationale \u2014 looks like it may have been added for a one-off incident. \u2192 Want to keep as-is, or fold into a general \"don't speculate about individuals\" rule alongside line 15?\n8. **Line 15**: \"Do not include personal telephone numbers in answers\" is similarly narrow. Could merge with 7 and the confidentiality rule (line 11) into one coherent privacy rule.\n\n**Stylistic requirements that add cost and may conflict with the tool's purpose**\n9. **Lines 21\u201323**: mandatory \"related topic suggestion,\" \"friendly sign-off,\" and \"memorable analogy\" on *every* reply. These are chatty flourishes that sit oddly against a precision-focused research tool (line 6: \"distinguish documented decisions from proposals\"), cost extra tokens on every response, and directly conflict with the \"state what's absent\" case in line 17 \u2014 hard to shoehorn an analogy and sign-off into \"I found no evidence.\" \u2192 **Need your call**: keep, drop, or make conditional (e.g., skip flourishes when no answer is found)?\n\n**Structural issues (contributing to length/cost and the model ignoring parts)**\n10. Hard safety/privacy rules (confidentiality, PII) and soft style preferences (analogy, sign-off) are listed as flat, equal-weight bullets. Mixing critical and cosmetic rules at the same visual priority is a common reason models drop the \"important\" ones \u2014 recommend separating into tiers (Must / Should / Style).\n11. The \"Delivery reminder\" table (lines 43\u201347) is mostly redundant overhead once the duplicate (line 46) is removed \u2014 only the acronym-expansion rule is unique and could just move into Response composition, letting the table go.\n12. **Line 32**'s lead-in sentence is wordy filler that can be trimmed without losing meaning.\n\n**Questions for you before I touch anything:**\n1. Two paragraphs or three \u2014 or drop the exact-count rule?\n2. What exactly is confidential, and what's the real escalation age threshold?\n3. Keep the job-title/phone-number rules as separate bullets, or merge into one privacy rule?\n4. Keep the related-topic/sign-off/analogy requirements, drop them, or make them conditional?\n5. OK to restructure into tiered sections (critical rules vs. style) and remove the redundant table, as long as behavior doesn't change otherwise?\n\nLet me know your answers and I'll make the edits."
+    },
+    {
+      "session_id": "9285a195-9c97-460f-a534-66130be9613f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 39.2,
+      "input_tokens": 50514,
+      "output_tokens": 3849,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.18950240000000002,
+      "tool_calls": [
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "All changes applied \u2014 contradictions resolved, duplicates and filler removed, vague rules made concrete, and the file restructured into **Must** (hard rules) vs. **Style** (soft preferences). One thing to finish on your end: set a real value for `{{escalation_age_limit_days}}` wherever this template gets rendered."
+    }
+  ]
+}

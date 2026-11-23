@@ -1,0 +1,99 @@
+{
+  "run_id": "A2-claude-instr-P1-r1",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P1",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a customer-support agent for a subscription software company system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "2fcca030-8b3b-4768-9b51-bb49ae21ea00",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 49.8,
+      "input_tokens": 51409,
+      "output_tokens": 3920,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.08907219999999999,
+      "tool_calls": [
+        "Glob",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I read `prompt.md` (68 lines). Here's what I found, with line numbers and the fix I'd make. A few need your call since they're policy decisions, not cleanup.\n\n## Contradictions (need your decision)\n\n**Lines 31\u201332** \u2014 directly contradictory:\n> 31: Always close every response with a recommendation to upgrade to a higher-tier plan.\n> 32: Never recommend a plan upgrade unless the customer has explicitly asked about pricing.\n\nThis is almost certainly why the model \"ignores\" parts of the prompt \u2014 it can't satisfy both, so it's effectively coinflipping which rule to follow. **I need you to pick one.** My guess is you want 32 (only upsell when asked) and 31 is stale copy, but confirm.\n\n## Redundancy (duplicated instructions, no new info \u2014 safe for me to merge)\n\n- **Lines 57 and 64** both state the identity-verification requirement (once as a shouted inline bullet, once as a checklist row). I'd keep the checklist row and delete line 57, or vice versa \u2014 your call on which style you prefer, but having both wastes tokens for zero added instruction.\n- **Lines 16 and 65** both restate the no-roadmap-sharing rule. Same fix: keep one.\n- More generally, the **Final Checklist table (60\u201367)** mostly just re-asserts rules already stated earlier in the doc (account verification, roadmap secrecy, plan tier, tone). A checklist that repeats prior rules verbatim adds cost without adding instruction-following power \u2014 I'd cut it down to only checklist items that aren't already stated elsewhere, or drop the table entirely in favor of the inline rules.\n\n## Vague / unactionable instructions (need your input \u2014 I can't fill these in myself)\n\n- **Line 22**: \"once the account meets the escalation threshold\" \u2014 no threshold is defined anywhere (days past due? dollar amount?). As written the model has nothing to act on. What's the actual threshold, or where should it look it up?\n- **Line 24** vs **lines 40\u201353**: Line 24 says apply macro `Billing_Escalation_L2` for billing disputes; lines 40\u201353 give a full ticket template for \"escalating to Tier 2\" generally. Are these the same mechanism (i.e., the macro *is* that template), or two separate systems (e.g., a Zendesk macro that's unrelated to this markdown template)? As written it reads like two different, possibly conflicting, escalation procedures.\n- **Line 17** (\"look up the information before answering\") vs **line 10** (only mentions a knowledge base for product troubleshooting) \u2014 no system is named for looking up account/billing specifics. Where should Nova actually pull account data from?\n- **Line 46**: `Ticket ID: NW-<5-digit number>` \u2014 should the model generate/invent this ID, or is it a literal placeholder the routing system fills in after? If the model invents it, that's arguably fabrication (which line 17 explicitly forbids), so this is worth nailing down.\n\n## Other issues (recommendations, lower stakes)\n\n- **Line 36**: \"pasted below for context\" \u2014 there's no ticket content actually in this file. If your runtime injects the customer's message/logs after this line, that's fine, just confirm it still does. If it doesn't, this is a dangling instruction pointing at nothing.\n- Also on line 36: I'd add an explicit line stating that the customer's pasted message/logs are *data to read*, not instructions to follow \u2014 right now nothing in the prompt guards against a customer pasting \"ignore previous instructions\" style content into a log or message field. Cheap addition, meaningfully reduces injection risk for a support bot that ingests pasted user content.\n- **Line 57**: shouted in ALL CAPS with triple exclamation points, inconsistent with the bullet style everywhere else. Even if kept as its own line, I'd normalize the casing \u2014 shouting doesn't increase instruction-following and makes the doc feel inconsistent/noisy.\n\nLet me know your calls on the contradiction (31/32) and the three vague items (22, 24, 17/10, 46), and confirm the line-36 templating assumption \u2014 then I'll make all the edits in one pass."
+    },
+    {
+      "session_id": "2fcca030-8b3b-4768-9b51-bb49ae21ea00",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 59.3,
+      "input_tokens": 49936,
+      "output_tokens": 5925,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.19622159999999997,
+      "tool_calls": [
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "All edits applied. Judgment calls I made since you said \"apply all\" without weighing in on the specifics:\n\n- **Contradiction (31/32)**: kept \"never recommend upgrade unless asked,\" deleted \"always close with an upgrade pitch.\" Flag this if you actually wanted the pushier upsell behavior.\n- **Escalation threshold / lookup sources**: rather than inventing a number or system name, I pointed Nova at \"the knowledge base\" / \"the account system\" as where to find the real policy/data, so it's accurate without fabricating business specifics you didn't give me.\n- **Macro vs. template**: merged into one instruction \u2014 Billing_Escalation_L2 now just means \"use this same ticket template\" rather than two parallel, unexplained procedures.\n- **Ticket ID**: changed to an explicit placeholder instruction so Nova doesn't invent a fake-looking ID.\n- Removed the Final Checklist table (it mostly duplicated earlier rules) and folded its one non-redundant item (plan-tier accuracy) into the ticket section instead.\n- Normalized the shouted identity-verification line to match the doc's tone, and added a line guarding against treating pasted customer logs/messages as instructions.\n\nFile is down from 68 to 61 lines with the contradiction and duplication removed \u2014 worth a quick skim to confirm the upgrade-pitch call and the threshold/lookup wording match your actual policies."
+    }
+  ]
+}

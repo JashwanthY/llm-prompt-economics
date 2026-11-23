@@ -1,0 +1,97 @@
+{
+  "run_id": "A2-claude-instr-P2-r3",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P2",
+  "rep": 3,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a coding agent working in a company's web application repository system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "34302b09-8e97-4551-aa89-bced2a5f820f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 52.7,
+      "input_tokens": 51566,
+      "output_tokens": 4288,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.09341659999999999,
+      "tool_calls": [
+        "Glob",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md` (73 lines). Here's what I found, with line numbers, before touching anything.\n\n## Contradictions (highest priority \u2014 likely why the model \"ignores parts\")\n\n- **Lines 42\u201343**: directly contradictory. Line 42 says merge as soon as CI is green \"so releases are never blocked on manual steps\"; line 43 says never merge without explicit human approval \"even if CI is fully green.\" A model given both will pick one unpredictably. **I need you to tell me which policy is actually correct** \u2014 my guess is 43 is correct and 42 should be deleted, but I don't want to assume.\n\n- **Line 16 vs. Line 52**: Core Responsibilities says to add \"a short, friendly summary at the top of each PR for non-technical stakeholders,\" but the PR Template's **Summary** section (line 52) is described as \"one paragraph describing the change and why it's needed\" \u2014 not specified as stakeholder-friendly. This reads as two different summaries. **Is there really supposed to be two summaries, or should line 16 just be folded into the template's Summary section?**\n\n## Instructions the agent likely can't actually execute\n\nThese describe actions the agent has no tool/mechanism to perform, which is a common cause of a model \"ignoring\" instructions \u2014 not defiance, just no path to comply:\n\n- **Line 7**: \"Coordinate with the design systems team\" / \"loop in the data team before changing anything under `apps/web/analytics`\" \u2014 coordinate *how*? Is there a Slack/ticket integration, or should this just become \"ask the user to confirm before proceeding\"?\n- **Line 20**: \"without explicit written sign-off from the platform team\" \u2014 how would the agent obtain or verify this?\n- **Line 21**: \"without first checking with a tech lead\" \u2014 same issue.\n- **Line 22**: \"without a completed security review\" \u2014 how does the agent confirm a review is \"completed\"?\n- **Line 34**: \"pull the full GitHub issue thread and any linked Sentry stack traces into your working context\" \u2014 does this agent actually have GitHub/Sentry access configured? If not, this is dead weight.\n- **Line 44**: \"sync the change into the PRICING_RULES config\" \u2014 does this config exist and is it reachable by the agent, or is this aspirational?\n\n**My question for all six above:** does the agent have real integrations for these (Slack, GitHub, Sentry, a config repo), or should they all be rewritten as \"ask the user/a human for explicit confirmation before proceeding\"? That's a one-line fix applied consistently, but I want your call before rewriting restriction/approval language.\n\n## Undefined terms\n\n- **Line 41**: \"exceeds the size threshold\" \u2014 no threshold is defined anywhere. Either give me a number (e.g., lines changed, files touched) or I'll recommend removing the clause as unenforceable.\n\n## Style/tone bloat (token cost + likely causes the model to skim)\n\n- **Line 27**: `YOU MUST ALWAYS run the full test suite before opening a PR \u2014 CRITICAL, NO EXCEPTIONS!!!` \u2014 shouting/caps/exclamation stacking is exactly the kind of boilerplate-sounding text models learn to skim past. I'd rewrite as a plain, flat imperative sentence, same weight as everything else.\n\n## Minor redundancy (safe to trim, low risk)\n\n- **Line 69** (\"Code matches surrounding style\") duplicates line 26; **line 70** duplicates line 12/14; **line 72** duplicates line 40. The checklist is meant as a condensed recap, so some overlap is fine, but if we're cutting cost I can tighten the checklist to reference the sections above instead of restating them.\n- **Lines 12 and 30** (write tests / recommend additional tests) could merge into one bullet.\n\n## Nothing wrong with (leaving as-is)\n\n- Scope section (line 7's path boundaries), restrictions' intent (lines 20\u201322, modulo the mechanism question above), House Style's substantive rules (26, 28, 29), Bug Triage's substance (35, 36), and the PR template/checklist structure overall are reasonable and worth keeping.\n\n---\n\n**Before I edit, I need your call on:**\n1. Merge vs. auto-merge policy (lines 42\u201343) \u2014 which wins?\n2. Is there a real mechanism behind \"coordinate/loop in/sign-off/checking with/security review\" (lines 7, 20\u201322), or should these become \"ask the user for confirmation\"?\n3. Does the agent actually have GitHub/Sentry access (line 34) and a reachable PRICING_RULES config (line 44)?\n4. What's the actual PR size threshold for line 41, or should I drop that clause?\n5. Should the stakeholder-friendly summary (line 16) be merged into the template's Summary section (line 52), or kept separate?"
+    },
+    {
+      "session_id": "34302b09-8e97-4551-aa89-bced2a5f820f",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 44.1,
+      "input_tokens": 49771,
+      "output_tokens": 4780,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.185796,
+      "tool_calls": [
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "All applied. Summary of defaults I used on the open questions (flag if you want any changed):\n\n- **Merge policy**: kept \"never merge without explicit human approval,\" dropped the auto-merge-on-green line.\n- **Team/tool mechanisms** (design systems, data team, platform sign-off, tech lead, security review, PRICING_RULES): rewritten as \"ask the user to confirm\" since I couldn't verify real integrations exist for these.\n- **Size threshold**: dropped the undefined numeric threshold; routing to `#big-changes` is now a question to the user for large diffs instead of an automatic rule.\n- **Two summaries**: merged into one \u2014 the template's Summary section is now explicitly stakeholder-readable.\n- **Shouting line 27**: now a plain instruction.\n- **Checklist**: collapsed the duplicate table into a one-line pointer back to the sections above.\n\nFile is now 59 lines, down from 73, with the merge contradiction and undefined threshold resolved."
+    }
+  ]
+}

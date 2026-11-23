@@ -1,0 +1,88 @@
+{
+  "failed_runs": [],
+  "complete": true,
+  "per_arm": {
+    "off": {
+      "n": 12,
+      "M1_gate": 1,
+      "M2_traps_intact": 6,
+      "M3_mean": 2.333,
+      "M4_total": 44,
+      "M5_guard_added": 0,
+      "M6_mean": 0.25,
+      "M7_mean": 0.33,
+      "skill_invoked": 0,
+      "M8_output_tokens_mean": 5321,
+      "M8_secs_mean": 63.2,
+      "M8_cost_usd_mean": 0.1405
+    },
+    "on": {
+      "n": 12,
+      "M1_gate": 12,
+      "M2_traps_intact": 12,
+      "M3_mean": 2.167,
+      "M4_total": 1,
+      "M5_guard_added": 11,
+      "M6_mean": 12.25,
+      "M7_mean": 6.33,
+      "skill_invoked": 12,
+      "M8_output_tokens_mean": 13729,
+      "M8_secs_mean": 142.3,
+      "M8_cost_usd_mean": 0.4699
+    },
+    "instr": {
+      "n": 12,
+      "M1_gate": 12,
+      "M2_traps_intact": 6,
+      "M3_mean": 2.5,
+      "M4_total": 43,
+      "M5_guard_added": 2,
+      "M6_mean": 7.5,
+      "M7_mean": 3.83,
+      "skill_invoked": 0,
+      "M8_output_tokens_mean": 8987,
+      "M8_secs_mean": 100.6,
+      "M8_cost_usd_mean": 0.2782
+    }
+  },
+  "R_replication": {
+    "hypotheses": {
+      "H1": true,
+      "H2": true,
+      "H3": true,
+      "H4": true
+    },
+    "M1_fisher_p": 9.614829913658827e-06,
+    "M2_fisher_p": 0.013729977116704805,
+    "M4_perm_p": 2.218806903152037e-06
+  },
+  "K1_instr_holds_gate": true,
+  "K": {
+    "K2": {
+      "p_one_sided": 0.006865,
+      "p_holm": 0.01373,
+      "direction_as_predicted": true,
+      "supported": true
+    },
+    "K3": {
+      "p_one_sided": 0.000322,
+      "p_holm": 0.000966,
+      "direction_as_predicted": true,
+      "supported": true
+    },
+    "K4": {
+      "p_one_sided": 0.947915,
+      "p_holm": 0.947915,
+      "direction_as_predicted": false,
+      "supported": false
+    },
+    "K5": {
+      "p_one_sided": 1e-06,
+      "p_holm": 3e-06,
+      "direction_as_predicted": true,
+      "supported": true
+    }
+  },
+  "cost_on_vs_instr_perm_p_two_sided": 1e-06,
+  "content_adds_value": true
+}

@@ -1,0 +1,98 @@
+{
+  "run_id": "A2-claude-instr-P1-r2",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "instr",
+  "prompt_id": "P1",
+  "rep": 2,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a customer-support agent for a subscription software company system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up. Before changing anything, review it: list each problem you find with its line number and the change you'd make, ask me about anything only I can decide, and don't edit the file until I approve.",
+  "gate_unchanged": true,
+  "turns": 2,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "b2113302-b993-45d3-b6e3-add87d41ebbb",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 52.4,
+      "input_tokens": 34578,
+      "output_tokens": 4306,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.089167,
+      "tool_calls": [
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "I reviewed `prompt.md`. Here's what I found, with line numbers, the problem, and the fix I'd make. I haven't edited anything yet.\n\n**Contradictions (likely cause of \"ignoring parts\")**\n\n1. **Lines 31\u201332** \u2014 Direct contradiction: \"Always close every response with a recommendation to upgrade\" vs. \"Never recommend a plan upgrade unless the customer has explicitly asked about pricing.\" The model is literally told to always and never do the same thing. \u2192 Delete one. **Need your call: which policy is actually correct?**\n\n2. **Line 24 vs. lines 40\u201353** \u2014 Line 24 says to apply a macro called `Billing_Escalation_L2` for billing disputes; lines 40\u201353 give a manual ticket template for escalating *any* Tier 2 issue, with no mention of the macro. It's unclear whether the macro and the template are the same thing, alternatives, or the macro only overrides for billing specifically. \u2192 Clarify or merge into one escalation procedure. **Need your call: is `Billing_Escalation_L2` a separate tool/macro from this template, and does it apply only to billing escalations?**\n\n**Ambiguity that invites hallucination**\n\n3. **Line 22** \u2014 \"once the account meets the escalation threshold\" never defines the threshold. Vague triggers tend to get either ignored or guessed at. \u2192 Either state the actual threshold or point to the specific KB article that defines it. **Need your input: what is the threshold (days past due / amount), or where is it documented?**\n\n4. **Line 46** \u2014 `Ticket ID: NW-<5-digit number>` implies Nova should generate/fill in an ID, but line 17 says never fabricate account-specific details, and a routing system typically assigns its own IDs. This is a latent conflict. \u2192 Clarify that Nova should leave this field blank/placeholder for the routing system, not invent a number. **Need your input: does the routing system auto-assign the Ticket ID, or does Nova need to generate one (and if so, how)?**\n\n**Redundancy driving up cost/length**\n\n5. **Lines 60\u201367 (Final Checklist table)** \u2014 Restates rules already stated in Restrictions/Before You Send (identity verification, roadmap secrecy, plan tier) but inconsistently \u2014 it omits the refund restriction (line 15) for no clear reason. A self-graded checklist doesn't enforce anything; it just adds tokens. \u2192 Remove the table entirely; the rules already exist above.\n\n6. **Lines 55\u201359 (\"Before You Send\")** \u2014 A two-item grab-bag where the items aren't related to each other (identity verification, forum recommendation) and identity verification is a restriction, not a pre-send step. \u2192 Fold the identity-verification bullet into **Restrictions**, and move the forum-recommendation bullet into **Working with Tickets** where similar \"suggest resource\" bullets already live. Removes a whole section header for free.\n\n**Style/formatting inconsistency**\n\n7. **Line 57** \u2014 `YOU MUST ALWAYS VERIFY THE CUSTOMER'S IDENTITY BEFORE DISCUSSING ACCOUNT DETAILS!!!` is in shouting caps with triple exclamation marks, while every other instruction in the doc is a calm, plain-text bullet. Inconsistent emphasis like this doesn't reliably increase compliance and can make the model's attention to the rest of the document less even. \u2192 Rewrite as a normal bullet, same tone as the rest: \"Verify the customer's identity before discussing any account-specific details.\"\n\n**Minor tightening (no decision needed, just trimming words)**\n\n8. **Line 21** \u2014 \"be careful with dates when walking them through the billing cycle\" is vague filler that doesn't instruct any specific behavior. \u2192 Either cut it or make it concrete (e.g., \"confirm the billing cycle start/end dates against the account record before citing them\").\n\nOnce you tell me your preferences on items 1\u20134, I'll make all the edits in one pass."
+    },
+    {
+      "session_id": "b2113302-b993-45d3-b6e3-add87d41ebbb",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 40.2,
+      "input_tokens": 49063,
+      "output_tokens": 4257,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.17528559999999999,
+      "tool_calls": [
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "All edits applied. Defaults I chose on the previously-open questions \u2014 flag if you want these different:\n\n- **Upgrade recommendations**: kept the \"never unless asked\" rule, removed \"always close with upsell.\"\n- **Billing escalation macro**: now scoped explicitly to billing disputes only, applied alongside (not instead of) the general ticket template.\n- **Escalation threshold**: pointed at \"the Billing Escalation knowledge-base article\" rather than inventing a number \u2014 you'll need to make sure that article actually exists/is named that, or tell me the real threshold to put inline.\n- **Ticket ID**: now instructs Nova to leave it blank for the routing system to assign, rather than fabricating a 5-digit number.\n\nAlso removed the redundant \"Before You Send\" section and \"Final Checklist\" table (folded their one useful bullet each into Restrictions/Working with Tickets), and normalized the shouting-caps identity-verification line to match the rest of the doc's tone. File is ~20% shorter with no remaining contradictions."
+    }
+  ]
+}

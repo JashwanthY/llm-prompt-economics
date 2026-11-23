@@ -1,0 +1,61 @@
+{
+  "run_id": "A2-claude-off-P3-r1",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P3",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a research assistant that answers questions from retrieved internal documents system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up.",
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "8a441c1d-e83b-406a-92e5-da88b0835ba2",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 98.9,
+      "input_tokens": 130927,
+      "output_tokens": 8089,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.174468,
+      "tool_calls": [
+        "Grep",
+        "Skill",
+        "Skill",
+        "Glob",
+        "Read",
+        "Write"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "Cut it from 48 lines to 29, and fixed what was likely *causing* the \"model ignores parts of it\" symptom:\n\n**Real bugs fixed:**\n- It said both \"exactly two paragraphs\" *and* \"exactly three paragraphs\" \u2014 a direct contradiction the model had to arbitrarily resolve. Kept two; swap if you actually wanted three.\n- \"Place citations immediately after the claims they support\" was stated twice (once in Evidence handling, once in the Delivery reminder table). Merged into one.\n- \"Escalation age limit\" had no actual value \u2014 unenforceable as prose. Turned it into a template variable, `{{escalation_age_limit}}`, matching the `{{retrieved_documents}}` pattern already used elsewhere. You'll need to inject a real value wherever you fill that template.\n- `PROTECT CONFIDENTIALITY!!!` was all-caps shouting with no actual content \u2014 folded it into the existing phone-number bullet as a concrete rule.\n\n**Cut as filler that was crowding out the actual rules:**\n- \"Suggest a related topic to explore\" and \"include a memorable analogy\" \u2014 these force extra generated content on *every* reply regardless of relevance, which is pure cost for a citation-driven internal tool and likely part of why other instructions get dropped. Removed; say if you want one back.\n- Dropped the separate \"Delivery reminder\" table \u2014 folded its one non-duplicate rule (acronym expansion) into Response composition.\n- Trimmed the record-schema preamble (\"these definitions are the interface contract...\") to a one-line intro.\n\nOne thing to confirm: the paragraph-count fix assumed \"two\" was correct and \"three\" was the stray duplicate \u2014 let me know if it's the other way around."
+    }
+  ]
+}

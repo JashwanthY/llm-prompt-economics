@@ -1,0 +1,64 @@
+{
+  "run_id": "A2-claude-off-P4-r1",
+  "study": "A2",
+  "agent": "claude",
+  "arm": "off",
+  "prompt_id": "P4",
+  "rep": 1,
+  "attempt": 1,
+  "status": "ok",
+  "errors": [],
+  "turn1_message": "This is our a data-extraction pipeline that turns supplier invoices into a JSON record system prompt: prompt.md. It's getting long and expensive, and the model sometimes ignores parts of it. Clean it up.",
+  "gate_unchanged": false,
+  "turns": 1,
+  "files_after_t1": [
+    "prompt.md"
+  ],
+  "turn": [
+    {
+      "session_id": "6ad35e3e-4121-4148-9b63-995a2da6cc13",
+      "model": "claude-haiku-4-5-20251001,claude-sonnet-5",
+      "requested_model": "sonnet",
+      "secs": 69.2,
+      "input_tokens": 210510,
+      "output_tokens": 5690,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.1644044,
+      "tool_calls": [
+        "Read",
+        "Skill",
+        "Glob",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Read",
+        "Edit",
+        "Read"
+      ],
+      "skills": [
+        "deep-research",
+        "design",
+        "slides",
+        "design-sync",
+        "dataviz",
+        "artifact-diagramming",
+        "artifact-capabilities",
+        "update-config",
+        "verify",
+        "debug",
+        "code-review",
+        "simplify",
+        "batch",
+        "fewer-permission-prompts",
+        "doctor",
+        "loop",
+        "schedule",
+        "claude-api",
+        "workflow-authoring",
+        "run",
+        "run-skill-generator"
+      ],
+      "final_text": "This reads cleanly now and the token count is down meaningfully. Summary of what I changed:\n\n1. **Removed the contradiction that was likely causing inconsistent behavior**: the prompt told the model to both \"Return the entire JSON record on a single line\" and \"Pretty-print the JSON record with each top-level field on its own line.\" Kept pretty-print only, since this record is meant for human review before posting.\n2. **Removed three off-task filler instructions**: \"Include a friendly greeting,\" \"Suggest a general productivity habit,\" and \"Offer a procurement tip\" in `extraction_notes` \u2014 these have nothing to do with AP intake and were diluting the model's focus on the actual field (reviewer-relevant observations).\n3. **Removed the generic opening line** (\"You are a helpful, knowledgeable assistant.\") \u2014 it added nothing the objective section doesn't already convey.\n4. **Merged the shouted standalone bullet** (\"KEEP SUPPLIER CAPITALIZATION\") into the adjacent instruction about copying the invoice number exactly, instead of an orphaned all-caps line.\n5. **Folded the lone bullet in \"Delivery checks\" into the table** so the section is one consistent format instead of a bullet + table mix.\n\nThe remaining duplication (invoice number mentioned in both \"Intake and routing\" and \"Delivery checks\") is intentional \u2014 it's a final self-check before output, not a leftover copy-paste, so I left it."
+    }
+  ]
+}
