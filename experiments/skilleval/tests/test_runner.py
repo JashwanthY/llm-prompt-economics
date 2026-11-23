@@ -90,3 +90,13 @@ def test_codex_served_model_returns_none_for_unknown_thread(tmp_path):
         {"type": "turn_context", "payload": {"model": "gpt-other"}},
     ]) + "\n")
     assert codex_served_model("t-1", sessions_root=sessions) is None
+
+
+@pytest.mark.parametrize("arm,has_instr", [("instr", True), ("on", False), ("off", False)])
+def test_only_the_instr_arm_gets_the_stop_instruction(tmp_path, fake, arm, has_instr):
+    from runner import INSTR, TURN1
+    fake("claude", "report_then_apply")
+    meta = _run(tmp_path, "claude", arm=arm)
+    assert meta["turn1_message"].startswith(TURN1.format(domain="support agent"))
+    assert meta["turn1_message"].endswith(INSTR) == has_instr
+    assert len(INSTR.split()) == 35

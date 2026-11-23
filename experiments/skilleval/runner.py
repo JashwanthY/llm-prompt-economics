@@ -19,6 +19,11 @@ from isolation import claude_cmd, codex_cmd, make_workdir
 
 TURN1 = ("This is our {domain} system prompt: prompt.md. It's getting long and expensive, "
          "and the model sometimes ignores parts of it. Clean it up.")
+# Study A2's instruction-matched control (DESIGN_A2.md §2): the skill's procedure in
+# one sentence, none of its content. Appended to TURN1 in the `instr` arm only.
+INSTR = (" Before changing anything, review it: list each problem you find with its line number "
+         "and the change you'd make, ask me about anything only I can decide, and don't edit "
+         "the file until I approve.")
 TURN2 = "apply all"
 TIMEOUT = 900
 RATE_LIMIT = re.compile(r"(?i)rate.?limit|usage limit|limit reached|quota|too many requests|\b429\b")
@@ -114,7 +119,8 @@ def run_session(spec, prompt_dir, out_root, codex_model=None, codex_effort=None,
     before = _read(wd / "prompt.md")
 
     turns = []
-    lines, result, secs, _ = run_turn(spec.agent, wd, TURN1.format(domain=domain), codex_model,
+    turn1_message = TURN1.format(domain=domain) + (INSTR if spec.arm == "instr" else "")
+    lines, result, secs, _ = run_turn(spec.agent, wd, turn1_message, codex_model,
                                       codex_effort=codex_effort, timeout=timeout)
     turns.append((lines, result, secs, _read(wd / "prompt.md")))
     files_after_t1 = _files(wd)
@@ -134,6 +140,7 @@ def run_session(spec, prompt_dir, out_root, codex_model=None, codex_effort=None,
     errors = [r.error for _l, r, _s, _a in turns if r.error]
     meta = {
         **asdict(spec), "attempt": attempt, "status": "error" if errors else "ok", "errors": errors,
+        "turn1_message": turn1_message,
         "gate_unchanged": unchanged, "turns": len(turns), "files_after_t1": files_after_t1,
         "turn": [{"session_id": r.session_id, "model": r.model,
                   "requested_model": codex_model if spec.agent == "codex" else "sonnet", "secs": round(s, 1),
